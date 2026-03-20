@@ -1,47 +1,30 @@
-\documentclass[11pt,a4paper]{article}
+\documentclass[a4paper,11pt]{article}
 
-\usepackage[a4paper,margin=2.2cm]{geometry}
+\usepackage{fontspec}
+\usepackage[a4paper,left=2.3cm,right=2.3cm,top=2.6cm,bottom=2.6cm]{geometry}
 \usepackage{amsmath}
 \usepackage{booktabs}
 \usepackage{float}
-\usepackage{fontspec}
 \usepackage{graphicx}
 \usepackage{hyperref}
 \usepackage{listings}
 \usepackage{pgfplots}
-\usepackage{pgfplotstable}
+\usepackage{fancyhdr}
 \usepackage{xcolor}
-\usepackage{xeCJK}
 
 \pgfplotsset{compat=1.18}
-\hypersetup{colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue}
-\setmainfont{Latin Modern Roman}
-\setCJKmainfont{FandolSong-Regular}
-\setCJKsansfont{FandolHei-Regular}
-\setCJKmonofont{FandolFang-Regular}
+\graphicspath{{./}{fig/}}
+\hypersetup{colorlinks=true,linkcolor=black,urlcolor=black}
+\setmainfont{Noto Serif CJK SC}
+\setsansfont{Noto Sans CJK SC}
+\setmonofont{Noto Sans Mono CJK SC}
+\XeTeXlinebreaklocale "zh"
+\XeTeXlinebreakskip = 0pt plus 1pt
+\renewcommand{\today}{\number\year 年 \number\month 月 \number\day 日}
 \renewcommand{\contentsname}{目录}
 \renewcommand{\figurename}{图}
 \renewcommand{\tablename}{表}
-
-\newcommand{\screenshotplaceholder}[4]{
-  \begin{figure}[H]
-    \centering
-    \IfFileExists{fig/#1}{
-      \includegraphics[width=#2\textwidth]{fig/#1}
-    }{
-      \fbox{
-        \begin{minipage}[c][0.24\textheight][c]{0.82\textwidth}
-          \centering
-          {\large 截图占位符}\\[0.6em]
-          请将图片放到 \texttt{report/fig/#1}\\[0.4em]
-          然后重新编译报告
-        \end{minipage}
-      }
-    }
-    \caption{#3}
-    \label{#4}
-  \end{figure}
-}
+\setlength{\textfloatsep}{10pt}
 
 \lstset{
   basicstyle=\ttfamily\small,
@@ -53,188 +36,149 @@
   breaklines=true
 }
 
-\title{\textbf{并行程序设计 Lab1 CPU 架构编程实验报告}}
-\author{姓名：待填写 \quad 学号：待填写}
-\date{\today}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\leftmark}
+\rhead{并行程序设计实验报告}
+\cfoot{\thepage}
+\setlength{\headheight}{14pt}
+\renewcommand{\headrulewidth}{0.3pt}
 
 \begin{document}
 
 \begin{titlepage}
-  \centering
-  \includegraphics[width=0.7\textwidth]{NKU.png}\par
-  \vspace{2.0cm}
-  {\bfseries\fontsize{24pt}{30pt}\selectfont 并行程序设计实验报告\par}
-  \vspace{1.2cm}
-  {\bfseries\fontsize{20pt}{26pt}\selectfont Lab1 CPU 架构编程\par}
-  \vspace{1.2cm}
-  {\fontsize{16pt}{22pt}\selectfont 题目：Cache 与超标量对程序性能的影响\par}
-  \vfill
-  {\large
-  姓名：待填写\par
-  学号：待填写\par
-  专业：计算机科学与技术\par
-  }
-  \vspace{1.0cm}
-  {\large \today\par}
+    \begin{center}
+    \includegraphics[width=0.8\textwidth]{NKU.png}\\[1cm]
+    \vspace{18mm}
+    {\bfseries\huge 计算机学院\par}
+    \vspace{0.6cm}
+    {\bfseries\huge 并行程序设计实验报告\par}
+    \vspace{2.0cm}
+    {\bfseries\Huge Lab1 CPU 架构编程\par}
+    \vspace{0.8cm}
+    {\Large Cache 与超标量对程序性能的影响\par}
+
+    \vspace{\fill}
+
+    {\Large 姓名：柯云超\par}
+    \vspace{0.35cm}
+    {\Large 学号：2413575\par}
+    \vspace{0.35cm}
+    {\Large 专业：计算机科学与技术\par}
+    \vspace{0.35cm}
+    {\Large 学院：计算机学院\par}
+
+    \vfill
+    {\Large \today\par}
+    \end{center}
 \end{titlepage}
 
 \tableofcontents
 \newpage
 
-\section{实验内容}
-本次实验包含两个部分：
+\section{实验任务}
+本次实验包含两个问题：
 \begin{enumerate}
-  \item 计算给定 $n\times n$ 矩阵每一列与给定向量的内积，对比逐列访问的平凡算法与按行访问的 cache 优化算法。
-  \item 计算 $n$ 个数的和，对比链式累加、四路独立累加以及两两归约三种实现，分析超标量和访存开销对性能的影响。
+  \item 给定 $n \times n$ 矩阵 $B$ 和向量 $a$，计算每一列与向量的内积，
+  \[
+    s_j = \sum_{i=0}^{n-1} B_{i,j} a_i .
+  \]
+  对比逐列访问的平凡算法和面向 cache 的优化算法。
+  \item 给定 $n$ 个浮点数，计算其和，
+  \[
+    S = \sum_{i=0}^{n-1} x_i .
+  \]
+  对比链式累加与适合超标量执行的多链累加、两两归约等实现。
 \end{enumerate}
 
-本次实验代码位于 \texttt{../src/lab1\_benchmark.cpp}，使用 \texttt{Makefile} 构建，运行后会在 \texttt{../results} 中生成全部原始数据。若课程要求提交 GitHub/Gitee 链接，可在最终提交前将本地代码目录替换为个人仓库地址。
+本次提交的代码没有继续使用单文件结构，而是按功能拆分为多个源文件：计时与 profiling 框架位于 \texttt{src/benchmark.*}，矩阵实验位于 \texttt{src/matrix\_experiment.*}，求和实验位于 \texttt{src/sum\_experiment.*}，环境信息与 profiling 输出分别位于 \texttt{src/environment.*} 和 \texttt{src/profile.*}，入口文件为 \texttt{src/main.cpp}。这种组织方式更方便把不同优化版本并列管理，也便于后续继续扩展 SIMD 或多线程版本。
 
-\section{实验环境}
+\section{实验环境与测试方法}
+\subsection{实验环境}
 \begin{table}[H]
   \centering
+  \small
   \begin{tabular}{ll}
     \toprule
     项目 & 配置 \\
     \midrule
-    CPU & Intel Core i9-13900H，10 个物理核，20 线程 \\
-    L1d Cache & 48 KiB/core \\
-    L2 Cache & 1.25 MiB/core \\
-    L3 Cache & 24 MiB shared \\
-    内存 & 15 GiB \\
+    CPU & Intel Core i9-13900H \\
+    L1d Cache & 48 KiB \\
+    L2 Cache & 1280 KiB \\
+    L3 Cache & 24576 KiB \\
     操作系统 & Ubuntu 22.04.5 LTS on WSL2 \\
     编译器 & g++ 12.3.0 \\
     编译选项 & \texttt{-std=c++17 -O3 -march=native} \\
-    额外控制 & \texttt{-fno-tree-vectorize -fno-tree-slp-vectorize}，并将线程绑定到 CPU0 \\
+    额外控制 & \texttt{-fno-tree-vectorize -fno-tree-slp-vectorize}，绑定 CPU0 \\
     \bottomrule
   \end{tabular}
   \caption{实验平台配置}
 \end{table}
 
-\noindent
-关闭自动向量化的目的是尽量避免编译器自动生成 SIMD 指令，把第二部分实验的性能差异更多地保留在“数据相关性”和“指令级并行”本身，而不是混入自动向量化带来的收益。
+关闭自动向量化是为了尽量把实验重点保留在“cache 局部性”和“指令级并行”本身，而不是让编译器自动生成 SIMD 指令掩盖差异。
 
-\screenshotplaceholder{environment.png}{0.88}{实验平台信息截图占位符，可替换为 \texttt{environment.txt} 或 \texttt{lscpu} 输出截图}{fig:env-shot}
+\subsection{测试数据与规模设计}
+两部分实验的数据都使用固定公式生成，便于复现实验并检查正确性：
+\[
+  a_i = 0.25 + ((17i + 11) \bmod 97) / 97.0 ,
+\]
+\[
+  B_{i,j} = 0.1 + ((131i + 17j) \bmod 251) / 251.0 .
+\]
 
-\section{算法设计}
-\subsection{矩阵与向量内积}
-设矩阵为 $B$，向量为 $a$，输出向量为 $sum$。二维数组在 C/C++ 中按行主序存储，因此不同访问顺序会带来完全不同的空间局部性。
+矩阵实验选取 $n=\{64,128,256,384,512,768,1024,1536,2048\}$，对应工作集大小为 $8n^2$ Byte。其中 $n=384$ 时矩阵大小约为 1.125 MiB，已经接近本机单核 L2；$n=2048$ 时矩阵大小达到 32 MiB，已经超过共享 L3。
 
-\subsubsection{平凡算法}
-逐列访问矩阵。每次固定一列，再沿着行方向跳跃访问：
-\begin{lstlisting}[language=C++,caption={矩阵列内积的平凡算法}]
-for (size_t col = 0; col < n; ++col) {
-    double acc = 0.0;
-    for (size_t row = 0; row < n; ++row) {
-        acc += matrix[row * n + col] * vec[row];
-    }
-    out[col] = acc;
-}
-\end{lstlisting}
+求和实验选取 $n=\{2^{10},2^{12},2^{14},2^{16},2^{18},2^{20},2^{22},2^{23}\}$，数组大小为 $8n$ Byte，用于观察从 cache 友好到带宽受限的变化过程。
 
-该算法的计算量仍然是 $O(n^2)$，但访问步长为 $n$，当矩阵规模超过 cache 容量后，cache miss 会明显增加。
+\subsection{计时方式}
+程序使用 \texttt{std::chrono::steady\_clock} 计时。对于每组规模，不预先固定测试次数，而是反复执行待测函数直到总计时超过 250 ms，再用总时间除以执行次数得到单次平均时间。这样做能显著降低小规模测试中过短运行时间带来的误差。每次测试前先进行两轮 warm-up，并将线程绑定到逻辑核 0，减小调度波动。
 
-\subsubsection{Cache 优化算法}
-改为逐行访问矩阵，使得内层循环连续读取一整行元素：
-\begin{lstlisting}[language=C++,caption={矩阵列内积的 cache 优化算法}]
-fill(out, out + n, 0.0);
-for (size_t row = 0; row < n; ++row) {
-    const double factor = vec[row];
-    const double* row_ptr = matrix + row * n;
-    for (size_t col = 0; col < n; ++col) {
-        out[col] += row_ptr[col] * factor;
-    }
-}
-\end{lstlisting}
+\section{算法设计与优化思路}
+\subsection{矩阵列内积}
+矩阵部分实现了三个版本：
+\begin{enumerate}
+  \item \textbf{平凡算法}：外层按列循环，内层按行跳跃访问 \texttt{matrix[row * n + col]}。该写法与 C/C++ 的行主存储不一致，跨行访问步长大，空间局部性较差。
+  \item \textbf{行优先算法}：把循环次序改成“按行遍历矩阵，再把该行对所有列的贡献累加到输出向量”。这一改动不改变计算复杂度，但让内层访问连续内存，cache line 利用率明显更高。
+  \item \textbf{行优先 + 4 路展开}：在行优先基础上，对内层循环做 4 路手动展开，减少循环控制开销，进一步给处理器提供更稳定的指令流。
+\end{enumerate}
 
-两种算法的时间复杂度相同，但优化算法的内存访问顺序与行主存储一致，能够更充分利用 cache 的空间局部性。
+矩阵优化的关键不是减少乘加次数，而是让访问顺序匹配行主存储布局。第三个版本属于在此基础上的局部改良，收益通常小于“访问顺序修正”本身，但在中等规模数据上仍然能带来可见提升。
 
-\subsection{$n$ 个数求和}
-\subsubsection{链式累加}
-最直接的方法是用一个累加器顺序求和：
-\begin{lstlisting}[language=C++,caption={链式累加}]
-double sum = 0.0;
-for (size_t i = 0; i < n; ++i) {
-    sum += data[i];
-}
-\end{lstlisting}
+\subsection{求和}
+求和部分实现了四个版本：
+\begin{enumerate}
+  \item \textbf{链式累加}：单个累加器顺序求和，结构最简单，但依赖链最长。
+  \item \textbf{两路独立累加}：将一条依赖链拆成两条独立链，末尾合并结果。
+  \item \textbf{四路独立累加}：继续把依赖链拆成四条，进一步提高指令级并行度。
+  \item \textbf{两两归约}：先把相邻元素两两相加，再对中间结果继续归约，直到只剩一个结果。该方法依赖深度更短，但需要反复读写中间结果。
+\end{enumerate}
 
-该算法结构最简单，但每次加法都依赖前一次结果，容易形成长依赖链。
-
-\subsubsection{四路独立累加}
-把一个累加器拆为四个独立累加器，再在末尾合并：
-\begin{lstlisting}[language=C++,caption={四路独立累加}]
-double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;
-size_t limit = n - (n % 4);
-for (size_t i = 0; i < limit; i += 4) {
-    s0 += data[i];
-    s1 += data[i + 1];
-    s2 += data[i + 2];
-    s3 += data[i + 3];
-}
-double sum = (s0 + s1) + (s2 + s3);
-\end{lstlisting}
-
-这样做等价于循环展开和多链累加的结合。单条依赖链被拆成四条更短的依赖链，更容易被超标量流水线并行调度。
-
-\subsubsection{两两归约}
-按树形结构两两相加，每轮把问题规模缩小一半：
-\begin{lstlisting}[language=C++,caption={两两归约}]
-copy(data, data + n, scratch.begin());
-size_t active = n;
-while (active > 1) {
-    size_t pairs = active / 2;
-    for (size_t i = 0; i < pairs; ++i) {
-        scratch[i] = scratch[2 * i] + scratch[2 * i + 1];
-    }
-    active = pairs;
-}
-\end{lstlisting}
-
-这种方法同样减少了长依赖链，但会额外读写辅助数组，访存开销较大，因此未必在实际机器上更快。
-
-\section{实验方案}
-\subsection{测试数据}
-两部分实验都采用固定公式生成输入，便于重复验证：
-\begin{itemize}
-  \item 向量元素：\texttt{0.25 + ((17i + 11) mod 97) / 97.0}
-  \item 矩阵元素：\texttt{0.1 + ((131i + 17j) mod 251) / 251.0}
-\end{itemize}
-
-\subsection{规模设计}
-\begin{itemize}
-  \item 矩阵实验取 $n=\{64,128,256,384,512,768,1024,1536,2048\}$。
-  \item 求和实验取 $n=\{2^{10},2^{12},2^{14},2^{16},2^{18},2^{20},2^{22},2^{23}\}$。
-\end{itemize}
-
-矩阵所占空间约为 $n^2\times 8$ Byte。以本机 L2 为 1.25 MiB、L3 为 24 MiB 为参照，$n=384$ 时矩阵约 1.125 MiB，已经接近单核 L2；$n=1536$ 时矩阵约 18 MiB，已经逼近 L3 范围。这些规模点适合观察 cache 层次变化带来的转折。
-
-\subsection{计时方法}
-采用 \texttt{std::chrono::steady\_clock} 进行高精度计时。对于每组规模，不固定执行次数，而是重复执行核心函数直到总计时超过 250 ms，再计算单次平均时间。这样可以减弱短程序带来的计时误差。
-
-此外，程序在测试开始前会先进行两轮 warm-up，并将测试线程绑定到逻辑核 0，以减少调度带来的波动。
+这里的优化重点是“减少串行依赖”。链式累加的每次加法都依赖上一次结果，而两路、四路独立累加把累加操作分散到多个寄存器上，更容易被超标量流水线并行发射。两两归约理论上也能缩短依赖深度，但中间数组的访存成本可能抵消收益。
 
 \section{实验结果与分析}
-\subsection{矩阵与向量内积实验结果}
+\subsection{矩阵实验}
+表 \ref{tab:matrix} 中，加速比 1 表示“平凡算法 / 行优先”，加速比 2 表示“平凡算法 / 行优先+4 路展开”。
+
 \begin{table}[H]
   \centering
-  \small
-  \begin{tabular}{rrrr}
+  \scriptsize
+  \begin{tabular}{rrrrrr}
     \toprule
-    $n$ & 平凡算法/ms & cache 优化/ms & 加速比 \\
+    $n$ & 平凡/ms & 行优先/ms & 行优先+U4/ms & 加速比1 & 加速比2 \\
     \midrule
-    64   & 0.0028 & 0.0020 & 1.41 \\
-    128  & 0.0169 & 0.0081 & 2.08 \\
-    256  & 0.0716 & 0.0313 & 2.29 \\
-    384  & 0.1983 & 0.0713 & 2.78 \\
-    512  & 0.9214 & 0.1248 & 7.38 \\
-    768  & 2.3877 & 0.3001 & 7.96 \\
-    1024 & 6.6629 & 0.6232 & 10.69 \\
-    1536 & 20.7956 & 2.3171 & 8.97 \\
-    2048 & 34.4550 & 3.9379 & 8.75 \\
+    64   & 0.002379 & 0.001731 & 0.001223 & 1.37 & 1.95 \\
+    128  & 0.014189 & 0.007140 & 0.005770 & 1.99 & 2.46 \\
+    256  & 0.062870 & 0.027437 & 0.022990 & 2.29 & 2.73 \\
+    384  & 0.158872 & 0.061481 & 0.052697 & 2.58 & 3.01 \\
+    512  & 0.884909 & 0.105562 & 0.093286 & 8.38 & 9.49 \\
+    768  & 1.445654 & 0.243319 & 0.214320 & 5.94 & 6.75 \\
+    1024 & 5.237621 & 0.505124 & 0.422654 & 10.37 & 12.39 \\
+    1536 & 19.342532 & 1.876966 & 1.807951 & 10.31 & 10.70 \\
+    2048 & 31.570206 & 3.178951 & 2.974866 & 9.93 & 10.61 \\
     \bottomrule
   \end{tabular}
   \caption{矩阵列内积实验结果}
+  \label{tab:matrix}
 \end{table}
 
 \begin{figure}[H]
@@ -242,7 +186,7 @@ while (active > 1) {
   \begin{tikzpicture}
     \begin{axis}[
       width=0.92\textwidth,
-      height=7cm,
+      height=6.2cm,
       xlabel={$n$},
       ylabel={time (ms)},
       grid=major,
@@ -250,59 +194,44 @@ while (active > 1) {
     ]
       \addplot+[mark=*] table[x=n,y=naive_ms,col sep=comma]{../results/matrix_results.csv};
       \addplot+[mark=square*] table[x=n,y=row_major_ms,col sep=comma]{../results/matrix_results.csv};
-      \legend{naive,row-major}
+      \addplot+[mark=triangle*] table[x=n,y=row_major_unrolled4_ms,col sep=comma]{../results/matrix_results.csv};
+      \legend{naive,row-major,row-major+u4}
     \end{axis}
   \end{tikzpicture}
-  \caption{矩阵列内积两种算法运行时间对比}
+  \caption{矩阵列内积三种实现的运行时间}
+  \label{fig:matrix}
 \end{figure}
 
-\begin{figure}[H]
-  \centering
-  \begin{tikzpicture}
-    \begin{axis}[
-      width=0.92\textwidth,
-      height=6.8cm,
-      xlabel={$n$},
-      ylabel={speedup},
-      grid=major
-    ]
-      \addplot+[mark=triangle*] table[x=n,y=speedup,col sep=comma]{../results/matrix_results.csv};
-    \end{axis}
-  \end{tikzpicture}
-  \caption{矩阵列内积 cache 优化算法相对平凡算法的加速比}
-\end{figure}
+矩阵实验的趋势比较清楚：
+\begin{enumerate}
+  \item 当 $n \le 384$ 时，三种实现的差距还不算特别夸张，加速比主要在 2 到 3 倍之间。此时工作集仍然接近 L2 范围，虽然逐列访问不理想，但尚未完全失控。
+  \item 当 $n=512$ 时，矩阵规模达到 2 MiB，已经明显超过 1280 KiB 的 L2，平凡算法时间陡增，而行优先算法仍然保持较平稳增长，加速比突然跃升到 8 倍以上。
+  \item 在 $n=1024$ 时，行优先 + 4 路展开取得了本次矩阵实验最高加速比 12.39 倍。这里主要收益仍来自访问顺序修正，循环展开只是在此基础上再减少了一部分循环控制开销。
+  \item 当 $n$ 增长到 1536 和 2048 后，矩阵规模逼近甚至超过 L3，三种实现都继续变慢，但优化版本仍然稳定保持约 10 倍量级的优势，说明访存模式依然是决定性因素。
+\end{enumerate}
 
-可以看到：
-\begin{itemize}
-  \item 当 $n\le 384$ 时，两种算法差距不算大，加速比约为 $1.4\times$ 到 $2.8\times$。此时矩阵规模还没有明显超出单核 L2，平凡算法虽然按列访问，但 cache 仍能部分容纳热点数据。
-  \item 当 $n=512$ 时，矩阵大小约为 2 MiB，已经明显超过单核 L2，加速比突然提升到 $7.38\times$。
-  \item 在 $n=1024$ 时，优化算法达到本次实验最高加速比 $10.69\times$。此时平凡算法的跨行步长访问导致大量无效 cache line 装载，而逐行访问能够持续命中连续内存。
-  \item 当 $n=1536$ 和 $n=2048$ 时，矩阵规模已经接近甚至超过共享 L3，加速比略有回落，但仍稳定在 $8\times$ 以上，说明访问顺序的影响仍然非常显著。
-\end{itemize}
+\subsection{求和实验}
+表 \ref{tab:sum} 中，三列加速比都以链式累加为基准。
 
-该实验的核心结论是：在计算量相同的情况下，访存模式决定了 cache 是否能真正发挥作用。逐列访问与内存布局相悖，导致大量 cache miss；逐行访问则把空间局部性利用到了最大。
-
-\screenshotplaceholder{run-output.png}{0.92}{程序整体运行结果截图占位符，可替换为 \texttt{./bin/lab1\_benchmark} 的终端输出截图}{fig:run-shot}
-
-\subsection{$n$ 个数求和实验结果}
 \begin{table}[H]
   \centering
-  \small
-  \begin{tabular}{rrrrrr}
+  \scriptsize
+  \begin{tabular}{rrrrrrr}
     \toprule
-    $n$ & 链式/ms & 四路累加/ms & 两两归约/ms & 四路加速比 & 归约加速比 \\
+    $n$ & 链式/ms & 两路/ms & 四路/ms & 归约/ms & 两路加速比 & 四路加速比 \\
     \midrule
-    1024      & 0.000678 & 0.000190 & 0.000723 & 3.57 & 0.94 \\
-    4096      & 0.002888 & 0.000786 & 0.002851 & 3.67 & 1.01 \\
-    16384     & 0.011792 & 0.003921 & 0.013559 & 3.01 & 0.87 \\
-    65536     & 0.047187 & 0.016941 & 0.055072 & 2.79 & 0.86 \\
-    262144    & 0.190105 & 0.073927 & 0.453735 & 2.57 & 0.42 \\
-    1048576   & 0.913650 & 0.464929 & 2.237086 & 1.97 & 0.41 \\
-    4194304   & 4.010044 & 3.532942 & 10.989225 & 1.14 & 0.36 \\
-    8388608   & 8.133984 & 7.008250 & 20.460185 & 1.16 & 0.40 \\
+    1024      & 0.000616 & 0.000333 & 0.000171 & 0.000533 & 1.85 & 3.61 \\
+    4096      & 0.002708 & 0.001341 & 0.000744 & 0.002043 & 2.02 & 3.64 \\
+    16384     & 0.010566 & 0.005477 & 0.003521 & 0.010409 & 1.93 & 3.00 \\
+    65536     & 0.047305 & 0.022644 & 0.014536 & 0.043753 & 2.09 & 3.25 \\
+    262144    & 0.181432 & 0.092731 & 0.065947 & 0.338249 & 1.96 & 2.75 \\
+    1048576   & 0.705655 & 0.379622 & 0.305291 & 1.618618 & 1.86 & 2.31 \\
+    4194304   & 3.664419 & 2.697514 & 2.930423 & 7.991180 & 1.36 & 1.25 \\
+    8388608   & 7.133793 & 5.286948 & 5.101690 & 16.656185 & 1.35 & 1.40 \\
     \bottomrule
   \end{tabular}
-  \caption{$n$ 个数求和实验结果}
+  \caption{求和实验结果}
+  \label{tab:sum}
 \end{table}
 
 \begin{figure}[H]
@@ -310,29 +239,7 @@ while (active > 1) {
   \begin{tikzpicture}
     \begin{axis}[
       width=0.92\textwidth,
-      height=7cm,
-      xlabel={$n$},
-      ylabel={time (ms)},
-      xmode=log,
-      log basis x=2,
-      grid=major,
-      legend pos=north west
-    ]
-      \addplot+[mark=*] table[x=n,y=naive_ms,col sep=comma]{../results/sum_results.csv};
-      \addplot+[mark=square*] table[x=n,y=superscalar4_ms,col sep=comma]{../results/sum_results.csv};
-      \addplot+[mark=triangle*] table[x=n,y=pairwise_ms,col sep=comma]{../results/sum_results.csv};
-      \legend{chain,4-way,pairwise}
-    \end{axis}
-  \end{tikzpicture}
-  \caption{$n$ 个数求和三种算法运行时间对比}
-\end{figure}
-
-\begin{figure}[H]
-  \centering
-  \begin{tikzpicture}
-    \begin{axis}[
-      width=0.92\textwidth,
-      height=6.8cm,
+      height=6.2cm,
       xlabel={$n$},
       ylabel={speedup},
       xmode=log,
@@ -340,32 +247,35 @@ while (active > 1) {
       grid=major,
       legend pos=north east
     ]
+      \addplot+[mark=*] table[x=n,y=speedup_superscalar2,col sep=comma]{../results/sum_results.csv};
       \addplot+[mark=square*] table[x=n,y=speedup_superscalar4,col sep=comma]{../results/sum_results.csv};
       \addplot+[mark=triangle*] table[x=n,y=speedup_pairwise,col sep=comma]{../results/sum_results.csv};
-      \legend{4-way,pairwise}
+      \legend{2-way,4-way,pairwise}
     \end{axis}
   \end{tikzpicture}
-  \caption{优化算法相对链式累加的加速比}
+  \caption{求和优化版本相对链式累加的加速比}
+  \label{fig:sum}
 \end{figure}
 
-对求和实验可以得到三点结论：
-\begin{itemize}
-  \item 四路独立累加在小规模数据上效果明显，最高加速比出现在 $n=4096$，达到 $3.67\times$。原因是原始链式算法只有一条长依赖链，而四路累加把依赖分散到四个寄存器中，更容易被超标量流水线并行执行。
-  \item 随着数据规模增大到数百万级，加速比逐渐下降到约 $1.1\times$ 到 $2.0\times$。此时瓶颈从“算术依赖”逐渐转向“内存带宽”，因此纯粹的指令级并行优化收益被削弱。
-  \item 两两归约在本机上始终不如链式累加，尤其在大规模数据时明显更慢。根本原因是该算法需要反复写回辅助数组，虽然减少了依赖链，但引入了更高的访存成本。
-\end{itemize}
+求和实验说明了超标量优化和访存开销之间的取舍：
+\begin{enumerate}
+  \item 两路和四路独立累加在小规模数据上效果非常明显。四路版本在 $n=4096$ 时达到 3.64 倍加速，说明拆分依赖链确实能显著提高处理器同时发射加法指令的能力。
+  \item 两路版本的提升较稳，但始终不如四路版本。这个现象很自然，因为四路版本提供了更多互不依赖的累加链，给调度器留下了更大余地。
+  \item 当 $n$ 增大到 $2^{22}$ 和 $2^{23}$ 时，数组大小达到 32 MiB 和 64 MiB，已经越过 L3 范围，四路版本的加速比下降到约 1.3 到 1.4 倍。此时瓶颈已从“依赖链长度”逐渐转向“内存带宽”。
+  \item 两两归约只在很小规模时略优于链式累加，规模继续增大后明显落后。原因在于它虽然缩短了依赖深度，但需要不断写回中间结果，访存代价过高。
+\end{enumerate}
 
-此外，四路累加和两两归约会改变浮点数的求和顺序，因而与链式累加出现了极小的数值差异。实测误差量级约为 $10^{-13}\sim10^{-10}$，属于浮点运算舍入误差的正常范围。
+另外，多链累加和归约都会改变浮点加法顺序，因此与链式累加存在微小数值差异。实测误差量级在 $10^{-13}$ 到 $10^{-10}$ 之间，属于浮点舍入误差的正常范围。
 
-\subsection{汇编层面的简单验证}
-使用 \texttt{objdump -Cd -Mintel} 查看可执行文件，可以直接看到链式累加和四路累加在汇编层面的结构差异。关键片段如下：
-
-\begin{lstlisting}[caption={求和函数的关键汇编片段}]
+\subsection{汇编观察与 profiling 结果}
+从 \texttt{objdump -Cd -Mintel} 提取的汇编可以看到，链式累加的关键循环只维护一个累加寄存器：
+\begin{lstlisting}[caption={链式累加与多链累加的关键汇编片段}]
 sum_naive:
     vaddsd xmm0, xmm0, QWORD PTR [rdi]
-    add    rdi, 0x8
-    cmp    rax, rdi
-    jne    ...
+
+sum_superscalar2:
+    vaddsd xmm0, xmm0, QWORD PTR [rax]
+    vaddsd xmm1, xmm1, QWORD PTR [rax+0x8]
 
 sum_superscalar4:
     vaddsd xmm0, xmm0, QWORD PTR [rax]
@@ -374,31 +284,18 @@ sum_superscalar4:
     vaddsd xmm2, xmm2, QWORD PTR [rax-0x8]
 \end{lstlisting}
 
-可以看到，链式累加只有一个累加寄存器 \texttt{xmm0}，每条加法依赖上一条指令的结果；而四路累加同时使用 \texttt{xmm0/xmm1/xmm2/xmm3} 四个寄存器维护独立的累加链，处理器可以更容易发射多条彼此无依赖的标量加法指令。这与前述时间结果是一致的。
+这与时间结果是吻合的：\texttt{sum\_naive} 只有一条依赖链，而两路、四路版本分别引入了两个和四个独立累加寄存器，使得加法指令更容易并行发射。
 
-\screenshotplaceholder{assembly.png}{0.92}{汇编对比截图占位符，可替换为 \texttt{sum\_naive} 与 \texttt{sum\_superscalar4} 的反汇编截图}{fig:asm-shot}
-
-\subsection{Profiling 尝试与环境限制}
-本次环境中没有安装外部 \texttt{perf} 和 \texttt{VTune}，同时在 WSL2 中通过 \texttt{perf\_event\_open} 直接访问硬件计数器也失败，因此未能获得本机的 cycles、instructions 和 cache miss 统计信息。程序已经保留了 profiling 代码和失败日志，见 \texttt{../results/profile\_results.csv}。
-
-因此，本报告对底层原因的分析主要依据以下两类证据：
-\begin{itemize}
-  \item 不同工作集规模下的时间变化趋势；
-  \item 目标代码的汇编结构差异。
-\end{itemize}
-
-虽然少了一步硬件计数器验证，但对本次两个问题而言，结论已经比较清晰：矩阵实验的主要瓶颈是 cache 局部性，求和实验的小规模收益主要来自指令级并行，而大规模收益受限于内存系统。
-
-\screenshotplaceholder{profiling.png}{0.92}{Profiling 结果截图占位符，可替换为 \texttt{perf} 或 \texttt{VTune} 的实际结果截图；若没有，可保留为空白占位}{fig:profile-shot}
+按照实验指导书的建议，我还保留了 \texttt{perf\_event\_open} 的 profiling 代码，尝试记录 cycles、instructions 和 cache miss。但当前环境是 WSL2，本机直接访问硬件计数器失败，\texttt{results/profile\_results.csv} 中所有项目都返回了 \texttt{perf\_event\_open is unavailable in this environment}。因此，本报告对底层原因的判断主要依据两类证据：一是不同工作集规模下的时间变化趋势，二是反汇编得到的目标代码结构。
 
 \section{结论}
-本次实验完成了两类 CPU 架构相关优化的实现与测试，得到如下结论：
+本次实验完成了两个 CPU 架构相关问题的实现、优化和测试，可以得到以下结论：
 \begin{enumerate}
-  \item 对矩阵列内积问题，改变访问顺序本身就可以带来非常显著的性能收益。随着问题规模跨越 L2/L3 cache 边界，按行访问相对逐列访问的优势会迅速扩大，本机最高达到约 $10.69\times$。
-  \item 对 $n$ 个数求和问题，超标量友好的多链累加能显著缩短依赖链，在小规模数据上最高达到约 $3.67\times$ 加速。但当数据规模继续增大时，瓶颈转向内存带宽，加速比会明显收敛。
-  \item 两两归约虽然减少了依赖深度，但在当前实现中需要频繁写辅助数组，访存开销抵消了理论优势，因此整体不如四路独立累加。
+  \item 对矩阵列内积问题，真正决定性能的是访存模式。把逐列访问改成行优先访问后，加速比很快随着工作集越过 L2/L3 边界而增大，本机最高达到 12.39 倍。
+  \item 对求和问题，多链累加确实能够有效利用超标量特性。四路独立累加在小规模数据上达到 3.64 倍加速，但随着数据规模变大，收益会受到内存系统限制而收敛。
+  \item 两两归约虽然在理论上减少了依赖深度，但在当前实现中引入了额外的中间结果读写，因此整体并不占优。这说明“减少依赖”并不自动等价于“更快”，还要结合访存代价综合判断。
 \end{enumerate}
 
-综合来看，本次实验说明了一个很重要的事实：现代 CPU 上程序性能不只由计算量决定，内存访问模式、指令依赖关系以及编译器生成代码的结构同样决定最终表现。
+综合来看，本次实验比较直观地说明了现代 CPU 性能并不只由计算量决定。数据访问顺序、依赖链长度以及编译后机器指令的结构，都会直接影响最终运行时间。
 
 \end{document}

@@ -1,6 +1,8 @@
 experiment,algorithm,repeat,cycles,instructions,ipc,cache_references,cache_misses,miss_rate,error
 matrix_2048,naive,2,0,0,0,0,0,0,perf_event_open is unavailable in this environment
 matrix_2048,row_major,2,0,0,0,0,0,0,perf_event_open is unavailable in this environment
+matrix_2048,row_major_unrolled4,2,0,0,0,0,0,0,perf_event_open is unavailable in this environment
 sum_1048576,naive,128,0,0,0,0,0,0,perf_event_open is unavailable in this environment
+sum_1048576,superscalar2,128,0,0,0,0,0,0,perf_event_open is unavailable in this environment
 sum_1048576,superscalar4,128,0,0,0,0,0,0,perf_event_open is unavailable in this environment
 sum_1048576,pairwise,32,0,0,0,0,0,0,perf_event_open is unavailable in this environment
