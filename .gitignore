@@ -15,6 +15,7 @@ __pycache__/
 venv/
 
 # Common build outputs
+bin/
 build/
 dist/
 *.o
@@ -47,3 +48,6 @@ dist/
 *.toc
 *.vrb
 *.xdv
+
+# Windows metadata copied as regular files
+*Zone.Identifier
