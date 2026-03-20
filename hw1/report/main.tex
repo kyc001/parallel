@@ -1,0 +1,304 @@
+\documentclass[a4paper]{article}
+
+\input{style/ch_xelatex.tex}
+\input{style/scala.tex}
+
+\usepackage{natbib}
+\usepackage{ctex}
+\usepackage{graphicx}
+\usepackage{color,framed}
+\usepackage{caption}
+\usepackage{amssymb}
+\usepackage{xcolor}
+\usepackage{geometry}
+\usepackage{tikz}
+\usepackage{booktabs}
+\usepackage{float}
+\usepackage{lastpage}
+
+% 页面边距
+\geometry{a4paper,left=2.3cm,right=2.3cm,top=2.7cm,bottom=2.7cm}
+
+% 标题横线
+\newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
+
+% 页眉页脚
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\kaishu \nouppercase{\rightmark}}
+\rhead{\kaishu 并行程序设计调研报告}
+\cfoot{\thepage\ / \pageref{LastPage}}
+\renewcommand{\headrulewidth}{0.1pt}
+\renewcommand{\footrulewidth}{0pt}
+\renewcommand{\sectionmark}[1]{\markright{\thesection\ #1}}
+\fancypagestyle{plain}{
+  \fancyhf{}
+  \cfoot{\thepage\ / \pageref{LastPage}}
+  \renewcommand{\headrulewidth}{0pt}
+  \renewcommand{\footrulewidth}{0pt}
+}
+
+\captionsetup[table]{name=表}
+\captionsetup[figure]{name=图}
+\captionsetup{font=small}
+
+\renewcommand{\today}{\number\year 年 \number\month 月 \number\day 日}
+
+\begin{document}
+
+\begin{center}
+    \includegraphics[width=0.45\textwidth]{NKU.png}\\[0.6cm]
+    {\large\kaishu 计算机学院\quad 并行程序设计调研报告}\\[0.4cm]
+    \HRule\\[0.5cm]
+    {\LARGE\bfseries 我国超算发展历史与并行体系结构调研\par}
+    \vspace{0.3cm}
+    \HRule\\[0.5cm]
+    {\large 柯云超\quad 2413575\quad 计算机科学与技术}\\[0.2cm]
+    {\normalsize 南开大学计算机学院\quad \today}
+\end{center}
+\vspace{0.3cm}
+
+\begin{abstract}
+本文围绕我国超算发展中的体系结构演进展开调研，梳理了银河、曙光、天河、神威等代表系统从向量机、MPP 与集群到异构加速和自主众核的发展路线。文中重点分析天河二号的“异构节点 + TH Express-2 互连”结构，以及神威·太湖之光所采用的 SW26010 众核微架构，并结合 TOP500、HPCG、Green500 与公开技术文档，对 El Capitan、Frontier、Aurora 等国外最新 E 级超算进行比较。分析表明，我国在自研互连、超大规模系统集成和自主众核设计方面已形成特色路线，但在先进制程、HBM 与先进封装以及统一软件生态方面仍与国际前沿存在差距。
+
+\vspace{2mm}
+\noindent\textbf{关键词}：超级计算机；并行体系结构；TH Express-2；SW26010；HPCG；Green500
+\end{abstract}
+\thispagestyle{plain}
+
+\section{引言}
+超级计算机是并行体系结构研究最集中的落地场景。与单纯比较峰值算力相比，从节点组织、存储层次、互连网络和编程模型等角度分析超算，更能反映一国并行计算能力的真实水平。我国超算的发展尤其具有代表性：既经历过向量机时代的追赶，也在 TOP500 榜单上多次登顶，并逐步走出了一条兼顾系统集成与自主芯片设计的道路\cite{yinhe_history,top1_systems_2025}。
+
+本文的目标不是机械罗列参数，而是围绕“技术路线如何演进”展开分析。全文先梳理我国超算的发展脉络，再选择天河二号与神威·太湖之光两套具有代表性的体系结构做具体剖析，最后利用 TOP500、HPCG 与 Green500 的公开数据，对国外最新 E 级超算进行对比，并讨论未来发展方向。
+
+\section{我国超算发展的技术脉络}
+如果按体系结构而不是按年代来看，我国超算大致经历了四次关键转向：向量流水线、共享/分布式多处理器、异构加速，以及完全自主的众核处理器。表\ref{table:timeline}给出了这一演进主线。
+
+\begin{table}[htbp]
+  \centering
+  \small
+  \begin{tabular}{p{1.8cm}p{2.2cm}p{1.8cm}p{4.1cm}p{3.1cm}}
+  \toprule
+  系列/系统 & 时间 & 代表性能 & 体系结构关键词 & 主要意义 \\
+  \midrule
+  银河-I & 1983 & 1 亿次/秒 & 向量流水线、共享主存 & 我国巨型机起点，建立向量机设计能力 \\
+  曙光1000 / 4000A & 1995 / 2004 & 25 亿次/秒 / 11 TFLOPS & MPP、集群、商用化系统软件 & 标志着从科研样机走向产业化产品 \\
+  天河-1A & 2010 & 2.57 PFLOPS (Rmax) & CPU+GPU 异构、自主高速互连 & 首次登顶 TOP500，证明异构路线可行 \\
+  天河二号 / 二号A & 2013 / 2018 & \shortstack[l]{33.86 / 61.44\\PFLOPS(HPL)} & CPU+MIC/加速器、TH Express-2、胖树互连 & 体现“通用处理器 + 自研互连 + 大规模集成”路线 \\
+  神威·太湖之光 & 2016 & \shortstack[l]{93.01\\PFLOPS(HPL)} & 自主众核、显式本地存储、超大规模并行 & 以国产 SW26010 实现完整自主可控 \\
+  \bottomrule
+  \end{tabular}
+  \caption{我国超算发展中的代表性节点}
+  \label{table:timeline}
+\end{table}
+
+从技术主线看，银河系列的核心是\textbf{向量化}，强调通过流水线和存储体交叉访问提高吞吐；曙光系列则把重点转到\textbf{多处理器和集群化}，使超算开始面向更广泛的科研和行业应用；天河系列进一步把问题转化为“如何在节点内做异构并行，在节点间做高带宽互连”，于是形成了自主互连网络与通用处理器结合的路线；神威系列则走向更激进的\textbf{芯片-系统协同设计}，把可编程性的一部分交还给程序员，以换取更高的并行密度、能效和自主性\cite{tianhe2_2013,sunway_taihulight,sunway_sw26010}。
+
+需要注意的是，公开榜单并不能完整反映一国全部超算实力。截止 \textbf{2025 年 11 月}，公开 TOP500 榜单中我国仍可直接查到的代表系统包括神威·太湖之光（第 24 名）；天河二号A在 \textbf{2025 年 6 月} 仍列第 31 名，但在 \textbf{2025 年 11 月} 未再公开提交数据\cite{sunway_top500_2025,tianhe2a_top500_2025}。因此，下文国内部分主要分析公开文献和公开榜单信息最完整的天河二号与神威·太湖之光。
+
+\section{代表性并行体系结构剖析}
+\subsection{天河二号：异构节点与自研互连的结合}
+天河二号的代表性不只在于其曾连续六次位列 TOP500 第一，更在于它形成了一套清晰的分层并行组织：\textbf{节点内异构并行、节点间胖树互连、系统级通信优化}。其基本结构如表\ref{table:tianhe2_arch} 所示。
+
+\begin{table}[htbp]
+  \centering
+  \small
+  \begin{tabular}{p{2.0cm}p{4.8cm}p{5.3cm}}
+  \toprule
+  层次 & 组成 & 体系结构含义 \\
+  \midrule
+  计算节点 & 2 颗 Xeon E5-2692 + 3 块 Xeon Phi 31S1P；按 TOP500 核数统计口径，单节点约 195 个计算核心，峰值约 3.4 TFLOPS & CPU 负责控制与串行部分，MIC 协处理器承担大规模 SIMD 并行 \\
+  节点互连 & TH Express-2；胖树(fat-tree)拓扑；按公开论文描述，节点侧 8 路 14 Gbps SerDes，总计 112 Gbps；24 端口路由芯片，总交换能力 5376 Gbps & 追求高二分带宽和可扩展性，适合 16000 节点的大规模系统 \\
+  通信软件 & MPI + OpenMP + MIC 编程；Galaxy Express-2 用户级通信、NIC 辅助集合通信 & 通过软硬件协同降低操作系统干扰与全局通信开销 \\
+  \bottomrule
+  \end{tabular}
+  \caption{天河二号的层次化并行体系结构}
+  \label{table:tianhe2_arch}
+\end{table}
+
+这里最值得注意的不是“用了多少核心”，而是\textbf{并行层次是如何搭起来的}。在节点内部，Xeon 与 Xeon Phi 之间并不是统一内存结构，应用通常需要采用 MPI + OpenMP + offload/native 的混合编程方式，在控制流、数据划分和向量化之间做折中；在节点之间，TH Express-2 采用自主设计的网络接口芯片和路由芯片，通过胖树拓扑来保证大规模集群下的二分带宽，并支持自适应路由、RDMA 和集合通信优化\cite{tianhe2_2013,th_express2_2016}。
+
+这条路线的优点是能够利用成熟的 x86 生态快速形成大规模系统，降低应用迁移门槛；代价则是节点内异构带来的编程复杂度，以及主机与协处理器之间的数据搬运开销。HPCG 的公开结果也说明了这一点：在 \textbf{2017 年 11 月} 的 HPCG 榜单中，天河二号的 HPCG 成绩为 \textbf{580.11 TFLOPS}，而其对应的 HPL 成绩为 \textbf{33.86 PFLOPS}，二者差距表明，对于稀疏迭代、同步频繁、访存敏感的负载，超算性能瓶颈并不只在浮点单元，而更取决于存储层次和互连网络\cite{hpcg_2017_11}。
+
+\subsection{神威·太湖之光：SW26010 众核微架构}
+与天河二号借助成熟通用处理器不同，神威·太湖之光选择了更激进的路径：围绕\textbf{完全自主的众核处理器}来设计整机。SW26010 处理器是这一思路的核心，其片上层次结构如图\ref{fig:sw26010}所示。
+
+\begin{figure}[htbp]
+  \centering
+  \begin{tikzpicture}[font=\footnotesize, >=latex, x=1cm, y=1cm]
+    \tikzstyle{cgbox}=[draw, rounded corners=4pt, fill=blue!4, minimum width=4.8cm, minimum height=2.7cm]
+    \tikzstyle{mcbox}=[draw, rounded corners=3pt, fill=green!10, minimum width=1.7cm, minimum height=0.7cm, align=center]
+    \tikzstyle{band}=[draw, rounded corners=2pt, fill=gray!10, minimum width=2.9cm, minimum height=0.42cm, align=center]
+
+    \node[cgbox] (cg0) at (-3.6,2.0) {};
+    \node[cgbox] (cg1) at (3.6,2.0) {};
+    \node[cgbox] (cg2) at (-3.6,-2.0) {};
+    \node[cgbox] (cg3) at (3.6,-2.0) {};
+
+    \foreach \title/\x/\y in {
+      {Core Group 0}/-3.6/2.0,
+      {Core Group 1}/3.6/2.0,
+      {Core Group 2}/-3.6/-2.0,
+      {Core Group 3}/3.6/-2.0} {
+      \node[anchor=north west, font=\footnotesize\bfseries] at (\x-2.15,\y+1.2) {\title};
+      \draw[fill=yellow!18] (\x-1.95,\y-0.15) rectangle (\x-1.0,\y+0.85);
+      \node[align=center] at (\x-1.475,\y+0.35) {MPE\\管理核};
+      \draw[fill=white] (\x-0.75,\y-0.15) rectangle (\x+1.85,\y+0.85);
+      \foreach \i in {0,...,3} {
+        \foreach \j in {0,...,3} {
+          \draw[gray!70] (\x-0.67+0.62*\i,\y-0.05+0.22*\j) rectangle ++(0.54,0.16);
+        }
+      }
+      \node[align=center] at (\x+0.55,\y+0.34) {64 CPE\\$8\times 8$ mesh};
+      \node[band] at (\x+0.42,\y-0.62) {每个 CPE 配 64 KB LDM};
+    }
+
+    \node[draw, rounded corners=4pt, fill=orange!12, minimum width=2.8cm, minimum height=1.2cm, align=center] (noc) at (0,0) {片上 NoC\\连接 4 个 CG};
+    \node[mcbox] (mc0) at (0,4.0) {MC\\内存控制器};
+    \node[mcbox] (mc1) at (0,-4.0) {MC\\内存控制器};
+
+    \draw[->, thick] (noc) -- (cg0);
+    \draw[->, thick] (noc) -- (cg1);
+    \draw[->, thick] (noc) -- (cg2);
+    \draw[->, thick] (noc) -- (cg3);
+    \draw[->, thick] (mc0) -- (noc);
+    \draw[->, thick] (mc1) -- (noc);
+  \end{tikzpicture}
+  \caption{SW26010 的片上层次结构示意：4 个 CG 通过 NoC 连接，每个 CG 含 1 个 MPE 与 8$\times$8 CPE 阵列}
+  \label{fig:sw26010}
+\end{figure}
+
+SW26010 由 \textbf{4 个 Core Group(CG)} 组成，每个 CG 含 \textbf{1 个管理处理元(MPE) + 64 个计算处理元(CPE)}，因此单芯片共有 \textbf{260} 个核心。MPE 负责控制流、系统调用和较复杂的标量任务；64 个 CPE 构成高密度并行计算阵列，适合执行规则的数据并行内核。与传统 cache-based 多核不同，\textbf{每个 CPE 带有 64 KB 本地数据存储(LDM)}，数据必须通过 DMA 显式搬运到本地存储后才能高效计算，CPE 之间还支持寄存器通信来减少访存和同步开销\cite{sunway_sw26010}。
+
+这种设计有两个非常鲜明的体系结构特征。第一，\textbf{它把数据局部性管理前移给程序员和编译器}。在矩阵分块、双缓冲、流水并行等模式下，LDM 能显著减少对主存的依赖；但如果程序员没有显式进行块划分和 DMA 调度，性能就会快速下降。第二，\textbf{它弱化了通用性，强化了能效和自主性}。SW26010 单芯片双精度峰值约 3.06 TFLOPS，太湖之光由 40960 颗 SW26010 构成，总 HPL 为 \textbf{93.01 PFLOPS}，截至 \textbf{2025 年 11 月} 仍在 TOP500 榜单中列第 24 名\cite{sunway_taihulight,sunway_top500_2025}。
+
+从公开基准看，神威·太湖之光的 HPCG 成绩为 \textbf{480.848 TFLOPS}，与 HPL 相比仍有显著差距\cite{sunway_top500_2025,hpcg_2017_11}。这说明即便在自主众核架构下，真正困难的问题依然是如何在大规模并行下处理不规则访存、全局同步和跨节点通信。也正因为如此，SW26010 的意义并不只是“把核心数做大”，而是探索了\textbf{通过显式本地存储、DMA 调度和片上协同来换取能效与并行密度}的另一条路线。
+
+\subsection{两条国内路线的比较}
+如果将天河二号与神威·太湖之光并列观察，可以看到我国超算至少形成了两条不同的体系结构思路：
+
+\begin{itemize}
+  \item \textbf{天河路线}：依托成熟通用处理器生态，重点突破自研互连、系统软件和超大规模集成，优势是应用迁移成本较低、系统实现风险更可控。
+  \item \textbf{神威路线}：从处理器到整机做更强的协同设计，以显式局部性管理和众核结构换取自主性、能效和并行密度，优势是自主可控程度高，但编程门槛明显更高。
+\end{itemize}
+
+前者强调“\textbf{系统工程能力}”，后者强调“\textbf{架构创新能力}”。从并行体系结构角度看，这两条路线都不是简单堆参数，而是对“如何组织并行”给出了不同回答。
+
+\subsection{从并行编程模型看两条路线的差异}
+如果进一步从程序员如何把应用映射到硬件的角度比较，天河二号与太湖之光的差异会更清楚。前者更接近传统 HPC 社区熟悉的“MPI + OpenMP + 加速器 offload”模式；后者则要求开发者显式管理 CPE 的数据搬运、块划分和局部同步。表\ref{table:prog_model} 对二者进行了归纳。
+
+\begin{table}[htbp]
+  \centering
+  \small
+  \begin{tabular}{p{2.2cm}p{4.7cm}p{4.7cm}}
+  \toprule
+  维度 & 天河二号 & 神威·太湖之光 \\
+  \midrule
+  节点内存储组织 & CPU cache + 协处理器独立内存，数据经主机与加速器搬运 & CPE 依赖 64 KB LDM，DMA 显式搬运，局部性由程序管理 \\
+  并行粒度 & 进程/线程/SIMD/offload 多层混合 & CG/MPE/CPE/寄存器通信，多强调规则分块与流水 \\
+  编程成本 & 迁移已有 x86 程序相对容易，但异构数据拷贝明显 & 代码改写量更大，但调优后可获得更高并行密度与能效 \\
+  更适合的负载 & 已有 MPI 应用、混合精度和通用科学计算 & 规则网格、稠密矩阵、谱方法、可显式分块的数据并行任务 \\
+  \bottomrule
+  \end{tabular}
+  \caption{天河二号与神威·太湖之光的并行编程模型对比}
+  \label{table:prog_model}
+\end{table}
+
+从这个角度看，国内两条路线实际上分别回答了两类问题：天河二号更关注“如何让现有应用较低成本地跑上更大系统”，太湖之光则更关注“如何为了极致并行效率而重新组织计算与数据”。这也是为什么前者更容易承接通用 HPC 应用迁移，后者则更适合通过深度联合调优来冲击体系结构上限。
+
+\subsection{补充：国产处理器微架构的另一条路线}
+如果把观察对象从整机进一步缩小到处理器，可以看到国产并行处理器并不只沿着“众核 + 显式本地存储”一路演进。以华为昇腾 910 为代表的达芬奇架构，更强调在\textbf{单核内部同时组织标量、向量和矩阵三类并行计算单元}，并通过多级片上缓冲区和事件同步机制，把矩阵计算、向量计算与数据搬运重叠起来\cite{ascend910}。
+
+从微架构角度看，达芬奇架构的关键不只是 Cube 矩阵单元，而是其围绕 AI 负载重新设计了数据流：标量单元负责控制流和地址生成，向量单元处理逐元素运算和归约，Cube 单元负责高吞吐矩阵乘加；与此同时，L0/L1/全局 HBM 组成分层缓冲，DMA 负责张量块搬运。这与 SW26010 的设计目标明显不同，但二者都说明了一个共同事实：\textbf{并行处理器性能越来越取决于数据移动方式，而不仅是算术单元数量。}
+
+\begin{table}[htbp]
+  \centering
+  \small
+  \begin{tabular}{p{2.1cm}p{4.4cm}p{4.8cm}}
+  \toprule
+  维度 & SW26010 & 昇腾 910 / 达芬奇架构 \\
+  \midrule
+  目标负载 & 传统 HPC 数值计算、规则网格、稠密科学计算 & AI 训练/推理中的卷积、矩阵乘、张量计算 \\
+  计算组织 & 4 个 CG，每个 CG 为 1 MPE + 64 CPE & 单核内并置 Scalar/Vector/Cube 三类执行单元 \\
+  数据局部性方式 & CPE 依赖 64 KB LDM，强调 DMA 显式搬运和寄存器通信 & 依赖 L0/L1 张量缓冲和 HBM，强调流水式数据流 \\
+  优化重点 & 提高众核并行密度与能效，降低主存访问开销 & 提高矩阵运算吞吐，减少张量搬运与控制开销 \\
+  \bottomrule
+  \end{tabular}
+  \caption{SW26010 与昇腾达芬奇架构的微架构侧重点对比}
+  \label{table:sw_vs_davinci}
+\end{table}
+
+表\ref{table:sw_vs_davinci} 说明，国产并行处理器的架构探索已经呈现“面向 HPC 的显式众核路线”和“面向 AI 的张量数据流路线”并行发展的局面。由此也可以看出，并行体系结构分析不能只停留在峰值算力层面，还应结合\textbf{计算单元的组织方式、数据流动路径和程序映射机制}进行考察。
+
+\section{国外最新超算的公开数据与对比}
+截止 \textbf{2025 年 11 月}，公开 TOP500 榜单的前三名分别是 El Capitan、Frontier 和 Aurora；同一时期，欧洲的 JUPITER Booster 已进入前四，但本文仍选择前三者进行比较，因为它们分别代表了 \textbf{APU 融合}、\textbf{CPU+GPU 异构} 和 \textbf{chiplet/tile-based GPU} 三种更典型的技术路线\cite{top500_2025_11,hpcg_2025_11,green500_2025_11}。
+
+\begin{table}[htbp]
+  \centering
+  \footnotesize
+  \begin{tabular}{lcccc}
+  \toprule
+  系统 & HPL (PF) & HPCG (PF) & 能效 (GF/W) & 节点路线 \\
+  \midrule
+  神威·太湖之光 & 93.01 & 0.481 & 6.05$^\dagger$ & 自主众核 + 显式 LDM \\
+  El Capitan & 1809$^\ddagger$ & 17.406 & 60.94 & 4$\times$ MI300A APU / 节点 \\
+  Frontier & 1353 & 14.054 & 54.98 & 1 CPU + 4 GPU / 节点 \\
+  Aurora & 1012 & 5.613 & 26.15 & 2 CPU + 6 GPU / 节点 \\
+  \bottomrule
+  \end{tabular}
+  \caption{公开 HPL/HPCG/能效视角下的中外代表系统对比}
+  \label{table:compare}
+\end{table}
+
+\noindent\footnotesize{$^\dagger$ 神威·太湖之光的能效由其公开 HPL 与功耗数据折算得到：$93.01/15371 \approx 6.05$ GFLOPS/W；国外三台系统的能效采用 2025 年 11 月 Green500 公布数据。$^{\ddagger}$ El Capitan 的 HPL 为 1.809 EFLOPS（即 1809 PFLOPS），HPL/HPCG/能效数据均采用 2025 年 11 月公开榜单数据。}\normalsize
+
+表\ref{table:compare} 反映出三个值得注意的趋势。
+
+\begin{table}[htbp]
+  \centering
+  \footnotesize
+  \begin{tabular}{p{1.8cm}p{3.7cm}p{3.4cm}p{3.2cm}}
+  \toprule
+  系统 & 节点组成 & 节点内存组织 & 节点间互连 \\
+  \midrule
+  El Capitan & 4$\times$ MI300A APU，CPU 与 GPU 在单封装内融合 & 每颗 MI300A 集成 CPU/GPU 与 128 GB HBM3，强调统一地址空间 & Slingshot-11，面向大规模 APU 集群 \\
+  Frontier & 1$\times$ EPYC + 4$\times$ MI250X & 每节点配备 DDR4 与 HBM2e，CPU/GPU 经 Infinity Fabric 互连 & Slingshot-11，Dragonfly 拓扑 \\
+  Aurora & 2$\times$ Xeon CPU Max + 6$\times$ GPU Max & CPU 侧 HBM + DDR5，GPU 侧 HBM2e，chiplet/tile-based GPU 通过 Xe Link 连接 & Slingshot-11，自适应路由 \\
+  \bottomrule
+  \end{tabular}
+  \caption{三台国外 E 级系统的节点级组织方式}
+  \label{table:foreign_nodes}
+\end{table}
+
+从表\ref{table:foreign_nodes} 可以看出，国外最新 E 级系统虽然实现路径不同，但都把\textbf{节点级封装、内存和互连}视为首要设计对象。换句话说，E 级系统的竞争已经不再只是“增加更多节点”，而是要先保证单节点内部的 CPU、GPU、HBM 和 NIC 能高效协同。
+
+\paragraph{1. 节点级融合程度持续提高。}
+El Capitan 的节点由 \textbf{4 颗 AMD MI300A} 组成。MI300A 已不是传统意义上的“CPU 外挂 GPU”，而是在单封装内集成 \textbf{24 个 Zen 4 CPU 核、多个 CDNA3 GPU 计算单元以及 128 GB HBM3} 的 APU，强调 CPU/GPU 间更紧密的内存一致性与更低的数据搬运开销\cite{elcapitan_hw_2025}。与之相比，天河二号仍属于较典型的“主机 + 协处理器”结构，而太湖之光则是“管理核 + 计算核 + 显式本地存储”的众核模式。
+
+\paragraph{2. 高带宽存储与先进封装已成为 E 级系统标配。}
+Frontier 每节点由 1 颗 AMD EPYC CPU 与 4 块 MI250X GPU 组成，节点内通过 Infinity Fabric 互连，并配备大容量 HBM2e 与 DDR 内存、4 路 Slingshot 网络接口和 Dragonfly 拓扑\cite{frontier_arch_2022}。Aurora 则采用 2 颗 Xeon CPU Max 与 6 块 Intel Data Center GPU Max，GPU 本身采用 \textbf{tile-based chiplet} 设计，并通过 Foveros 3D 集成与 HBM 封装实现极高带宽\cite{aurora_alcf_2025}。这说明国际最新路线的共识已经非常明确：\textbf{要想真正进入 E 级时代，处理器、封装和内存系统必须一体化设计。}
+
+\paragraph{3. 评价超算不能只看 HPL。}
+HPL 主要衡量密集线性代数性能，而 HPCG 更能反映稀疏迭代、访存和通信模式。El Capitan 与 Frontier 的 HPCG 约为 HPL 的 1\%（分别约 0.96\% 和 1.04\%）；而 Aurora（约 0.55\%）与太湖之光（约 0.52\%）的 HPL/HPCG 落差更大\cite{hpcg_2025_11,hpcg_2017_11}。这说明并行体系结构真正困难的部分仍然是\textbf{访存局部性、跨节点同步和网络注入带宽}。与此同时，Green500 也提示我们，未来超算竞争不仅是“谁先到 E 级”，更是“谁能在可接受的功耗预算内稳定运行”。
+
+综合来看，我国与国外最新超算的差距主要体现在三个方面：\textbf{先进制程与封装}、\textbf{统一的软件生态}，以及\textbf{新一代系统公开 benchmark 数据相对有限}。受公开资料范围所限，本文对这部分系统的比较主要依据可查的榜单和技术文档展开。
+
+\section{未来发展方向}
+结合国内外公开资料，并行体系结构未来至少会沿着以下几个方向继续演进：
+
+\begin{itemize}
+  \item \textbf{Chiplet 与 APU 化。} 从 Frontier 的 CPU+GPU 到 El Capitan 的 MI300A APU，节点内融合已经成为趋势。国产处理器未来很可能也会从“离散加速器”继续走向“CPU/GPU/NPU 融合封装”。
+  \item \textbf{HBM 与显式局部性协同。} 太湖之光的经验说明，软件显式管理局部性可以有效提升利用率；国外最新系统则说明，高带宽内存已经成为基础设施。未来更有前景的路线，是在 HBM 之上继续强化片上和近存层次管理。
+  \item \textbf{互连网络从高带宽走向高智能。} TH Express-2 已经展示了自研互连的重要性；而 E 级时代进一步要求 NIC 协助集合通信、拥塞控制、自适应路由和软件定义调优。
+  \item \textbf{评价标准更加多元。} HPL 仍然重要，但 HPCG、Green500、图计算、AI 混合精度训练/推理等指标将越来越多地影响体系结构设计方向。
+\end{itemize}
+
+\section{结论}
+我国超算的发展不是一条单纯追求峰值算力的直线，而是一条不断重构并行体系结构的技术演进路径：银河解决了“向量化”的问题，曙光解决了“多机并行与产业化”的问题，天河解决了“异构节点 + 自主互连”的问题，神威则进一步探索了“自主众核 + 显式局部性管理”的路线。与 El Capitan、Frontier、Aurora 等国外最新 E 级超算相比，我国公开可分析的代表系统在封装、HBM 和软件生态上仍有明显差距，但在自研互连、超大规模系统集成和自主众核架构方面已经积累了独特经验。未来谁能更好地统筹处理器、内存、互连和软件栈，谁就更有可能在下一代超算竞争中占据主动。
+
+\renewcommand{\refname}{参考文献}
+\bibliographystyle{unsrt}
+\bibliography{reference.bib}
+
+\end{document}

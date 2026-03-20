@@ -1,0 +1,49 @@
+# Local tooling and editor settings
+.claude/
+.idea/
+.vscode/
+*.code-workspace
+
+# OS-generated files
+.DS_Store
+Thumbs.db
+
+# Python caches and virtual environments
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Common build outputs
+build/
+dist/
+*.o
+*.obj
+*.exe
+*.dll
+*.so
+*.a
+*.lib
+*.class
+
+# LaTeX temporary files
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.fdb_latexmk
+*.fls
+*.idx
+*.ilg
+*.ind
+*.lof
+*.log
+*.lot
+*.nav
+*.out
+*.run.xml
+*.snm
+*.synctex.gz
+*.toc
+*.vrb
+*.xdv
