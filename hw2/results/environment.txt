@@ -1,0 +1,6 @@
+OS: Ubuntu 22.04.5 LTS
+Compiler: g++ (Ubuntu 12.3.0-1ubuntu1~22.04.3) 12.3.0
+Kernel: Linux version 6.6.87.2-microsoft-standard-WSL2 (root@439a258ad544) (gcc (GCC) 11.2.0, GNU ld (GNU Binutils) 2.37) #1 SMP PREEMPT_DYNAMIC Thu Jun  5 18:30:46 UTC 2025
+Benchmark affinity pinned to CPU0: yes
+Build flags: -std=c++17 -O3 -march=native -fno-tree-vectorize -fno-tree-slp-vectorize
+CPU info: 13th Gen Intel(R) Core(TM) i9-13900H, L1d 48 KiB/core, L2 1.25 MiB/core, L3 24 MiB shared
