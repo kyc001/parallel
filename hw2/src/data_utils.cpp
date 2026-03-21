@@ -6,7 +6,8 @@
 std::vector<double> make_vector(std::size_t n) {
     std::vector<double> data(n);
     for (std::size_t i = 0; i < n; ++i) {
-        data[i] = 0.25 + static_cast<double>((i * 17 + 11) % 97) / 97.0;
+        // 使用不同的生成公式: 0.5 + (19*i + 13) % 127 / 127.0
+        data[i] = 0.5 + static_cast<double>((i * 19 + 13) % 127) / 127.0;
     }
     return data;
 }
@@ -15,7 +16,8 @@ std::vector<double> make_matrix(std::size_t n) {
     std::vector<double> data(n * n);
     for (std::size_t row = 0; row < n; ++row) {
         for (std::size_t col = 0; col < n; ++col) {
-            data[row * n + col] = 0.1 + static_cast<double>((row * 131 + col * 17) % 251) / 251.0;
+            // 使用不同的生成公式: 0.2 + (137*row + 23*col) % 257 / 257.0
+            data[row * n + col] = 0.2 + static_cast<double>((row * 137 + col * 23) % 257) / 257.0;
         }
     }
     return data;
