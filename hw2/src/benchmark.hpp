@@ -25,6 +25,7 @@ struct PerfReadings {
 };
 
 bool pin_to_core_zero();
+int detect_first_allowed_cpu();
 PerfReadings profile_once(const std::function<double()>& fn, std::size_t repeat);
 
 template <class T>

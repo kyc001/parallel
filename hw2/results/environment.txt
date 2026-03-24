@@ -1,9 +1,11 @@
-OS: Ubuntu 22.04.5 LTS
-Kernel: Linux version 6.6.87.2-microsoft-standard-WSL2 (root@439a258ad544) (gcc (GCC) 11.2.0, GNU ld (GNU Binutils) 2.37) #1 SMP PREEMPT_DYNAMIC Thu Jun  5 18:30:46 UTC 2025
-Compiler: g++ 12.3.0
-Benchmark affinity pinned to CPU0: yes
+OS: Ubuntu 18.04.6 LTS
+Kernel: Linux version 4.18.0-80.7.1.el8_0.x86_64 (mockbuild@kbuilder.bsys.centos.org) (gcc version 8.2.1 20180905 (Red Hat 8.2.1-3) (GCC)) #1 SMP Sat Aug 3 15:14:00 UTC 2019
+Compiler: g++ 7.5.0
+Benchmark affinity pinned: yes
+Pinned CPU: 21
 Build flags: -std=c++17 -O3 -march=native -fno-tree-vectorize -fno-tree-slp-vectorize
-CPU model: 13th Gen Intel(R) Core(TM) i9-13900H
-L1d cache: 48K
-L2 cache: 1280K
-L3 cache: 24576K
+CPU model: AMD EPYC 7453 28-Core Processor
+L1d cache: 32K
+L2 cache: 512K
+L3 cache: 16384K
+perf_event_paranoid: 2

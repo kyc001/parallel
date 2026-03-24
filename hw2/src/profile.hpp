@@ -1,5 +1,5 @@
 #pragma once
 
-#include <filesystem>
+#include "fs_compat.hpp"
 
-void run_profile_experiment(const std::filesystem::path& output_dir);
+void run_profile_experiment(const fs::path& output_dir);

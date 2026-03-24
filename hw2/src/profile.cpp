@@ -49,7 +49,7 @@ void write_profile_row(std::ofstream& csv,
 
 }  // namespace
 
-void run_profile_experiment(const std::filesystem::path& output_dir) {
+void run_profile_experiment(const fs::path& output_dir) {
     std::ofstream csv(output_dir / "profile_results.csv");
     csv << "experiment,algorithm,repeat,cycles,instructions,ipc,cache_references,cache_misses,miss_rate,error\n";
 

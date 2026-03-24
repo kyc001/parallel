@@ -78,7 +78,7 @@
     return scratch[0];
 }
 
-void run_sum_experiment(const std::filesystem::path& output_dir) {
+void run_sum_experiment(const fs::path& output_dir) {
     const std::vector<std::size_t> sizes = {1u << 10, 1u << 12, 1u << 14, 1u << 16, 1u << 18, 1u << 20, 1u << 22, 1u << 23};
     std::ofstream csv(output_dir / "sum_results.csv");
     csv << "n,array_bytes,naive_ms,superscalar2_ms,superscalar4_ms,pairwise_ms,"

@@ -57,7 +57,7 @@ double checksum(const std::vector<double>& data) {
     }
 }
 
-void run_matrix_experiment(const std::filesystem::path& output_dir) {
+void run_matrix_experiment(const fs::path& output_dir) {
     const std::vector<std::size_t> sizes = {64, 128, 256, 384, 512, 768, 1024, 1536, 2048};
     std::ofstream csv(output_dir / "matrix_results.csv");
     csv << "n,matrix_bytes,naive_ms,row_major_ms,row_major_unrolled4_ms,"

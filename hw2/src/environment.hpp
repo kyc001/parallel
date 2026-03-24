@@ -1,5 +1,5 @@
 #pragma once
 
-#include <filesystem>
+#include "fs_compat.hpp"
 
-void write_environment(const std::filesystem::path& output_dir, bool affinity_pinned);
+void write_environment(const fs::path& output_dir, bool affinity_pinned, int pinned_cpu);

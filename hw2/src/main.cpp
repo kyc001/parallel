@@ -4,18 +4,16 @@
 #include "profile.hpp"
 #include "sum_experiment.hpp"
 
-#include <filesystem>
 #include <iostream>
 #include <stdexcept>
-
-namespace fs = std::filesystem;
 
 int main() {
     const fs::path output_dir = "results";
     fs::create_directories(output_dir);
 
     const bool affinity_pinned = pin_to_core_zero();
-    write_environment(output_dir, affinity_pinned);
+    const int pinned_cpu = affinity_pinned ? detect_first_allowed_cpu() : -1;
+    write_environment(output_dir, affinity_pinned, pinned_cpu);
 
     try {
         run_matrix_experiment(output_dir);

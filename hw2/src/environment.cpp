@@ -54,15 +54,17 @@ std::string detect_cpu_model() {
 
 }  // namespace
 
-void write_environment(const std::filesystem::path& output_dir, bool affinity_pinned) {
+void write_environment(const fs::path& output_dir, bool affinity_pinned, int pinned_cpu) {
     std::ofstream env(output_dir / "environment.txt");
     env << "OS: " << detect_os_pretty_name() << '\n';
     env << "Kernel: " << detect_kernel_string() << '\n';
     env << "Compiler: g++ " << __VERSION__ << '\n';
-    env << "Benchmark affinity pinned to CPU0: " << (affinity_pinned ? "yes" : "no") << '\n';
+    env << "Benchmark affinity pinned: " << (affinity_pinned ? "yes" : "no") << '\n';
+    env << "Pinned CPU: " << (pinned_cpu >= 0 ? std::to_string(pinned_cpu) : "Unknown") << '\n';
     env << "Build flags: -std=c++17 -O3 -march=native -fno-tree-vectorize -fno-tree-slp-vectorize" << '\n';
     env << "CPU model: " << detect_cpu_model() << '\n';
     env << "L1d cache: " << read_trimmed_line("/sys/devices/system/cpu/cpu0/cache/index0/size") << '\n';
     env << "L2 cache: " << read_trimmed_line("/sys/devices/system/cpu/cpu0/cache/index2/size") << '\n';
     env << "L3 cache: " << read_trimmed_line("/sys/devices/system/cpu/cpu0/cache/index3/size") << '\n';
+    env << "perf_event_paranoid: " << read_trimmed_line("/proc/sys/kernel/perf_event_paranoid") << '\n';
 }
