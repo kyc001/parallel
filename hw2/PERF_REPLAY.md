@@ -38,6 +38,45 @@
 
 如果你是在虚拟机中执行，需要确认 VM 开启了 CPU performance counters / PMU。
 
+### 2.1 WSL2 不是本实验补 L3 / memory 的合规主方案
+
+`WSL2` 不应作为本次 Lab1 补 `perf` 硬件计数器的主环境，原因有两层：
+
+- 课程文档已经明确写了：`VirtualBox、WSL2 暂不支持` 这类 `perf` 硬件事件采样
+- 从工程上讲，`WSL2` 是虚拟化环境，`LLC`、`uncore_imc_*`、`uncore_cha_*` 这类事件依赖真实 PMU / uncore 暴露；即使把 `perf` 装上，也常见为 `not supported`、`Permission denied` 或只有 software events
+
+如果你当前只有 Windows + WSL2，可按下面优先级处理：
+
+1. `首选`：切到原生 Linux 宿主机或双系统 Ubuntu，直接补跑 `perf`
+2. `次选`：新建完整的 Hyper-V Ubuntu VM，并给该 VM 打开 vPMU
+3. `补充分析`：在 Windows 宿主机使用 VTune 等工具做补充，但报告里必须明确说明环境与主实验不同，不能伪装成 Linux 主结果
+
+### 2.2 Windows 主机下的最短可执行路径
+
+如果机器本身是 Intel + Windows，最短、风险最低的两条路如下。
+
+#### 路线 A：原生 Linux / 双系统 / LiveUSB（最稳妥）
+
+- 在真实 Linux 上运行本仓库
+- 安装匹配内核版本的 `perf`
+- 补采 `LLC-loads`、`LLC-load-misses` 和 `uncore_imc_*` 内存控制器事件
+
+这是最接近课程要求“Linux 环境”的方案，也是报告最容易自圆其说的方案。
+
+#### 路线 B：Hyper-V Ubuntu VM（只建议作为过渡）
+
+Microsoft 文档允许对完整 Hyper-V 来宾 VM 打开 vPMU：
+
+```powershell
+Set-VMProcessor MyVMName -Perfmon @("ipt", "pmu", "lbr", "pebs")
+```
+
+注意：
+
+- 这适用于“完整 Hyper-V 虚拟机”，不是 WSL2
+- 该方案更适合补 `cycles`、`instructions`、`LLC-loads` 这类 core PMU 事件
+- `uncore` / memory bandwidth 相关事件在虚拟机里不保证可用，因此若目标是“L3 + memory 都要完整”，仍建议原生 Linux
+
 如果当前环境是容器，且宿主机没有把 PMU / perf 权限放出来，那么你通常无法拿到：
 
 - `cycles`
@@ -257,6 +296,84 @@ perf stat -r 5 \
   -e task-clock,cycles,instructions,cache-references,cache-misses,branch-misses \
   -- ./bin/lab1_perf sum superscalar4 1048576 4096
 ```
+
+---
+
+## 11. Linux 宿主机下补 L3 / memory 的最短命令
+
+下面这部分只建议在“原生 Linux 宿主机”上执行。
+
+### 11.1 先确认哪些事件真的存在
+
+```bash
+perf list | rg 'LLC-loads|LLC-load-misses|uncore_imc_[0-9]+/.+cas_count_(read|write)'
+```
+
+如果 `LLC-loads` / `LLC-load-misses` 能列出来，就可以直接补 L3 load miss 相关指标。
+
+如果能列出 `uncore_imc_* / cas_count_read`、`cas_count_write`，就可以补内存控制器读写计数。
+
+### 11.2 补 L3 指标
+
+```bash
+perf stat -r 5 \
+  -e cycles,instructions,LLC-loads,LLC-load-misses \
+  -- ./bin/lab1_perf matrix row_major_unrolled4 2048 256
+```
+
+或：
+
+```bash
+perf stat -r 5 \
+  -e cycles,instructions,LLC-loads,LLC-load-misses \
+  -- ./bin/lab1_perf sum superscalar4 1048576 4096
+```
+
+报告中可写：
+
+- `LLC miss rate = LLC-load-misses / LLC-loads`
+- 用它解释大规模问题下工作集越过 `L3` 后的退化
+
+### 11.3 补 memory / IMC 指标
+
+先自动收集本机可用的 `IMC` 读写事件名：
+
+```bash
+IMC_EVENTS="$(perf list | awk '/uncore_imc_[0-9]+\\/cas_count_(read|write)\\// {print $1}' | paste -sd, -)"
+echo "$IMC_EVENTS"
+```
+
+如果上面输出非空，再执行：
+
+```bash
+sudo perf stat -a -e "$IMC_EVENTS" \
+  -- ./bin/lab1_perf matrix row_major_unrolled4 2048 256
+```
+
+或：
+
+```bash
+sudo perf stat -a -e "$IMC_EVENTS" \
+  -- ./bin/lab1_perf sum superscalar4 1048576 4096
+```
+
+说明：
+
+- `uncore_imc_* / cas_count_read`、`cas_count_write` 反映内存控制器读写请求
+- 这部分是 `memory` 相关指标里最有说服力的一类
+- 事件名和控制器数量随 CPU 型号变化，所以脚本里不写死，先用 `perf list` 探测再执行
+
+### 11.4 如果 IMC 不可用
+
+若宿主机只能拿到 `LLC-loads` / `LLC-load-misses`，拿不到 `uncore_imc_*`，则建议：
+
+- 把 `L3` 指标作为主要硬件证据
+- 将“大规模时进入 memory-bound 区间”的论证建立在
+  - 时间曲线随规模的拐点
+  - `LLC miss rate` 上升
+  - 访存模式 / 汇编结构分析
+
+这比在 WSL2 或受限容器里伪造“memory 指标”风险低得多。
 
 ### 10.5 看调用图 / 热点
 

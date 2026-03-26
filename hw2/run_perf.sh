@@ -9,6 +9,22 @@ mkdir -p "$OUT_DIR"
 
 echo "[perf] project root: $ROOT_DIR"
 
+is_wsl() {
+  grep -qi microsoft /proc/sys/kernel/osrelease 2>/dev/null || \
+    grep -qi microsoft /proc/version 2>/dev/null
+}
+
+if is_wsl; then
+  echo "[perf] error: WSL environment detected ($(uname -r))" >&2
+  echo "[perf] this script targets Linux environments with real PMU access" >&2
+  echo "[perf] in WSL2, perf hardware events for cycles/cache/LLC/uncore are not a reliable target" >&2
+  echo "[perf] recommended options:" >&2
+  echo "       1. rerun on native Linux host" >&2
+  echo "       2. use a full Hyper-V Ubuntu VM with vPMU enabled for core PMU events" >&2
+  echo "       3. fallback hotspot-only analysis: ./run_gprof.sh" >&2
+  exit 2
+fi
+
 if ! command -v perf >/dev/null 2>&1; then
   echo "[perf] error: perf command not found" >&2
   echo "[perf] install suggestion: sudo apt install linux-tools-common linux-tools-generic linux-tools-\$(uname -r)" >&2
