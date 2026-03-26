@@ -49,6 +49,11 @@ dist/
 *.vrb
 *.xdv
 
+# VTune raw result bundles and admin logs
+hw2/results/vtune_cli/*/
+hw2/results/vtune_cli/run_vtune_admin.log
+hw2/results/vtune_cli/*_samework*.csv
+
 # Windows metadata copied as regular files
 *Zone.Identifier
 

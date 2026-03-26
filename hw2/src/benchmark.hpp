@@ -6,6 +6,10 @@
 #include <functional>
 #include <string>
 
+#if defined(_MSC_VER)
+#include <intrin.h>
+#endif
+
 using Clock = std::chrono::steady_clock;
 
 struct Measurement {
@@ -30,11 +34,21 @@ PerfReadings profile_once(const std::function<double()>& fn, std::size_t repeat)
 
 template <class T>
 inline void do_not_optimize(const T& value) {
+#if defined(_MSC_VER)
+    const void* volatile opaque = &value;
+    (void)opaque;
+    _ReadWriteBarrier();
+#else
     asm volatile("" : : "g"(value) : "memory");
+#endif
 }
 
 inline void clobber_memory() {
+#if defined(_MSC_VER)
+    _ReadWriteBarrier();
+#else
     asm volatile("" : : : "memory");
+#endif
 }
 
 template <class Fn>

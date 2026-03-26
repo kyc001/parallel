@@ -10,7 +10,7 @@
 #include <iostream>
 #include <vector>
 
-[[gnu::noinline]] double sum_naive(const double* data, std::size_t n) {
+LAB1_NOINLINE double sum_naive(const double* data, std::size_t n) {
     double sum = 0.0;
     for (std::size_t i = 0; i < n; ++i) {
         sum += data[i];
@@ -18,7 +18,7 @@
     return sum;
 }
 
-[[gnu::noinline]] double sum_superscalar2(const double* data, std::size_t n) {
+LAB1_NOINLINE double sum_superscalar2(const double* data, std::size_t n) {
     double s0 = 0.0;
     double s1 = 0.0;
     std::size_t i = 0;
@@ -34,7 +34,7 @@
     return sum;
 }
 
-[[gnu::noinline]] double sum_superscalar4(const double* data, std::size_t n) {
+LAB1_NOINLINE double sum_superscalar4(const double* data, std::size_t n) {
     double s0 = 0.0;
     double s1 = 0.0;
     double s2 = 0.0;
@@ -55,7 +55,7 @@
     return sum;
 }
 
-[[gnu::noinline]] double sum_pairwise(const double* data, std::size_t n, std::vector<double>& scratch) {
+LAB1_NOINLINE double sum_pairwise(const double* data, std::size_t n, std::vector<double>& scratch) {
     std::copy(data, data + n, scratch.begin());
     std::size_t active = n;
     while (active > 1) {

@@ -18,7 +18,7 @@ double checksum(const std::vector<double>& data) {
 
 }  // namespace
 
-[[gnu::noinline]] void matrix_dot_naive(const double* matrix, const double* vec, double* out, std::size_t n) {
+LAB1_NOINLINE void matrix_dot_naive(const double* matrix, const double* vec, double* out, std::size_t n) {
     for (std::size_t col = 0; col < n; ++col) {
         double acc = 0.0;
         for (std::size_t row = 0; row < n; ++row) {
@@ -28,7 +28,7 @@ double checksum(const std::vector<double>& data) {
     }
 }
 
-[[gnu::noinline]] void matrix_dot_row_major(const double* matrix, const double* vec, double* out, std::size_t n) {
+LAB1_NOINLINE void matrix_dot_row_major(const double* matrix, const double* vec, double* out, std::size_t n) {
     std::fill(out, out + n, 0.0);
     for (std::size_t row = 0; row < n; ++row) {
         const double factor = vec[row];
@@ -39,7 +39,7 @@ double checksum(const std::vector<double>& data) {
     }
 }
 
-[[gnu::noinline]] void matrix_dot_row_major_unrolled4(const double* matrix, const double* vec, double* out, std::size_t n) {
+LAB1_NOINLINE void matrix_dot_row_major_unrolled4(const double* matrix, const double* vec, double* out, std::size_t n) {
     std::fill(out, out + n, 0.0);
     for (std::size_t row = 0; row < n; ++row) {
         const double factor = vec[row];
