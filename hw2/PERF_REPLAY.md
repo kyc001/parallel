@@ -38,6 +38,21 @@
 
 如果你是在虚拟机中执行，需要确认 VM 开启了 CPU performance counters / PMU。
 
+如果当前环境是容器，且宿主机没有把 PMU / perf 权限放出来，那么你通常无法拿到：
+
+- `cycles`
+- `instructions`
+- `cache-misses`
+- `perf record` / `perf report`
+
+这时可以退而求其次执行：
+
+```bash
+./run_gprof.sh
+```
+
+它可以补出用户态热点函数和调用图，但不能替代 `perf` 的 `ipc`、`miss_rate` 等硬件计数器指标。
+
 ---
 
 ## 3. 进入项目目录

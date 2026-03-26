@@ -1,6 +1,7 @@
 CXX := g++
 CXXFLAGS := -std=c++17 -O3 -march=native -fno-tree-vectorize -fno-tree-slp-vectorize -Wall -Wextra -Wpedantic
 PERF_CXXFLAGS := $(CXXFLAGS) -g -fno-omit-frame-pointer
+GPROF_CXXFLAGS := $(CXXFLAGS) -pg -g -fno-omit-frame-pointer
 LDFLAGS :=
 GXX_MAJOR := $(shell $(CXX) -dumpfullversion -dumpversion | cut -d. -f1)
 
@@ -13,8 +14,10 @@ BIN_DIR := bin
 RESULT_DIR := results
 OBJ_DIR := $(BIN_DIR)/obj
 PERF_OBJ_DIR := $(BIN_DIR)/obj_perf
+GPROF_OBJ_DIR := $(BIN_DIR)/obj_gprof
 TARGET := $(BIN_DIR)/lab1_benchmark
 PERF_TARGET := $(BIN_DIR)/lab1_perf
+GPROF_TARGET := $(BIN_DIR)/lab1_gprof
 
 COMMON_SRCS := \
 	$(SRC_DIR)/benchmark.cpp \
@@ -28,8 +31,10 @@ COMMON_OBJS := $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(COMMON_SRCS))
 MAIN_OBJS := $(COMMON_OBJS) $(OBJ_DIR)/main.o
 PERF_COMMON_OBJS := $(patsubst $(SRC_DIR)/%.cpp,$(PERF_OBJ_DIR)/%.o,$(COMMON_SRCS))
 PERF_OBJS := $(PERF_COMMON_OBJS) $(PERF_OBJ_DIR)/perf_driver.o
+GPROF_COMMON_OBJS := $(patsubst $(SRC_DIR)/%.cpp,$(GPROF_OBJ_DIR)/%.o,$(COMMON_SRCS))
+GPROF_OBJS := $(GPROF_COMMON_OBJS) $(GPROF_OBJ_DIR)/perf_driver.o
 
-.PHONY: all clean run asm perf
+.PHONY: all clean run asm perf gprof
 
 all: $(TARGET)
 
@@ -38,6 +43,9 @@ $(TARGET): $(MAIN_OBJS) | $(BIN_DIR) $(RESULT_DIR)
 
 $(PERF_TARGET): $(PERF_OBJS) | $(BIN_DIR) $(RESULT_DIR)
 	$(CXX) $(PERF_CXXFLAGS) $(PERF_OBJS) -o $@ $(LDFLAGS)
+
+$(GPROF_TARGET): $(GPROF_OBJS) | $(BIN_DIR) $(RESULT_DIR)
+	$(CXX) $(GPROF_CXXFLAGS) $(GPROF_OBJS) -o $@ $(LDFLAGS)
 
 $(BIN_DIR):
 	mkdir -p $(BIN_DIR)
@@ -48,6 +56,9 @@ $(OBJ_DIR): | $(BIN_DIR)
 $(PERF_OBJ_DIR): | $(BIN_DIR)
 	mkdir -p $(PERF_OBJ_DIR)
 
+$(GPROF_OBJ_DIR): | $(BIN_DIR)
+	mkdir -p $(GPROF_OBJ_DIR)
+
 $(RESULT_DIR):
 	mkdir -p $(RESULT_DIR)
 
@@ -57,6 +68,9 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp | $(OBJ_DIR)
 $(PERF_OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp | $(PERF_OBJ_DIR)
 	$(CXX) $(PERF_CXXFLAGS) -c $< -o $@
 
+$(GPROF_OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp | $(GPROF_OBJ_DIR)
+	$(CXX) $(GPROF_CXXFLAGS) -c $< -o $@
+
 run: $(TARGET)
 	./$(TARGET)
 
@@ -64,6 +78,8 @@ asm: $(TARGET) | $(RESULT_DIR)
 	objdump -Cd -Mintel $(TARGET) | rg -n -C 12 "sum_naive|sum_superscalar2|sum_superscalar4|sum_pairwise|matrix_dot_naive|matrix_dot_row_major|matrix_dot_row_major_unrolled4" > $(RESULT_DIR)/assembly_excerpt.txt
 
 perf: $(PERF_TARGET)
+
+gprof: $(GPROF_TARGET)
 
 clean:
 	rm -rf $(BIN_DIR) $(RESULT_DIR)

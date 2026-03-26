@@ -51,6 +51,7 @@ if ! perf stat -e cycles,instructions -- ./bin/lab1_perf sum naive 1024 1 >/dev/
   echo "       sudo sysctl -w kernel.perf_event_paranoid=1" >&2
   echo "       sudo sysctl -w kernel.kptr_restrict=0" >&2
   echo "[perf] if you are in a VM/container, make sure PMU/performance counters are exposed" >&2
+  echo "[perf] fallback for hotspot-only analysis: ./run_gprof.sh" >&2
   exit 1
 fi
 rm -f "$OUT_DIR/probe.stderr"
