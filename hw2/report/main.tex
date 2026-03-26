@@ -76,6 +76,14 @@
   \end{center}
 \end{titlepage}
 
+\renewcommand{\abstractname}{摘要}
+\begin{abstract}
+本文在真实 Ubuntu x86\_64 机器上完成 Lab1 CPU 架构编程实验，围绕矩阵列内积与浮点数组求和两个问题，分析 cache 局部性与超标量执行对程序性能的影响。实验分别实现了矩阵的逐列访问、行优先访问、行优先加 4 路展开，以及求和的链式累加、两路独立累加、四路独立累加和两两归约等版本；测试过程中采用固定公式生成数据、单核绑核、warm-up 与累计时长阈值计时，以减小短程序测量抖动。结果表明：矩阵实验中，修正访问顺序是决定性优化，在 $n=2048$ 时行优先加 4 路展开相对平凡算法达到 31.62 倍加速；求和实验中，四路独立累加最高达到 3.88 倍加速，而两两归约在较大规模下因中间结果读写开销反而慢于链式累加。结合反汇编与受限 profiling 的观察，可以看到数据访问模式与指令依赖结构往往比表面计算量更直接地决定现代 CPU 上的实际执行时间。
+
+\noindent\textbf{关键词：} CPU 架构编程，cache 局部性，超标量，循环展开，性能测试
+\end{abstract}
+
+\newpage
 \tableofcontents
 \newpage
 
@@ -107,7 +115,11 @@
 
 \section{实验环境与测试方法}
 \subsection{实验环境}
-本次正式结果来自当前真实 Ubuntu 机器，平台信息由程序自动写入 \texttt{results/environment.txt}。表 \ref{tab:env} 列出了核心配置。
+本次正式结果来自当前真实 Ubuntu 机器。平台信息由程序自动写入环境记录文件中：
+\begin{center}
+  \texttt{results/environment.txt}
+\end{center}
+表 \ref{tab:env} 列出了其中的核心配置。
 
 \begin{table}[H]
   \centering
@@ -169,16 +181,66 @@ make asm
 \subsection{计时方式}
 程序使用 \texttt{std::chrono::steady\_clock} 计时。对每组规模，不预设固定运行次数，而是重复执行待测函数直到累计时间超过 250 ms，再以总时间除以迭代次数得到平均耗时。这样可以明显减小小规模测试中过短运行时间带来的抖动。每次正式计时之前，还会先执行 2 轮 warm-up。
 
+计时框架的核心思想是“先让一次测量足够长，再计算单次平均开销”，其流程与实际工程代码一致，可概括为：
+\begin{lstlisting}[caption={累计时长阈值计时框架},language=C++]
+for (int warmup = 0; warmup < 2; ++warmup) {
+    do_not_optimize(run_once());
+}
+
+size_t iterations = 1;
+while (true) {
+    auto start = Clock::now();
+    double checksum = 0.0;
+    for (size_t i = 0; i < iterations; ++i) {
+        checksum += run_once();
+    }
+    auto end = Clock::now();
+    double total_ms = duration_ms(end - start);
+    if (total_ms >= 250.0) {
+        avg_ms = total_ms / iterations;
+        break;
+    }
+    iterations *= 2;
+}
+\end{lstlisting}
+
+这里将迭代次数按 2 倍递增，可以在小规模问题上快速越过计时精度不够的区间，同时避免人为为每个规模单独手调重复次数。
+
 \section{算法设计与分步优化}
 \subsection{矩阵列内积}
 矩阵部分按“逐步优化”的方式实现了三个版本：
 \begin{enumerate}
   \item \textbf{平凡算法}：外层按列循环，内层按行访问 \texttt{matrix[row * n + col]}。该写法与 C/C++ 的行主存储布局不匹配，跨行访问步长为 $n$，空间局部性差。
-  \item \textbf{行优先算法}：改为外层按行扫描矩阵，内层按列把该行对所有输出元素的贡献累加到 \texttt{out[col]}。这样内层变成连续访问，更符合 cache line 的利用方式。
+  \item \textbf{行优先算法}：改为外层按行扫描矩阵，内层按列把该行对所有输出元素的贡献累加到输出数组中，即 \texttt{out[col]}。这样内层变成连续访问，更符合 cache line 的利用方式。
   \item \textbf{行优先 + 4 路展开}：在行优先基础上，对内层循环做 4 路手工展开，减少循环控制开销，也让处理器获得更稳定的指令流。
 \end{enumerate}
 
 矩阵实验的关键不是减少乘加次数，因为三个版本的计算量同阶，真正拉开差距的是访存模式是否与行主存储布局匹配。循环展开只是第二层优化，收益建立在访问顺序已经被修正的前提之上。
+
+对应到代码层面，矩阵实验最关键的变化并不是公式本身，而是循环次序和连续访存方式：
+\begin{lstlisting}[caption={矩阵列内积的核心实现片段},language=C++]
+// naive: outer loop on columns, inner loop on rows
+for (size_t col = 0; col < n; ++col) {
+    double acc = 0.0;
+    for (size_t row = 0; row < n; ++row) {
+        acc += matrix[row * n + col] * vec[row];
+    }
+    out[col] = acc;
+}
+
+// row-major + unroll4: scan a whole row contiguously
+for (size_t row = 0; row < n; ++row) {
+    const double factor = vec[row];
+    const double* row_ptr = matrix + row * n;
+    size_t col = 0;
+    for (; col + 3 < n; col += 4) {
+        out[col]     += row_ptr[col]     * factor;
+        out[col + 1] += row_ptr[col + 1] * factor;
+        out[col + 2] += row_ptr[col + 2] * factor;
+        out[col + 3] += row_ptr[col + 3] * factor;
+    }
+}
+\end{lstlisting}
 
 \subsection{求和}
 求和部分也按优化阶段实现了四个版本：
@@ -190,6 +252,28 @@ make asm
 \end{enumerate}
 
 这里的核心思想是减少串行依赖。链式累加中每一次加法都依赖上一次结果，而两路、四路独立累加把多条累加链分散到不同寄存器上，更容易被超标量流水线并行发射。归约法虽然理论上也缩短了依赖深度，但它需要读写中间结果，因此性能上还要同时接受额外访存成本的检验。
+
+在实现上，超标量优化最直接的体现就是把一条长依赖链拆成多条独立链：
+\begin{lstlisting}[caption={求和实验的关键实现片段},language=C++]
+// naive: one dependency chain
+double sum = 0.0;
+for (size_t i = 0; i < n; ++i) {
+    sum += data[i];
+}
+
+// superscalar4: four independent accumulators
+double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;
+size_t i = 0;
+for (; i + 3 < n; i += 4) {
+    s0 += data[i];
+    s1 += data[i + 1];
+    s2 += data[i + 2];
+    s3 += data[i + 3];
+}
+double sum4 = (s0 + s1) + (s2 + s3);
+\end{lstlisting}
+
+相较之下，两两归约虽然也缩短了理论依赖深度，但必须不断把中间结果写回数组并重新读取，因此它更依赖具体实现的访存效率。
 
 \section{实验结果与分析}
 \subsection{矩阵列内积实验}
