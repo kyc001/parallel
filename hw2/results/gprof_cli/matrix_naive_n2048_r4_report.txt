@@ -3,12 +3,12 @@ Flat profile:
 Each sample counts as 0.01 seconds.
   %   cumulative   self              self     total           
  time   seconds   seconds    calls  Ts/call  Ts/call  name    
- 88.93      0.08     0.08                             matrix_dot_naive(double const*, double const*, double*, unsigned long)
- 11.12      0.09     0.01                             make_matrix(unsigned long)
-  0.00      0.09     0.00        2     0.00     0.00  std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string<std::allocator<char> >(char const*, std::allocator<char> const&)
-  0.00      0.09     0.00        1     0.00     0.00  _GLOBAL__sub_I__Z16matrix_dot_naivePKdS0_Pdm
-  0.00      0.09     0.00        1     0.00     0.00  _GLOBAL__sub_I__Z9sum_naivePKdm
-  0.00      0.09     0.00        1     0.00     0.00  _GLOBAL__sub_I_main
+ 90.36      0.28     0.28                             matrix_dot_naive(double const*, double const*, double*, unsigned long)
+  9.68      0.31     0.03                             make_matrix(unsigned long)
+  0.00      0.31     0.00        2     0.00     0.00  std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string<std::allocator<char> >(char const*, std::allocator<char> const&)
+  0.00      0.31     0.00        1     0.00     0.00  _GLOBAL__sub_I__Z16matrix_dot_naivePKdS0_Pdm
+  0.00      0.31     0.00        1     0.00     0.00  _GLOBAL__sub_I__Z9sum_naivePKdm
+  0.00      0.31     0.00        1     0.00     0.00  _GLOBAL__sub_I_main
 
  %         the percentage of the total running time of the
 time       program used by this function.
@@ -46,14 +46,14 @@ notice and this notice are preserved.
 		     Call graph (explanation follows)
 
 
-granularity: each sample hit covers 2 byte(s) for 11.11% of 0.09 seconds
+granularity: each sample hit covers 2 byte(s) for 3.22% of 0.31 seconds
 
 index % time    self  children    called     name
                                                  <spontaneous>
-[1]     88.9    0.08    0.00                 matrix_dot_naive(double const*, double const*, double*, unsigned long) [1]
+[1]     90.3    0.28    0.00                 matrix_dot_naive(double const*, double const*, double*, unsigned long) [1]
 -----------------------------------------------
                                                  <spontaneous>
-[2]     11.1    0.01    0.00                 make_matrix(unsigned long) [2]
+[2]      9.7    0.03    0.00                 make_matrix(unsigned long) [2]
 -----------------------------------------------
                 0.00    0.00       2/2           (anonymous namespace)::parse_size(char const*, char const*) [29]
 [10]     0.0    0.00    0.00       2         std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string<std::allocator<char> >(char const*, std::allocator<char> const&) [10]

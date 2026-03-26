@@ -1,1000 +1,1000 @@
-1362-    4380:	49 89 fc             	mov    r12,rdi
-1363-    4383:	c5 f8 77             	vzeroupper 
-1364-    4386:	eb e3                	jmp    436b <main.cold+0xaa>
-1365-    4388:	c5 f8 77             	vzeroupper 
-1366-    438b:	eb de                	jmp    436b <main.cold+0xaa>
-1367-    438d:	f3 0f 1e fa          	endbr64 
-1368-    4391:	49 89 c4             	mov    r12,rax
-1369-    4394:	c5 f8 77             	vzeroupper 
-1370-    4397:	e8 84 f3 ff ff       	call   3720 <__cxa_end_catch@plt>
-1371-    439c:	eb cd                	jmp    436b <main.cold+0xaa>
-1372-    439e:	66 90                	xchg   ax,ax
-1373-
-1374:00000000000043a0 <_GLOBAL__sub_I__Z16matrix_dot_naivePKdS0_Pdm>:
-1375-    43a0:	f3 0f 1e fa          	endbr64 
-1376-    43a4:	48 83 ec 08          	sub    rsp,0x8
-1377-    43a8:	48 8d 3d c2 ae 00 00 	lea    rdi,[rip+0xaec2]        # f271 <std::__ioinit>
-1378-    43af:	e8 1c f3 ff ff       	call   36d0 <std::ios_base::Init::Init()@plt>
-1379-    43b4:	48 8b 3d 3d ac 00 00 	mov    rdi,QWORD PTR [rip+0xac3d]        # eff8 <std::ios_base::Init::~Init()@GLIBCXX_3.4>
-1380-    43bb:	48 8d 15 46 ac 00 00 	lea    rdx,[rip+0xac46]        # f008 <__dso_handle>
-1381-    43c2:	48 8d 35 a8 ae 00 00 	lea    rsi,[rip+0xaea8]        # f271 <std::__ioinit>
-1382-    43c9:	48 83 c4 08          	add    rsp,0x8
-1383-    43cd:	e9 ae f1 ff ff       	jmp    3580 <__cxa_atexit@plt>
-1384-    43d2:	66 2e 0f 1f 84 00 00 	nop    WORD PTR cs:[rax+rax*1+0x0]
-1385-    43d9:	00 00 00 
-1386-    43dc:	0f 1f 40 00          	nop    DWORD PTR [rax+0x0]
-1387-
-1388:00000000000043e0 <_GLOBAL__sub_I__Z9sum_naivePKdm>:
-1389-    43e0:	f3 0f 1e fa          	endbr64 
-1390-    43e4:	48 83 ec 08          	sub    rsp,0x8
-1391-    43e8:	48 8d 3d 83 ae 00 00 	lea    rdi,[rip+0xae83]        # f272 <std::__ioinit>
-1392-    43ef:	e8 dc f2 ff ff       	call   36d0 <std::ios_base::Init::Init()@plt>
-1393-    43f4:	48 8b 3d fd ab 00 00 	mov    rdi,QWORD PTR [rip+0xabfd]        # eff8 <std::ios_base::Init::~Init()@GLIBCXX_3.4>
-1394-    43fb:	48 8d 15 06 ac 00 00 	lea    rdx,[rip+0xac06]        # f008 <__dso_handle>
-1395-    4402:	48 8d 35 69 ae 00 00 	lea    rsi,[rip+0xae69]        # f272 <std::__ioinit>
-1396-    4409:	48 83 c4 08          	add    rsp,0x8
-1397-    440d:	e9 6e f1 ff ff       	jmp    3580 <__cxa_atexit@plt>
-1398-    4412:	66 2e 0f 1f 84 00 00 	nop    WORD PTR cs:[rax+rax*1+0x0]
-1399-    4419:	00 00 00 
-1400-    441c:	0f 1f 40 00          	nop    DWORD PTR [rax+0x0]
+1355-    438f:	49 89 fc             	mov    r12,rdi
+1356-    4392:	c5 f8 77             	vzeroupper 
+1357-    4395:	eb e3                	jmp    437a <main.cold+0xab>
+1358-    4397:	c5 f8 77             	vzeroupper 
+1359-    439a:	eb de                	jmp    437a <main.cold+0xab>
+1360-    439c:	f3 0f 1e fa          	endbr64 
+1361-    43a0:	49 89 c4             	mov    r12,rax
+1362-    43a3:	c5 f8 77             	vzeroupper 
+1363-    43a6:	e8 75 f3 ff ff       	call   3720 <__cxa_end_catch@plt>
+1364-    43ab:	eb cd                	jmp    437a <main.cold+0xab>
+1365-    43ad:	0f 1f 00             	nop    DWORD PTR [rax]
+1366-
+1367:00000000000043b0 <_GLOBAL__sub_I__Z16matrix_dot_naivePKdS0_Pdm>:
+1368-    43b0:	f3 0f 1e fa          	endbr64 
+1369-    43b4:	48 83 ec 08          	sub    rsp,0x8
+1370-    43b8:	48 8d 3d b2 ae 00 00 	lea    rdi,[rip+0xaeb2]        # f271 <std::__ioinit>
+1371-    43bf:	e8 0c f3 ff ff       	call   36d0 <std::ios_base::Init::Init()@plt>
+1372-    43c4:	48 8b 3d 2d ac 00 00 	mov    rdi,QWORD PTR [rip+0xac2d]        # eff8 <std::ios_base::Init::~Init()@GLIBCXX_3.4>
+1373-    43cb:	48 83 c4 08          	add    rsp,0x8
+1374-    43cf:	48 8d 15 32 ac 00 00 	lea    rdx,[rip+0xac32]        # f008 <__dso_handle>
+1375-    43d6:	48 8d 35 94 ae 00 00 	lea    rsi,[rip+0xae94]        # f271 <std::__ioinit>
+1376-    43dd:	e9 9e f1 ff ff       	jmp    3580 <__cxa_atexit@plt>
+1377-    43e2:	66 2e 0f 1f 84 00 00 	nop    WORD PTR cs:[rax+rax*1+0x0]
+1378-    43e9:	00 00 00 
+1379-    43ec:	0f 1f 40 00          	nop    DWORD PTR [rax+0x0]
+1380-
+1381:00000000000043f0 <_GLOBAL__sub_I__Z9sum_naivePKdm>:
+1382-    43f0:	f3 0f 1e fa          	endbr64 
+1383-    43f4:	48 83 ec 08          	sub    rsp,0x8
+1384-    43f8:	48 8d 3d 73 ae 00 00 	lea    rdi,[rip+0xae73]        # f272 <std::__ioinit>
+1385-    43ff:	e8 cc f2 ff ff       	call   36d0 <std::ios_base::Init::Init()@plt>
+1386-    4404:	48 8b 3d ed ab 00 00 	mov    rdi,QWORD PTR [rip+0xabed]        # eff8 <std::ios_base::Init::~Init()@GLIBCXX_3.4>
+1387-    440b:	48 83 c4 08          	add    rsp,0x8
+1388-    440f:	48 8d 15 f2 ab 00 00 	lea    rdx,[rip+0xabf2]        # f008 <__dso_handle>
+1389-    4416:	48 8d 35 55 ae 00 00 	lea    rsi,[rip+0xae55]        # f272 <std::__ioinit>
+1390-    441d:	e9 5e f1 ff ff       	jmp    3580 <__cxa_atexit@plt>
+1391-    4422:	66 2e 0f 1f 84 00 00 	nop    WORD PTR cs:[rax+rax*1+0x0]
+1392-    4429:	00 00 00 
+1393-    442c:	0f 1f 40 00          	nop    DWORD PTR [rax+0x0]
 --
-4374-    73dd:	48 83 c3 10          	add    rbx,0x10
-4375-    73e1:	48 39 df             	cmp    rdi,rbx
-4376-    73e4:	74 0a                	je     73f0 <std::filesystem::__cxx11::path::~path()+0x30>
-4377-    73e6:	5b                   	pop    rbx
-4378-    73e7:	e9 b4 c1 ff ff       	jmp    35a0 <operator delete(void*)@plt>
-4379-    73ec:	0f 1f 40 00          	nop    DWORD PTR [rax+0x0]
-4380-    73f0:	5b                   	pop    rbx
-4381-    73f1:	c3                   	ret    
-4382-    73f2:	66 2e 0f 1f 84 00 00 	nop    WORD PTR cs:[rax+rax*1+0x0]
-4383-    73f9:	00 00 00 
-4384-    73fc:	0f 1f 40 00          	nop    DWORD PTR [rax+0x0]
-4385-
-4386:0000000000007400 <matrix_dot_naive(double const*, double const*, double*, unsigned long)>:
-4387-    7400:	f3 0f 1e fa          	endbr64 
-4388-    7404:	48 85 c9             	test   rcx,rcx
-4389:    7407:	74 4f                	je     7458 <matrix_dot_naive(double const*, double const*, double*, unsigned long)+0x58>
-4390-    7409:	4c 8d 04 cd 00 00 00 	lea    r8,[rcx*8+0x0]
-4391-    7410:	00 
-4392-    7411:	49 89 fb             	mov    r11,rdi
-4393-    7414:	4e 8d 0c 06          	lea    r9,[rsi+r8*1]
-4394-    7418:	45 31 d2             	xor    r10d,r10d
-4395-    741b:	c5 f1 57 c9          	vxorpd xmm1,xmm1,xmm1
-4396-    741f:	90                   	nop
-4397-    7420:	48 89 f0             	mov    rax,rsi
-4398-    7423:	4c 89 df             	mov    rdi,r11
-4399-    7426:	c5 f9 28 c1          	vmovapd xmm0,xmm1
-4400-    742a:	66 0f 1f 44 00 00    	nop    WORD PTR [rax+rax*1+0x0]
-4401-    7430:	c5 fb 10 17          	vmovsd xmm2,QWORD PTR [rdi]
-4402-    7434:	48 83 c0 08          	add    rax,0x8
-4403-    7438:	c4 e2 e9 b9 40 f8    	vfmadd231sd xmm0,xmm2,QWORD PTR [rax-0x8]
-4404-    743e:	4c 01 c7             	add    rdi,r8
-4405-    7441:	49 39 c1             	cmp    r9,rax
-4406:    7444:	75 ea                	jne    7430 <matrix_dot_naive(double const*, double const*, double*, unsigned long)+0x30>
-4407-    7446:	c4 a1 7b 11 04 d2    	vmovsd QWORD PTR [rdx+r10*8],xmm0
-4408-    744c:	49 ff c2             	inc    r10
-4409-    744f:	49 83 c3 08          	add    r11,0x8
-4410-    7453:	4c 39 d1             	cmp    rcx,r10
-4411:    7456:	75 c8                	jne    7420 <matrix_dot_naive(double const*, double const*, double*, unsigned long)+0x20>
-4412-    7458:	c3                   	ret    
-4413-    7459:	0f 1f 80 00 00 00 00 	nop    DWORD PTR [rax+0x0]
-4414-
-4415:0000000000007460 <matrix_dot_row_major(double const*, double const*, double*, unsigned long)>:
-4416-    7460:	f3 0f 1e fa          	endbr64 
-4417-    7464:	41 55                	push   r13
-4418-    7466:	4c 8d 2c cd 00 00 00 	lea    r13,[rcx*8+0x0]
-4419-    746d:	00 
-4420-    746e:	41 54                	push   r12
-4421-    7470:	49 89 f4             	mov    r12,rsi
-4422-    7473:	55                   	push   rbp
-4423-    7474:	48 89 cd             	mov    rbp,rcx
-4424-    7477:	53                   	push   rbx
-4425-    7478:	48 89 fb             	mov    rbx,rdi
-4426-    747b:	48 89 d7             	mov    rdi,rdx
-4427-    747e:	4c 01 ea             	add    rdx,r13
-4428-    7481:	48 83 ec 08          	sub    rsp,0x8
-4429-    7485:	48 39 fa             	cmp    rdx,rdi
-4430:    7488:	74 0d                	je     7497 <matrix_dot_row_major(double const*, double const*, double*, unsigned long)+0x37>
-4431-    748a:	48 29 fa             	sub    rdx,rdi
-4432-    748d:	31 f6                	xor    esi,esi
-4433-    748f:	e8 6c c0 ff ff       	call   3500 <memset@plt>
-4434-    7494:	48 89 c7             	mov    rdi,rax
-4435-    7497:	4c 89 e6             	mov    rsi,r12
-4436-    749a:	48 89 da             	mov    rdx,rbx
-4437-    749d:	4b 8d 0c 2c          	lea    rcx,[r12+r13*1]
-4438-    74a1:	48 85 ed             	test   rbp,rbp
-4439:    74a4:	74 3e                	je     74e4 <matrix_dot_row_major(double const*, double const*, double*, unsigned long)+0x84>
-4440-    74a6:	66 2e 0f 1f 84 00 00 	nop    WORD PTR cs:[rax+rax*1+0x0]
-4441-    74ad:	00 00 00 
-4442-    74b0:	c5 fb 10 0e          	vmovsd xmm1,QWORD PTR [rsi]
-4443-    74b4:	31 c0                	xor    eax,eax
-4444-    74b6:	66 2e 0f 1f 84 00 00 	nop    WORD PTR cs:[rax+rax*1+0x0]
-4445-    74bd:	00 00 00 
-4446-    74c0:	c5 fb 10 04 c2       	vmovsd xmm0,QWORD PTR [rdx+rax*8]
-4447-    74c5:	c4 e2 f1 a9 04 c7    	vfmadd213sd xmm0,xmm1,QWORD PTR [rdi+rax*8]
-4448-    74cb:	c5 fb 11 04 c7       	vmovsd QWORD PTR [rdi+rax*8],xmm0
-4449-    74d0:	48 ff c0             	inc    rax
-4450-    74d3:	48 39 c5             	cmp    rbp,rax
-4451:    74d6:	75 e8                	jne    74c0 <matrix_dot_row_major(double const*, double const*, double*, unsigned long)+0x60>
-4452-    74d8:	48 83 c6 08          	add    rsi,0x8
-4453-    74dc:	4c 01 ea             	add    rdx,r13
-4454-    74df:	48 39 ce             	cmp    rsi,rcx
-4455:    74e2:	75 cc                	jne    74b0 <matrix_dot_row_major(double const*, double const*, double*, unsigned long)+0x50>
-4456-    74e4:	48 83 c4 08          	add    rsp,0x8
-4457-    74e8:	5b                   	pop    rbx
-4458-    74e9:	5d                   	pop    rbp
-4459-    74ea:	41 5c                	pop    r12
-4460-    74ec:	41 5d                	pop    r13
-4461-    74ee:	c3                   	ret    
-4462-    74ef:	90                   	nop
-4463-
-4464:00000000000074f0 <matrix_dot_row_major_unrolled4(double const*, double const*, double*, unsigned long)>:
-4465-    74f0:	f3 0f 1e fa          	endbr64 
-4466-    74f4:	41 57                	push   r15
-4467-    74f6:	49 89 d1             	mov    r9,rdx
-4468-    74f9:	41 56                	push   r14
-4469-    74fb:	41 55                	push   r13
-4470-    74fd:	49 89 f5             	mov    r13,rsi
-4471-    7500:	41 54                	push   r12
-4472-    7502:	49 89 fc             	mov    r12,rdi
-4473-    7505:	55                   	push   rbp
-4474-    7506:	48 8d 2c cd 00 00 00 	lea    rbp,[rcx*8+0x0]
-4475-    750d:	00 
-4476-    750e:	48 01 ea             	add    rdx,rbp
-4477-    7511:	53                   	push   rbx
-4478-    7512:	48 89 cb             	mov    rbx,rcx
-4479-    7515:	48 83 ec 38          	sub    rsp,0x38
-4480-    7519:	4c 39 ca             	cmp    rdx,r9
-4481:    751c:	74 10                	je     752e <matrix_dot_row_major_unrolled4(double const*, double const*, double*, unsigned long)+0x3e>
-4482-    751e:	4c 29 ca             	sub    rdx,r9
-4483-    7521:	4c 89 cf             	mov    rdi,r9
-4484-    7524:	31 f6                	xor    esi,esi
-4485-    7526:	e8 d5 bf ff ff       	call   3500 <memset@plt>
-4486-    752b:	49 89 c1             	mov    r9,rax
-4487-    752e:	48 85 db             	test   rbx,rbx
-4488:    7531:	0f 84 64 01 00 00    	je     769b <matrix_dot_row_major_unrolled4(double const*, double const*, double*, unsigned long)+0x1ab>
-4489-    7537:	48 8d 43 fc          	lea    rax,[rbx-0x4]
-4490-    753b:	48 89 c2             	mov    rdx,rax
-4491-    753e:	48 c1 ea 02          	shr    rdx,0x2
-4492-    7542:	48 83 e0 fc          	and    rax,0xfffffffffffffffc
-4493-    7546:	48 c1 e2 05          	shl    rdx,0x5
-4494-    754a:	48 8d 48 04          	lea    rcx,[rax+0x4]
-4495-    754e:	48 83 fb 03          	cmp    rbx,0x3
-4496-    7552:	b8 00 00 00 00       	mov    eax,0x0
-4497-    7557:	48 0f 46 c8          	cmovbe rcx,rax
-4498-    755b:	4d 89 e8             	mov    r8,r13
-4499-    755e:	48 8d 41 01          	lea    rax,[rcx+0x1]
-4500-    7562:	4c 8d 1c cd 00 00 00 	lea    r11,[rcx*8+0x0]
+4308-    731d:	48 83 c3 10          	add    rbx,0x10
+4309-    7321:	48 39 df             	cmp    rdi,rbx
+4310-    7324:	74 0a                	je     7330 <std::filesystem::__cxx11::path::~path()+0x30>
+4311-    7326:	5b                   	pop    rbx
+4312-    7327:	e9 74 c2 ff ff       	jmp    35a0 <operator delete(void*)@plt>
+4313-    732c:	0f 1f 40 00          	nop    DWORD PTR [rax+0x0]
+4314-    7330:	5b                   	pop    rbx
+4315-    7331:	c3                   	ret    
+4316-    7332:	66 2e 0f 1f 84 00 00 	nop    WORD PTR cs:[rax+rax*1+0x0]
+4317-    7339:	00 00 00 
+4318-    733c:	0f 1f 40 00          	nop    DWORD PTR [rax+0x0]
+4319-
+4320:0000000000007340 <matrix_dot_naive(double const*, double const*, double*, unsigned long)>:
+4321-    7340:	f3 0f 1e fa          	endbr64 
+4322-    7344:	48 85 c9             	test   rcx,rcx
+4323:    7347:	74 50                	je     7399 <matrix_dot_naive(double const*, double const*, double*, unsigned long)+0x59>
+4324-    7349:	4c 8d 04 cd 00 00 00 	lea    r8,[rcx*8+0x0]
+4325-    7350:	00 
+4326-    7351:	49 89 fb             	mov    r11,rdi
+4327-    7354:	c5 f1 57 c9          	vxorpd xmm1,xmm1,xmm1
+4328-    7358:	45 31 d2             	xor    r10d,r10d
+4329-    735b:	4e 8d 0c 06          	lea    r9,[rsi+r8*1]
+4330-    735f:	90                   	nop
+4331-    7360:	48 89 f0             	mov    rax,rsi
+4332-    7363:	4c 89 df             	mov    rdi,r11
+4333-    7366:	c5 f9 28 c1          	vmovapd xmm0,xmm1
+4334-    736a:	66 0f 1f 44 00 00    	nop    WORD PTR [rax+rax*1+0x0]
+4335-    7370:	c5 fb 10 17          	vmovsd xmm2,QWORD PTR [rdi]
+4336-    7374:	48 83 c0 08          	add    rax,0x8
+4337-    7378:	c4 e2 e9 b9 40 f8    	vfmadd231sd xmm0,xmm2,QWORD PTR [rax-0x8]
+4338-    737e:	4c 01 c7             	add    rdi,r8
+4339-    7381:	49 39 c1             	cmp    r9,rax
+4340:    7384:	75 ea                	jne    7370 <matrix_dot_naive(double const*, double const*, double*, unsigned long)+0x30>
+4341-    7386:	c4 a1 7b 11 04 d2    	vmovsd QWORD PTR [rdx+r10*8],xmm0
+4342-    738c:	49 83 c2 01          	add    r10,0x1
+4343-    7390:	49 83 c3 08          	add    r11,0x8
+4344-    7394:	4c 39 d1             	cmp    rcx,r10
+4345:    7397:	75 c7                	jne    7360 <matrix_dot_naive(double const*, double const*, double*, unsigned long)+0x20>
+4346-    7399:	c3                   	ret    
+4347-    739a:	66 0f 1f 44 00 00    	nop    WORD PTR [rax+rax*1+0x0]
+4348-
+4349:00000000000073a0 <matrix_dot_row_major(double const*, double const*, double*, unsigned long)>:
+4350-    73a0:	f3 0f 1e fa          	endbr64 
+4351-    73a4:	41 55                	push   r13
+4352-    73a6:	4c 8d 2c cd 00 00 00 	lea    r13,[rcx*8+0x0]
+4353-    73ad:	00 
+4354-    73ae:	41 54                	push   r12
+4355-    73b0:	49 89 f4             	mov    r12,rsi
+4356-    73b3:	55                   	push   rbp
+4357-    73b4:	48 89 cd             	mov    rbp,rcx
+4358-    73b7:	53                   	push   rbx
+4359-    73b8:	48 89 fb             	mov    rbx,rdi
+4360-    73bb:	48 89 d7             	mov    rdi,rdx
+4361-    73be:	4c 01 ea             	add    rdx,r13
+4362-    73c1:	48 83 ec 08          	sub    rsp,0x8
+4363-    73c5:	48 39 fa             	cmp    rdx,rdi
+4364:    73c8:	74 0d                	je     73d7 <matrix_dot_row_major(double const*, double const*, double*, unsigned long)+0x37>
+4365-    73ca:	48 29 fa             	sub    rdx,rdi
+4366-    73cd:	31 f6                	xor    esi,esi
+4367-    73cf:	e8 2c c1 ff ff       	call   3500 <memset@plt>
+4368-    73d4:	48 89 c7             	mov    rdi,rax
+4369-    73d7:	4c 89 e6             	mov    rsi,r12
+4370-    73da:	48 89 da             	mov    rdx,rbx
+4371-    73dd:	4b 8d 0c 2c          	lea    rcx,[r12+r13*1]
+4372-    73e1:	48 85 ed             	test   rbp,rbp
+4373:    73e4:	74 3f                	je     7425 <matrix_dot_row_major(double const*, double const*, double*, unsigned long)+0x85>
+4374-    73e6:	66 2e 0f 1f 84 00 00 	nop    WORD PTR cs:[rax+rax*1+0x0]
+4375-    73ed:	00 00 00 
+4376-    73f0:	c5 fb 10 0e          	vmovsd xmm1,QWORD PTR [rsi]
+4377-    73f4:	31 c0                	xor    eax,eax
+4378-    73f6:	66 2e 0f 1f 84 00 00 	nop    WORD PTR cs:[rax+rax*1+0x0]
+4379-    73fd:	00 00 00 
+4380-    7400:	c5 fb 10 04 c2       	vmovsd xmm0,QWORD PTR [rdx+rax*8]
+4381-    7405:	c4 e2 f1 a9 04 c7    	vfmadd213sd xmm0,xmm1,QWORD PTR [rdi+rax*8]
+4382-    740b:	c5 fb 11 04 c7       	vmovsd QWORD PTR [rdi+rax*8],xmm0
+4383-    7410:	48 83 c0 01          	add    rax,0x1
+4384-    7414:	48 39 c5             	cmp    rbp,rax
+4385:    7417:	75 e7                	jne    7400 <matrix_dot_row_major(double const*, double const*, double*, unsigned long)+0x60>
+4386-    7419:	48 83 c6 08          	add    rsi,0x8
+4387-    741d:	4c 01 ea             	add    rdx,r13
+4388-    7420:	48 39 ce             	cmp    rsi,rcx
+4389:    7423:	75 cb                	jne    73f0 <matrix_dot_row_major(double const*, double const*, double*, unsigned long)+0x50>
+4390-    7425:	48 83 c4 08          	add    rsp,0x8
+4391-    7429:	5b                   	pop    rbx
+4392-    742a:	5d                   	pop    rbp
+4393-    742b:	41 5c                	pop    r12
+4394-    742d:	41 5d                	pop    r13
+4395-    742f:	c3                   	ret    
+4396-
+4397:0000000000007430 <matrix_dot_row_major_unrolled4(double const*, double const*, double*, unsigned long)>:
+4398-    7430:	f3 0f 1e fa          	endbr64 
+4399-    7434:	41 57                	push   r15
+4400-    7436:	49 89 d1             	mov    r9,rdx
+4401-    7439:	41 56                	push   r14
+4402-    743b:	41 55                	push   r13
+4403-    743d:	49 89 f5             	mov    r13,rsi
+4404-    7440:	41 54                	push   r12
+4405-    7442:	49 89 fc             	mov    r12,rdi
+4406-    7445:	55                   	push   rbp
+4407-    7446:	48 8d 2c cd 00 00 00 	lea    rbp,[rcx*8+0x0]
+4408-    744d:	00 
+4409-    744e:	53                   	push   rbx
+4410-    744f:	48 01 ea             	add    rdx,rbp
+4411-    7452:	48 89 cb             	mov    rbx,rcx
+4412-    7455:	48 83 ec 38          	sub    rsp,0x38
+4413-    7459:	4c 39 ca             	cmp    rdx,r9
+4414:    745c:	74 10                	je     746e <matrix_dot_row_major_unrolled4(double const*, double const*, double*, unsigned long)+0x3e>
+4415-    745e:	4c 29 ca             	sub    rdx,r9
+4416-    7461:	4c 89 cf             	mov    rdi,r9
+4417-    7464:	31 f6                	xor    esi,esi
+4418-    7466:	e8 95 c0 ff ff       	call   3500 <memset@plt>
+4419-    746b:	49 89 c1             	mov    r9,rax
+4420-    746e:	48 85 db             	test   rbx,rbx
+4421:    7471:	0f 84 63 01 00 00    	je     75da <matrix_dot_row_major_unrolled4(double const*, double const*, double*, unsigned long)+0x1aa>
+4422-    7477:	48 8d 43 fc          	lea    rax,[rbx-0x4]
+4423-    747b:	4d 89 e8             	mov    r8,r13
+4424-    747e:	4d 8d 6c 2d 00       	lea    r13,[r13+rbp*1+0x0]
+4425-    7483:	4c 89 e7             	mov    rdi,r12
+4426-    7486:	48 89 c2             	mov    rdx,rax
+4427-    7489:	48 83 e0 fc          	and    rax,0xfffffffffffffffc
+4428-    748d:	48 c1 ea 02          	shr    rdx,0x2
+4429-    7491:	48 8d 48 04          	lea    rcx,[rax+0x4]
+4430-    7495:	b8 00 00 00 00       	mov    eax,0x0
+4431-    749a:	48 c1 e2 05          	shl    rdx,0x5
+4432-    749e:	48 83 fb 03          	cmp    rbx,0x3
+4433-    74a2:	48 0f 46 c8          	cmovbe rcx,rax
 --
-4514-    759e:	4d 8d 7b 08          	lea    r15,[r11+0x8]
-4515-    75a2:	4c 89 e7             	mov    rdi,r12
-4516-    75a5:	4d 8d 6c 2d 00       	lea    r13,[r13+rbp*1+0x0]
-4517-    75aa:	49 8d 74 11 20       	lea    rsi,[r9+rdx*1+0x20]
-4518-    75af:	4f 8d 14 19          	lea    r10,[r9+r11*1]
-4519-    75b3:	4f 8d 24 39          	lea    r12,[r9+r15*1]
-4520-    75b7:	66 0f 1f 84 00 00 00 	nop    WORD PTR [rax+rax*1+0x0]
-4521-    75be:	00 00 
-4522-    75c0:	c4 c1 7b 10 00       	vmovsd xmm0,QWORD PTR [r8]
-4523-    75c5:	48 89 fa             	mov    rdx,rdi
-4524-    75c8:	4c 89 c8             	mov    rax,r9
-4525-    75cb:	48 83 fb 03          	cmp    rbx,0x3
-4526:    75cf:	76 53                	jbe    7624 <matrix_dot_row_major_unrolled4(double const*, double const*, double*, unsigned long)+0x134>
-4527-    75d1:	0f 1f 80 00 00 00 00 	nop    DWORD PTR [rax+0x0]
-4528-    75d8:	c5 fb 10 0a          	vmovsd xmm1,QWORD PTR [rdx]
-4529-    75dc:	48 83 c0 20          	add    rax,0x20
-4530-    75e0:	c4 e2 f9 a9 48 e0    	vfmadd213sd xmm1,xmm0,QWORD PTR [rax-0x20]
-4531-    75e6:	48 83 c2 20          	add    rdx,0x20
-4532-    75ea:	c5 fb 11 48 e0       	vmovsd QWORD PTR [rax-0x20],xmm1
-4533-    75ef:	c5 fb 10 4a e8       	vmovsd xmm1,QWORD PTR [rdx-0x18]
-4534-    75f4:	c4 e2 f9 a9 48 e8    	vfmadd213sd xmm1,xmm0,QWORD PTR [rax-0x18]
-4535-    75fa:	c5 fb 11 48 e8       	vmovsd QWORD PTR [rax-0x18],xmm1
-4536-    75ff:	c5 fb 10 4a f0       	vmovsd xmm1,QWORD PTR [rdx-0x10]
-4537-    7604:	c4 e2 f9 a9 48 f0    	vfmadd213sd xmm1,xmm0,QWORD PTR [rax-0x10]
-4538-    760a:	c5 fb 11 48 f0       	vmovsd QWORD PTR [rax-0x10],xmm1
-4539-    760f:	c5 fb 10 4a f8       	vmovsd xmm1,QWORD PTR [rdx-0x8]
-4540-    7614:	c4 e2 f9 a9 48 f8    	vfmadd213sd xmm1,xmm0,QWORD PTR [rax-0x8]
-4541-    761a:	c5 fb 11 48 f8       	vmovsd QWORD PTR [rax-0x8],xmm1
-4542-    761f:	48 39 f0             	cmp    rax,rsi
-4543:    7622:	75 b4                	jne    75d8 <matrix_dot_row_major_unrolled4(double const*, double const*, double*, unsigned long)+0xe8>
-4544-    7624:	48 39 cb             	cmp    rbx,rcx
-4545:    7627:	76 62                	jbe    768b <matrix_dot_row_major_unrolled4(double const*, double const*, double*, unsigned long)+0x19b>
-4546-    7629:	c4 a1 7b 10 0c 1f    	vmovsd xmm1,QWORD PTR [rdi+r11*1]
-4547-    762f:	c4 c2 f9 a9 0a       	vfmadd213sd xmm1,xmm0,QWORD PTR [r10]
-4548-    7634:	c4 c1 7b 11 0a       	vmovsd QWORD PTR [r10],xmm1
-4549-    7639:	48 3b 1c 24          	cmp    rbx,QWORD PTR [rsp]
-4550:    763d:	76 4c                	jbe    768b <matrix_dot_row_major_unrolled4(double const*, double const*, double*, unsigned long)+0x19b>
-4551-    763f:	c4 a1 7b 10 0c 3f    	vmovsd xmm1,QWORD PTR [rdi+r15*1]
-4552-    7645:	c4 c2 f9 a9 0c 24    	vfmadd213sd xmm1,xmm0,QWORD PTR [r12]
-4553-    764b:	c4 c1 7b 11 0c 24    	vmovsd QWORD PTR [r12],xmm1
-4554-    7651:	48 3b 5c 24 08       	cmp    rbx,QWORD PTR [rsp+0x8]
-4555:    7656:	76 33                	jbe    768b <matrix_dot_row_major_unrolled4(double const*, double const*, double*, unsigned long)+0x19b>
-4556-    7658:	48 8b 44 24 18       	mov    rax,QWORD PTR [rsp+0x18]
-4557-    765d:	c5 fb 10 0c 07       	vmovsd xmm1,QWORD PTR [rdi+rax*1]
-4558-    7662:	c4 c2 f9 a9 0e       	vfmadd213sd xmm1,xmm0,QWORD PTR [r14]
-4559-    7667:	c4 c1 7b 11 0e       	vmovsd QWORD PTR [r14],xmm1
-4560-    766c:	48 39 5c 24 10       	cmp    QWORD PTR [rsp+0x10],rbx
-4561:    7671:	73 18                	jae    768b <matrix_dot_row_major_unrolled4(double const*, double const*, double*, unsigned long)+0x19b>
-4562-    7673:	48 8b 44 24 28       	mov    rax,QWORD PTR [rsp+0x28]
-4563-    7678:	48 8b 54 24 20       	mov    rdx,QWORD PTR [rsp+0x20]
-4564-    767d:	c5 fb 10 10          	vmovsd xmm2,QWORD PTR [rax]
-4565-    7681:	c4 e2 e9 99 04 17    	vfmadd132sd xmm0,xmm2,QWORD PTR [rdi+rdx*1]
-4566-    7687:	c5 fb 11 00          	vmovsd QWORD PTR [rax],xmm0
-4567-    768b:	49 83 c0 08          	add    r8,0x8
-4568-    768f:	48 01 ef             	add    rdi,rbp
-4569-    7692:	4d 39 e8             	cmp    r8,r13
-4570:    7695:	0f 85 25 ff ff ff    	jne    75c0 <matrix_dot_row_major_unrolled4(double const*, double const*, double*, unsigned long)+0xd0>
-4571-    769b:	48 83 c4 38          	add    rsp,0x38
-4572-    769f:	5b                   	pop    rbx
-4573-    76a0:	5d                   	pop    rbp
-4574-    76a1:	41 5c                	pop    r12
-4575-    76a3:	41 5d                	pop    r13
-4576-    76a5:	41 5e                	pop    r14
-4577-    76a7:	41 5f                	pop    r15
-4578-    76a9:	c3                   	ret    
-4579-    76aa:	66 0f 1f 44 00 00    	nop    WORD PTR [rax+rax*1+0x0]
-4580-
-4581-00000000000076b0 <run_matrix_experiment(std::filesystem::__cxx11::path const&)>:
-4582-    76b0:	f3 0f 1e fa          	endbr64 
+4447-    74dd:	48 89 44 24 10       	mov    QWORD PTR [rsp+0x10],rax
+4448-    74e2:	49 8d 43 18          	lea    rax,[r11+0x18]
+4449-    74e6:	4f 8d 24 39          	lea    r12,[r9+r15*1]
+4450-    74ea:	48 89 44 24 20       	mov    QWORD PTR [rsp+0x20],rax
+4451-    74ef:	4c 01 c8             	add    rax,r9
+4452-    74f2:	48 89 44 24 28       	mov    QWORD PTR [rsp+0x28],rax
+4453-    74f7:	66 0f 1f 84 00 00 00 	nop    WORD PTR [rax+rax*1+0x0]
+4454-    74fe:	00 00 
+4455-    7500:	c4 c1 7b 10 00       	vmovsd xmm0,QWORD PTR [r8]
+4456-    7505:	48 89 fa             	mov    rdx,rdi
+4457-    7508:	4c 89 c8             	mov    rax,r9
+4458-    750b:	48 83 fb 03          	cmp    rbx,0x3
+4459:    750f:	76 52                	jbe    7563 <matrix_dot_row_major_unrolled4(double const*, double const*, double*, unsigned long)+0x133>
+4460-    7511:	0f 1f 80 00 00 00 00 	nop    DWORD PTR [rax+0x0]
+4461-    7518:	c5 fb 10 0a          	vmovsd xmm1,QWORD PTR [rdx]
+4462-    751c:	c4 e2 f9 a9 08       	vfmadd213sd xmm1,xmm0,QWORD PTR [rax]
+4463-    7521:	48 83 c0 20          	add    rax,0x20
+4464-    7525:	48 83 c2 20          	add    rdx,0x20
+4465-    7529:	c5 fb 11 48 e0       	vmovsd QWORD PTR [rax-0x20],xmm1
+4466-    752e:	c5 fb 10 4a e8       	vmovsd xmm1,QWORD PTR [rdx-0x18]
+4467-    7533:	c4 e2 f9 a9 48 e8    	vfmadd213sd xmm1,xmm0,QWORD PTR [rax-0x18]
+4468-    7539:	c5 fb 11 48 e8       	vmovsd QWORD PTR [rax-0x18],xmm1
+4469-    753e:	c5 fb 10 4a f0       	vmovsd xmm1,QWORD PTR [rdx-0x10]
+4470-    7543:	c4 e2 f9 a9 48 f0    	vfmadd213sd xmm1,xmm0,QWORD PTR [rax-0x10]
+4471-    7549:	c5 fb 11 48 f0       	vmovsd QWORD PTR [rax-0x10],xmm1
+4472-    754e:	c5 fb 10 4a f8       	vmovsd xmm1,QWORD PTR [rdx-0x8]
+4473-    7553:	c4 e2 f9 a9 48 f8    	vfmadd213sd xmm1,xmm0,QWORD PTR [rax-0x8]
+4474-    7559:	c5 fb 11 48 f8       	vmovsd QWORD PTR [rax-0x8],xmm1
+4475-    755e:	48 39 f0             	cmp    rax,rsi
+4476:    7561:	75 b5                	jne    7518 <matrix_dot_row_major_unrolled4(double const*, double const*, double*, unsigned long)+0xe8>
+4477-    7563:	48 39 cb             	cmp    rbx,rcx
+4478:    7566:	76 62                	jbe    75ca <matrix_dot_row_major_unrolled4(double const*, double const*, double*, unsigned long)+0x19a>
+4479-    7568:	c4 a1 7b 10 0c 1f    	vmovsd xmm1,QWORD PTR [rdi+r11*1]
+4480-    756e:	c4 c2 f9 a9 0a       	vfmadd213sd xmm1,xmm0,QWORD PTR [r10]
+4481-    7573:	c4 c1 7b 11 0a       	vmovsd QWORD PTR [r10],xmm1
+4482-    7578:	48 3b 1c 24          	cmp    rbx,QWORD PTR [rsp]
+4483:    757c:	76 4c                	jbe    75ca <matrix_dot_row_major_unrolled4(double const*, double const*, double*, unsigned long)+0x19a>
+4484-    757e:	c4 a1 7b 10 0c 3f    	vmovsd xmm1,QWORD PTR [rdi+r15*1]
+4485-    7584:	c4 c2 f9 a9 0c 24    	vfmadd213sd xmm1,xmm0,QWORD PTR [r12]
+4486-    758a:	c4 c1 7b 11 0c 24    	vmovsd QWORD PTR [r12],xmm1
+4487-    7590:	48 3b 5c 24 08       	cmp    rbx,QWORD PTR [rsp+0x8]
+4488:    7595:	76 33                	jbe    75ca <matrix_dot_row_major_unrolled4(double const*, double const*, double*, unsigned long)+0x19a>
+4489-    7597:	48 8b 44 24 18       	mov    rax,QWORD PTR [rsp+0x18]
+4490-    759c:	c5 fb 10 0c 07       	vmovsd xmm1,QWORD PTR [rdi+rax*1]
+4491-    75a1:	c4 c2 f9 a9 0e       	vfmadd213sd xmm1,xmm0,QWORD PTR [r14]
+4492-    75a6:	c4 c1 7b 11 0e       	vmovsd QWORD PTR [r14],xmm1
+4493-    75ab:	48 39 5c 24 10       	cmp    QWORD PTR [rsp+0x10],rbx
+4494:    75b0:	73 18                	jae    75ca <matrix_dot_row_major_unrolled4(double const*, double const*, double*, unsigned long)+0x19a>
+4495-    75b2:	48 8b 44 24 28       	mov    rax,QWORD PTR [rsp+0x28]
+4496-    75b7:	48 8b 54 24 20       	mov    rdx,QWORD PTR [rsp+0x20]
+4497-    75bc:	c5 fb 10 10          	vmovsd xmm2,QWORD PTR [rax]
+4498-    75c0:	c4 e2 e9 99 04 17    	vfmadd132sd xmm0,xmm2,QWORD PTR [rdi+rdx*1]
+4499-    75c6:	c5 fb 11 00          	vmovsd QWORD PTR [rax],xmm0
+4500-    75ca:	49 83 c0 08          	add    r8,0x8
+4501-    75ce:	48 01 ef             	add    rdi,rbp
+4502-    75d1:	4d 39 e8             	cmp    r8,r13
+4503:    75d4:	0f 85 26 ff ff ff    	jne    7500 <matrix_dot_row_major_unrolled4(double const*, double const*, double*, unsigned long)+0xd0>
+4504-    75da:	48 83 c4 38          	add    rsp,0x38
+4505-    75de:	5b                   	pop    rbx
+4506-    75df:	5d                   	pop    rbp
+4507-    75e0:	41 5c                	pop    r12
+4508-    75e2:	41 5d                	pop    r13
+4509-    75e4:	41 5e                	pop    r14
+4510-    75e6:	41 5f                	pop    r15
+4511-    75e8:	c3                   	ret    
+4512-    75e9:	0f 1f 80 00 00 00 00 	nop    DWORD PTR [rax+0x0]
+4513-
+4514-00000000000075f0 <run_matrix_experiment(std::filesystem::__cxx11::path const&)>:
+4515-    75f0:	f3 0f 1e fa          	endbr64 
 --
-4881-    7bd6:	00 
-4882-    7bd7:	4c 8b b4 24 e0 00 00 	mov    r14,QWORD PTR [rsp+0xe0]
-4883-    7bde:	00 
-4884-    7bdf:	e8 1c b9 ff ff       	call   3500 <memset@plt>
-4885-    7be4:	48 8b b4 24 c0 00 00 	mov    rsi,QWORD PTR [rsp+0xc0]
-4886-    7beb:	00 
-4887-    7bec:	48 8b bc 24 a0 00 00 	mov    rdi,QWORD PTR [rsp+0xa0]
-4888-    7bf3:	00 
-4889-    7bf4:	48 89 e9             	mov    rcx,rbp
-4890-    7bf7:	4c 89 f2             	mov    rdx,r14
-4891-    7bfa:	48 89 9c 24 28 01 00 	mov    QWORD PTR [rsp+0x128],rbx
-4892-    7c01:	00 
-4893:    7c02:	e8 f9 f7 ff ff       	call   7400 <matrix_dot_naive(double const*, double const*, double*, unsigned long)>
-4894-    7c07:	48 8b 94 24 00 01 00 	mov    rdx,QWORD PTR [rsp+0x100]
-4895-    7c0e:	00 
-4896-    7c0f:	48 8b b4 24 c0 00 00 	mov    rsi,QWORD PTR [rsp+0xc0]
-4897-    7c16:	00 
-4898-    7c17:	48 8b bc 24 a0 00 00 	mov    rdi,QWORD PTR [rsp+0xa0]
-4899-    7c1e:	00 
-4900-    7c1f:	4c 8d a4 24 e0 00 00 	lea    r12,[rsp+0xe0]
-4901-    7c26:	00 
-4902:    7c27:	e8 34 f8 ff ff       	call   7460 <matrix_dot_row_major(double const*, double const*, double*, unsigned long)>
-4903-    7c2c:	48 8b b4 24 c0 00 00 	mov    rsi,QWORD PTR [rsp+0xc0]
-4904-    7c33:	00 
-4905-    7c34:	48 8b bc 24 a0 00 00 	mov    rdi,QWORD PTR [rsp+0xa0]
-4906-    7c3b:	00 
-4907-    7c3c:	48 8b 94 24 20 01 00 	mov    rdx,QWORD PTR [rsp+0x120]
-4908-    7c43:	00 
-4909-    7c44:	48 89 e9             	mov    rcx,rbp
-4910:    7c47:	e8 a4 f8 ff ff       	call   74f0 <matrix_dot_row_major_unrolled4(double const*, double const*, double*, unsigned long)>
-4911-    7c4c:	48 8d b4 24 00 01 00 	lea    rsi,[rsp+0x100]
-4912-    7c53:	00 
-4913-    7c54:	4c 89 e7             	mov    rdi,r12
-4914-    7c57:	e8 14 d9 ff ff       	call   5570 <max_abs_diff(std::vector<double, std::allocator<double> > const&, std::vector<double, std::allocator<double> > const&)>
-4915-    7c5c:	48 8b 74 24 40       	mov    rsi,QWORD PTR [rsp+0x40]
-4916-    7c61:	4c 89 e7             	mov    rdi,r12
-4917-    7c64:	c5 fb 11 44 24 30    	vmovsd QWORD PTR [rsp+0x30],xmm0
-4918-    7c6a:	e8 01 d9 ff ff       	call   5570 <max_abs_diff(std::vector<double, std::allocator<double> > const&, std::vector<double, std::allocator<double> > const&)>
-4919-    7c6f:	48 c7 84 24 98 00 00 	mov    QWORD PTR [rsp+0x98],0x0
-4920-    7c76:	00 00 00 00 00 
-4921-    7c7b:	c5 fb 11 44 24 18    	vmovsd QWORD PTR [rsp+0x18],xmm0
-4922-    7c81:	bb 02 00 00 00       	mov    ebx,0x2
-4923-    7c86:	48 8b 94 24 e0 00 00 	mov    rdx,QWORD PTR [rsp+0xe0]
-4924-    7c8d:	00 
-4925-    7c8e:	48 8b b4 24 c0 00 00 	mov    rsi,QWORD PTR [rsp+0xc0]
-4926-    7c95:	00 
-4927-    7c96:	48 8b bc 24 a0 00 00 	mov    rdi,QWORD PTR [rsp+0xa0]
-4928-    7c9d:	00 
-4929-    7c9e:	48 89 e9             	mov    rcx,rbp
-4930:    7ca1:	e8 5a f7 ff ff       	call   7400 <matrix_dot_naive(double const*, double const*, double*, unsigned long)>
-4931-    7ca6:	48 8b 94 24 e8 00 00 	mov    rdx,QWORD PTR [rsp+0xe8]
-4932-    7cad:	00 
-4933-    7cae:	48 8b 84 24 e0 00 00 	mov    rax,QWORD PTR [rsp+0xe0]
-4934-    7cb5:	00 
-4935-    7cb6:	c5 f9 57 c0          	vxorpd xmm0,xmm0,xmm0
-4936-    7cba:	48 39 c2             	cmp    rdx,rax
-4937-    7cbd:	74 0e                	je     7ccd <run_matrix_experiment(std::filesystem::__cxx11::path const&)+0x61d>
-4938-    7cbf:	90                   	nop
-4939-    7cc0:	c5 fb 58 00          	vaddsd xmm0,xmm0,QWORD PTR [rax]
-4940-    7cc4:	48 83 c0 08          	add    rax,0x8
-4941-    7cc8:	48 39 c2             	cmp    rdx,rax
-4942-    7ccb:	75 f3                	jne    7cc0 <run_matrix_experiment(std::filesystem::__cxx11::path const&)+0x610>
+4817-    7b26:	00 
+4818-    7b27:	e8 d4 b9 ff ff       	call   3500 <memset@plt>
+4819-    7b2c:	48 8b b4 24 c0 00 00 	mov    rsi,QWORD PTR [rsp+0xc0]
+4820-    7b33:	00 
+4821-    7b34:	48 8b bc 24 a0 00 00 	mov    rdi,QWORD PTR [rsp+0xa0]
+4822-    7b3b:	00 
+4823-    7b3c:	48 89 e9             	mov    rcx,rbp
+4824-    7b3f:	4c 89 f2             	mov    rdx,r14
+4825-    7b42:	48 89 9c 24 28 01 00 	mov    QWORD PTR [rsp+0x128],rbx
+4826-    7b49:	00 
+4827-    7b4a:	4c 8d ac 24 e0 00 00 	lea    r13,[rsp+0xe0]
+4828-    7b51:	00 
+4829:    7b52:	e8 e9 f7 ff ff       	call   7340 <matrix_dot_naive(double const*, double const*, double*, unsigned long)>
+4830-    7b57:	48 8b 94 24 00 01 00 	mov    rdx,QWORD PTR [rsp+0x100]
+4831-    7b5e:	00 
+4832-    7b5f:	48 8b b4 24 c0 00 00 	mov    rsi,QWORD PTR [rsp+0xc0]
+4833-    7b66:	00 
+4834-    7b67:	48 8b bc 24 a0 00 00 	mov    rdi,QWORD PTR [rsp+0xa0]
+4835-    7b6e:	00 
+4836:    7b6f:	e8 2c f8 ff ff       	call   73a0 <matrix_dot_row_major(double const*, double const*, double*, unsigned long)>
+4837-    7b74:	48 8b b4 24 c0 00 00 	mov    rsi,QWORD PTR [rsp+0xc0]
+4838-    7b7b:	00 
+4839-    7b7c:	48 8b bc 24 a0 00 00 	mov    rdi,QWORD PTR [rsp+0xa0]
+4840-    7b83:	00 
+4841-    7b84:	48 89 e9             	mov    rcx,rbp
+4842-    7b87:	48 8b 94 24 20 01 00 	mov    rdx,QWORD PTR [rsp+0x120]
+4843-    7b8e:	00 
+4844:    7b8f:	e8 9c f8 ff ff       	call   7430 <matrix_dot_row_major_unrolled4(double const*, double const*, double*, unsigned long)>
+4845-    7b94:	48 8d b4 24 00 01 00 	lea    rsi,[rsp+0x100]
+4846-    7b9b:	00 
+4847-    7b9c:	4c 89 ef             	mov    rdi,r13
+4848-    7b9f:	e8 1c d9 ff ff       	call   54c0 <max_abs_diff(std::vector<double, std::allocator<double> > const&, std::vector<double, std::allocator<double> > const&)>
+4849-    7ba4:	48 8b 74 24 40       	mov    rsi,QWORD PTR [rsp+0x40]
+4850-    7ba9:	4c 89 ef             	mov    rdi,r13
+4851-    7bac:	c5 fb 11 44 24 38    	vmovsd QWORD PTR [rsp+0x38],xmm0
+4852-    7bb2:	e8 09 d9 ff ff       	call   54c0 <max_abs_diff(std::vector<double, std::allocator<double> > const&, std::vector<double, std::allocator<double> > const&)>
+4853-    7bb7:	c5 fb 11 44 24 20    	vmovsd QWORD PTR [rsp+0x20],xmm0
+4854-    7bbd:	bb 02 00 00 00       	mov    ebx,0x2
+4855-    7bc2:	48 c7 84 24 98 00 00 	mov    QWORD PTR [rsp+0x98],0x0
+4856-    7bc9:	00 00 00 00 00 
+4857-    7bce:	48 8b 94 24 e0 00 00 	mov    rdx,QWORD PTR [rsp+0xe0]
+4858-    7bd5:	00 
+4859-    7bd6:	48 8b b4 24 c0 00 00 	mov    rsi,QWORD PTR [rsp+0xc0]
+4860-    7bdd:	00 
+4861-    7bde:	48 89 e9             	mov    rcx,rbp
+4862-    7be1:	48 8b bc 24 a0 00 00 	mov    rdi,QWORD PTR [rsp+0xa0]
+4863-    7be8:	00 
+4864:    7be9:	e8 52 f7 ff ff       	call   7340 <matrix_dot_naive(double const*, double const*, double*, unsigned long)>
+4865-    7bee:	48 8b 94 24 e8 00 00 	mov    rdx,QWORD PTR [rsp+0xe8]
+4866-    7bf5:	00 
+4867-    7bf6:	c5 f9 57 c0          	vxorpd xmm0,xmm0,xmm0
+4868-    7bfa:	48 8b 84 24 e0 00 00 	mov    rax,QWORD PTR [rsp+0xe0]
+4869-    7c01:	00 
+4870-    7c02:	48 39 c2             	cmp    rdx,rax
+4871-    7c05:	74 16                	je     7c1d <run_matrix_experiment(std::filesystem::__cxx11::path const&)+0x62d>
+4872-    7c07:	66 0f 1f 84 00 00 00 	nop    WORD PTR [rax+rax*1+0x0]
+4873-    7c0e:	00 00 
+4874-    7c10:	c5 fb 58 00          	vaddsd xmm0,xmm0,QWORD PTR [rax]
+4875-    7c14:	48 83 c0 08          	add    rax,0x8
+4876-    7c18:	48 39 c2             	cmp    rdx,rax
 --
-4955-    7d05:	48 c7 04 24 00 00 00 	mov    QWORD PTR [rsp],0x0
-4956-    7d0c:	00 
-4957-    7d0d:	49 89 c4             	mov    r12,rax
-4958-    7d10:	31 db                	xor    ebx,ebx
-4959-    7d12:	66 0f 1f 44 00 00    	nop    WORD PTR [rax+rax*1+0x0]
-4960-    7d18:	48 8b 94 24 e0 00 00 	mov    rdx,QWORD PTR [rsp+0xe0]
-4961-    7d1f:	00 
-4962-    7d20:	48 8b b4 24 c0 00 00 	mov    rsi,QWORD PTR [rsp+0xc0]
-4963-    7d27:	00 
-4964-    7d28:	48 8b bc 24 a0 00 00 	mov    rdi,QWORD PTR [rsp+0xa0]
-4965-    7d2f:	00 
-4966-    7d30:	48 89 e9             	mov    rcx,rbp
-4967:    7d33:	e8 c8 f6 ff ff       	call   7400 <matrix_dot_naive(double const*, double const*, double*, unsigned long)>
-4968-    7d38:	48 8b 94 24 e8 00 00 	mov    rdx,QWORD PTR [rsp+0xe8]
-4969-    7d3f:	00 
-4970-    7d40:	48 8b 84 24 e0 00 00 	mov    rax,QWORD PTR [rsp+0xe0]
-4971-    7d47:	00 
-4972-    7d48:	c5 f9 57 c0          	vxorpd xmm0,xmm0,xmm0
-4973-    7d4c:	48 39 c2             	cmp    rdx,rax
-4974-    7d4f:	74 14                	je     7d65 <run_matrix_experiment(std::filesystem::__cxx11::path const&)+0x6b5>
-4975-    7d51:	0f 1f 80 00 00 00 00 	nop    DWORD PTR [rax+0x0]
-4976-    7d58:	c5 fb 58 00          	vaddsd xmm0,xmm0,QWORD PTR [rax]
-4977-    7d5c:	48 83 c0 08          	add    rax,0x8
-4978-    7d60:	48 39 c2             	cmp    rdx,rax
-4979-    7d63:	75 f3                	jne    7d58 <run_matrix_experiment(std::filesystem::__cxx11::path const&)+0x6a8>
+4891-    7c5d:	45 31 e4             	xor    r12d,r12d
+4892-    7c60:	48 c7 44 24 08 00 00 	mov    QWORD PTR [rsp+0x8],0x0
+4893-    7c67:	00 00 
+4894-    7c69:	48 89 c3             	mov    rbx,rax
+4895-    7c6c:	0f 1f 40 00          	nop    DWORD PTR [rax+0x0]
+4896-    7c70:	48 8b 94 24 e0 00 00 	mov    rdx,QWORD PTR [rsp+0xe0]
+4897-    7c77:	00 
+4898-    7c78:	48 8b b4 24 c0 00 00 	mov    rsi,QWORD PTR [rsp+0xc0]
+4899-    7c7f:	00 
+4900-    7c80:	48 89 e9             	mov    rcx,rbp
+4901-    7c83:	48 8b bc 24 a0 00 00 	mov    rdi,QWORD PTR [rsp+0xa0]
+4902-    7c8a:	00 
+4903:    7c8b:	e8 b0 f6 ff ff       	call   7340 <matrix_dot_naive(double const*, double const*, double*, unsigned long)>
+4904-    7c90:	48 8b 94 24 e8 00 00 	mov    rdx,QWORD PTR [rsp+0xe8]
+4905-    7c97:	00 
+4906-    7c98:	c5 f9 57 c0          	vxorpd xmm0,xmm0,xmm0
+4907-    7c9c:	48 8b 84 24 e0 00 00 	mov    rax,QWORD PTR [rsp+0xe0]
+4908-    7ca3:	00 
+4909-    7ca4:	48 39 c2             	cmp    rdx,rax
+4910-    7ca7:	74 14                	je     7cbd <run_matrix_experiment(std::filesystem::__cxx11::path const&)+0x6cd>
+4911-    7ca9:	0f 1f 80 00 00 00 00 	nop    DWORD PTR [rax+0x0]
+4912-    7cb0:	c5 fb 58 00          	vaddsd xmm0,xmm0,QWORD PTR [rax]
+4913-    7cb4:	48 83 c0 08          	add    rax,0x8
+4914-    7cb8:	48 39 c2             	cmp    rdx,rax
+4915-    7cbb:	75 f3                	jne    7cb0 <run_matrix_experiment(std::filesystem::__cxx11::path const&)+0x6c0>
 --
-5014-    7df7:	c5 fb 10 84 24 98 00 	vmovsd xmm0,QWORD PTR [rsp+0x98]
-5015-    7dfe:	00 00 
-5016-    7e00:	48 c7 84 24 90 00 00 	mov    QWORD PTR [rsp+0x90],0x0
-5017-    7e07:	00 00 00 00 00 
-5018-    7e0c:	c5 fb 11 74 24 08    	vmovsd QWORD PTR [rsp+0x8],xmm6
-5019-    7e12:	48 8b 94 24 00 01 00 	mov    rdx,QWORD PTR [rsp+0x100]
-5020-    7e19:	00 
-5021-    7e1a:	48 8b b4 24 c0 00 00 	mov    rsi,QWORD PTR [rsp+0xc0]
-5022-    7e21:	00 
-5023-    7e22:	48 8b bc 24 a0 00 00 	mov    rdi,QWORD PTR [rsp+0xa0]
-5024-    7e29:	00 
-5025-    7e2a:	48 89 e9             	mov    rcx,rbp
-5026:    7e2d:	e8 2e f6 ff ff       	call   7460 <matrix_dot_row_major(double const*, double const*, double*, unsigned long)>
-5027-    7e32:	48 8b 94 24 08 01 00 	mov    rdx,QWORD PTR [rsp+0x108]
-5028-    7e39:	00 
-5029-    7e3a:	48 8b 84 24 00 01 00 	mov    rax,QWORD PTR [rsp+0x100]
-5030-    7e41:	00 
-5031-    7e42:	c5 f9 57 c0          	vxorpd xmm0,xmm0,xmm0
-5032-    7e46:	48 39 c2             	cmp    rdx,rax
-5033-    7e49:	74 12                	je     7e5d <run_matrix_experiment(std::filesystem::__cxx11::path const&)+0x7ad>
-5034-    7e4b:	0f 1f 44 00 00       	nop    DWORD PTR [rax+rax*1+0x0]
-5035-    7e50:	c5 fb 58 00          	vaddsd xmm0,xmm0,QWORD PTR [rax]
-5036-    7e54:	48 83 c0 08          	add    rax,0x8
-5037-    7e58:	48 39 c2             	cmp    rdx,rax
-5038-    7e5b:	75 f3                	jne    7e50 <run_matrix_experiment(std::filesystem::__cxx11::path const&)+0x7a0>
+4956-    7d6b:	c5 fb 10 84 24 98 00 	vmovsd xmm0,QWORD PTR [rsp+0x98]
+4957-    7d72:	00 00 
+4958-    7d74:	48 c7 84 24 90 00 00 	mov    QWORD PTR [rsp+0x90],0x0
+4959-    7d7b:	00 00 00 00 00 
+4960-    7d80:	c5 fb 11 74 24 10    	vmovsd QWORD PTR [rsp+0x10],xmm6
+4961-    7d86:	48 8b 94 24 00 01 00 	mov    rdx,QWORD PTR [rsp+0x100]
+4962-    7d8d:	00 
+4963-    7d8e:	48 8b b4 24 c0 00 00 	mov    rsi,QWORD PTR [rsp+0xc0]
+4964-    7d95:	00 
+4965-    7d96:	48 89 e9             	mov    rcx,rbp
+4966-    7d99:	48 8b bc 24 a0 00 00 	mov    rdi,QWORD PTR [rsp+0xa0]
+4967-    7da0:	00 
+4968:    7da1:	e8 fa f5 ff ff       	call   73a0 <matrix_dot_row_major(double const*, double const*, double*, unsigned long)>
+4969-    7da6:	48 8b 94 24 08 01 00 	mov    rdx,QWORD PTR [rsp+0x108]
+4970-    7dad:	00 
+4971-    7dae:	c5 f9 57 c0          	vxorpd xmm0,xmm0,xmm0
+4972-    7db2:	48 8b 84 24 00 01 00 	mov    rax,QWORD PTR [rsp+0x100]
+4973-    7db9:	00 
+4974-    7dba:	48 39 c2             	cmp    rdx,rax
+4975-    7dbd:	74 0e                	je     7dcd <run_matrix_experiment(std::filesystem::__cxx11::path const&)+0x7dd>
+4976-    7dbf:	90                   	nop
+4977-    7dc0:	c5 fb 58 00          	vaddsd xmm0,xmm0,QWORD PTR [rax]
+4978-    7dc4:	48 83 c0 08          	add    rax,0x8
+4979-    7dc8:	48 39 c2             	cmp    rdx,rax
+4980-    7dcb:	75 f3                	jne    7dc0 <run_matrix_experiment(std::filesystem::__cxx11::path const&)+0x7d0>
 --
-5051-    7e95:	48 c7 04 24 00 00 00 	mov    QWORD PTR [rsp],0x0
-5052-    7e9c:	00 
-5053-    7e9d:	49 89 c4             	mov    r12,rax
-5054-    7ea0:	31 db                	xor    ebx,ebx
-5055-    7ea2:	66 0f 1f 44 00 00    	nop    WORD PTR [rax+rax*1+0x0]
-5056-    7ea8:	48 8b 94 24 00 01 00 	mov    rdx,QWORD PTR [rsp+0x100]
-5057-    7eaf:	00 
-5058-    7eb0:	48 8b b4 24 c0 00 00 	mov    rsi,QWORD PTR [rsp+0xc0]
-5059-    7eb7:	00 
-5060-    7eb8:	48 8b bc 24 a0 00 00 	mov    rdi,QWORD PTR [rsp+0xa0]
-5061-    7ebf:	00 
-5062-    7ec0:	48 89 e9             	mov    rcx,rbp
-5063:    7ec3:	e8 98 f5 ff ff       	call   7460 <matrix_dot_row_major(double const*, double const*, double*, unsigned long)>
-5064-    7ec8:	48 8b 94 24 08 01 00 	mov    rdx,QWORD PTR [rsp+0x108]
-5065-    7ecf:	00 
-5066-    7ed0:	48 8b 84 24 00 01 00 	mov    rax,QWORD PTR [rsp+0x100]
-5067-    7ed7:	00 
-5068-    7ed8:	c5 f9 57 c0          	vxorpd xmm0,xmm0,xmm0
-5069-    7edc:	48 39 c2             	cmp    rdx,rax
-5070-    7edf:	74 14                	je     7ef5 <run_matrix_experiment(std::filesystem::__cxx11::path const&)+0x845>
-5071-    7ee1:	0f 1f 80 00 00 00 00 	nop    DWORD PTR [rax+0x0]
-5072-    7ee8:	c5 fb 58 00          	vaddsd xmm0,xmm0,QWORD PTR [rax]
-5073-    7eec:	48 83 c0 08          	add    rax,0x8
-5074-    7ef0:	48 39 c2             	cmp    rdx,rax
-5075-    7ef3:	75 f3                	jne    7ee8 <run_matrix_experiment(std::filesystem::__cxx11::path const&)+0x838>
+4994-    7e0d:	45 31 e4             	xor    r12d,r12d
+4995-    7e10:	48 c7 44 24 08 00 00 	mov    QWORD PTR [rsp+0x8],0x0
+4996-    7e17:	00 00 
+4997-    7e19:	48 89 c3             	mov    rbx,rax
+4998-    7e1c:	0f 1f 40 00          	nop    DWORD PTR [rax+0x0]
+4999-    7e20:	48 8b 94 24 00 01 00 	mov    rdx,QWORD PTR [rsp+0x100]
+5000-    7e27:	00 
+5001-    7e28:	48 8b b4 24 c0 00 00 	mov    rsi,QWORD PTR [rsp+0xc0]
+5002-    7e2f:	00 
+5003-    7e30:	48 89 e9             	mov    rcx,rbp
+5004-    7e33:	48 8b bc 24 a0 00 00 	mov    rdi,QWORD PTR [rsp+0xa0]
+5005-    7e3a:	00 
+5006:    7e3b:	e8 60 f5 ff ff       	call   73a0 <matrix_dot_row_major(double const*, double const*, double*, unsigned long)>
+5007-    7e40:	48 8b 94 24 08 01 00 	mov    rdx,QWORD PTR [rsp+0x108]
+5008-    7e47:	00 
+5009-    7e48:	c5 f9 57 c0          	vxorpd xmm0,xmm0,xmm0
+5010-    7e4c:	48 8b 84 24 00 01 00 	mov    rax,QWORD PTR [rsp+0x100]
+5011-    7e53:	00 
+5012-    7e54:	48 39 c2             	cmp    rdx,rax
+5013-    7e57:	74 14                	je     7e6d <run_matrix_experiment(std::filesystem::__cxx11::path const&)+0x87d>
+5014-    7e59:	0f 1f 80 00 00 00 00 	nop    DWORD PTR [rax+0x0]
+5015-    7e60:	c5 fb 58 00          	vaddsd xmm0,xmm0,QWORD PTR [rax]
+5016-    7e64:	48 83 c0 08          	add    rax,0x8
+5017-    7e68:	48 39 c2             	cmp    rdx,rax
+5018-    7e6b:	75 f3                	jne    7e60 <run_matrix_experiment(std::filesystem::__cxx11::path const&)+0x870>
 --
-5105-    7f6f:	c5 fb 10 84 24 90 00 	vmovsd xmm0,QWORD PTR [rsp+0x90]
-5106-    7f76:	00 00 
-5107-    7f78:	48 c7 84 24 88 00 00 	mov    QWORD PTR [rsp+0x88],0x0
-5108-    7f7f:	00 00 00 00 00 
-5109-    7f84:	c5 fb 11 7c 24 10    	vmovsd QWORD PTR [rsp+0x10],xmm7
-5110-    7f8a:	48 8b 94 24 20 01 00 	mov    rdx,QWORD PTR [rsp+0x120]
-5111-    7f91:	00 
-5112-    7f92:	48 8b b4 24 c0 00 00 	mov    rsi,QWORD PTR [rsp+0xc0]
-5113-    7f99:	00 
-5114-    7f9a:	48 8b bc 24 a0 00 00 	mov    rdi,QWORD PTR [rsp+0xa0]
-5115-    7fa1:	00 
-5116-    7fa2:	48 89 e9             	mov    rcx,rbp
-5117:    7fa5:	e8 46 f5 ff ff       	call   74f0 <matrix_dot_row_major_unrolled4(double const*, double const*, double*, unsigned long)>
-5118-    7faa:	48 8b 94 24 28 01 00 	mov    rdx,QWORD PTR [rsp+0x128]
-5119-    7fb1:	00 
-5120-    7fb2:	48 8b 84 24 20 01 00 	mov    rax,QWORD PTR [rsp+0x120]
-5121-    7fb9:	00 
-5122-    7fba:	c5 f9 57 c0          	vxorpd xmm0,xmm0,xmm0
-5123-    7fbe:	48 39 c2             	cmp    rdx,rax
-5124-    7fc1:	74 12                	je     7fd5 <run_matrix_experiment(std::filesystem::__cxx11::path const&)+0x925>
-5125-    7fc3:	0f 1f 44 00 00       	nop    DWORD PTR [rax+rax*1+0x0]
-5126-    7fc8:	c5 fb 58 00          	vaddsd xmm0,xmm0,QWORD PTR [rax]
-5127-    7fcc:	48 83 c0 08          	add    rax,0x8
-5128-    7fd0:	48 39 c2             	cmp    rdx,rax
-5129-    7fd3:	75 f3                	jne    7fc8 <run_matrix_experiment(std::filesystem::__cxx11::path const&)+0x918>
+5054-    7f03:	c5 fb 10 84 24 90 00 	vmovsd xmm0,QWORD PTR [rsp+0x90]
+5055-    7f0a:	00 00 
+5056-    7f0c:	48 c7 84 24 88 00 00 	mov    QWORD PTR [rsp+0x88],0x0
+5057-    7f13:	00 00 00 00 00 
+5058-    7f18:	c5 fb 11 7c 24 18    	vmovsd QWORD PTR [rsp+0x18],xmm7
+5059-    7f1e:	48 8b 94 24 20 01 00 	mov    rdx,QWORD PTR [rsp+0x120]
+5060-    7f25:	00 
+5061-    7f26:	48 8b b4 24 c0 00 00 	mov    rsi,QWORD PTR [rsp+0xc0]
+5062-    7f2d:	00 
+5063-    7f2e:	48 89 e9             	mov    rcx,rbp
+5064-    7f31:	48 8b bc 24 a0 00 00 	mov    rdi,QWORD PTR [rsp+0xa0]
+5065-    7f38:	00 
+5066:    7f39:	e8 f2 f4 ff ff       	call   7430 <matrix_dot_row_major_unrolled4(double const*, double const*, double*, unsigned long)>
+5067-    7f3e:	48 8b 94 24 28 01 00 	mov    rdx,QWORD PTR [rsp+0x128]
+5068-    7f45:	00 
+5069-    7f46:	c5 f9 57 c0          	vxorpd xmm0,xmm0,xmm0
+5070-    7f4a:	48 8b 84 24 20 01 00 	mov    rax,QWORD PTR [rsp+0x120]
+5071-    7f51:	00 
+5072-    7f52:	48 39 c2             	cmp    rdx,rax
+5073-    7f55:	74 16                	je     7f6d <run_matrix_experiment(std::filesystem::__cxx11::path const&)+0x97d>
+5074-    7f57:	66 0f 1f 84 00 00 00 	nop    WORD PTR [rax+rax*1+0x0]
+5075-    7f5e:	00 00 
+5076-    7f60:	c5 fb 58 00          	vaddsd xmm0,xmm0,QWORD PTR [rax]
+5077-    7f64:	48 83 c0 08          	add    rax,0x8
+5078-    7f68:	48 39 c2             	cmp    rdx,rax
 --
-5142-    800d:	48 c7 04 24 00 00 00 	mov    QWORD PTR [rsp],0x0
-5143-    8014:	00 
-5144-    8015:	49 89 c4             	mov    r12,rax
-5145-    8018:	31 db                	xor    ebx,ebx
-5146-    801a:	66 0f 1f 44 00 00    	nop    WORD PTR [rax+rax*1+0x0]
-5147-    8020:	48 8b 94 24 20 01 00 	mov    rdx,QWORD PTR [rsp+0x120]
-5148-    8027:	00 
-5149-    8028:	48 8b b4 24 c0 00 00 	mov    rsi,QWORD PTR [rsp+0xc0]
-5150-    802f:	00 
-5151-    8030:	48 8b bc 24 a0 00 00 	mov    rdi,QWORD PTR [rsp+0xa0]
-5152-    8037:	00 
-5153-    8038:	48 89 e9             	mov    rcx,rbp
-5154:    803b:	e8 b0 f4 ff ff       	call   74f0 <matrix_dot_row_major_unrolled4(double const*, double const*, double*, unsigned long)>
-5155-    8040:	48 8b 94 24 28 01 00 	mov    rdx,QWORD PTR [rsp+0x128]
-5156-    8047:	00 
-5157-    8048:	48 8b 84 24 20 01 00 	mov    rax,QWORD PTR [rsp+0x120]
-5158-    804f:	00 
-5159-    8050:	c5 f9 57 c0          	vxorpd xmm0,xmm0,xmm0
-5160-    8054:	48 39 c2             	cmp    rdx,rax
-5161-    8057:	74 14                	je     806d <run_matrix_experiment(std::filesystem::__cxx11::path const&)+0x9bd>
-5162-    8059:	0f 1f 80 00 00 00 00 	nop    DWORD PTR [rax+0x0]
-5163-    8060:	c5 fb 58 00          	vaddsd xmm0,xmm0,QWORD PTR [rax]
-5164-    8064:	48 83 c0 08          	add    rax,0x8
-5165-    8068:	48 39 c2             	cmp    rdx,rax
-5166-    806b:	75 f3                	jne    8060 <run_matrix_experiment(std::filesystem::__cxx11::path const&)+0x9b0>
+5093-    7fad:	45 31 e4             	xor    r12d,r12d
+5094-    7fb0:	48 c7 44 24 08 00 00 	mov    QWORD PTR [rsp+0x8],0x0
+5095-    7fb7:	00 00 
+5096-    7fb9:	48 89 c3             	mov    rbx,rax
+5097-    7fbc:	0f 1f 40 00          	nop    DWORD PTR [rax+0x0]
+5098-    7fc0:	48 8b 94 24 20 01 00 	mov    rdx,QWORD PTR [rsp+0x120]
+5099-    7fc7:	00 
+5100-    7fc8:	48 8b b4 24 c0 00 00 	mov    rsi,QWORD PTR [rsp+0xc0]
+5101-    7fcf:	00 
+5102-    7fd0:	48 89 e9             	mov    rcx,rbp
+5103-    7fd3:	48 8b bc 24 a0 00 00 	mov    rdi,QWORD PTR [rsp+0xa0]
+5104-    7fda:	00 
+5105:    7fdb:	e8 50 f4 ff ff       	call   7430 <matrix_dot_row_major_unrolled4(double const*, double const*, double*, unsigned long)>
+5106-    7fe0:	48 8b 94 24 28 01 00 	mov    rdx,QWORD PTR [rsp+0x128]
+5107-    7fe7:	00 
+5108-    7fe8:	c5 f9 57 c0          	vxorpd xmm0,xmm0,xmm0
+5109-    7fec:	48 8b 84 24 20 01 00 	mov    rax,QWORD PTR [rsp+0x120]
+5110-    7ff3:	00 
+5111-    7ff4:	48 39 c2             	cmp    rdx,rax
+5112-    7ff7:	74 14                	je     800d <run_matrix_experiment(std::filesystem::__cxx11::path const&)+0xa1d>
+5113-    7ff9:	0f 1f 80 00 00 00 00 	nop    DWORD PTR [rax+0x0]
+5114-    8000:	c5 fb 58 00          	vaddsd xmm0,xmm0,QWORD PTR [rax]
+5115-    8004:	48 83 c0 08          	add    rax,0x8
+5116-    8008:	48 39 c2             	cmp    rdx,rax
+5117-    800b:	75 f3                	jne    8000 <run_matrix_experiment(std::filesystem::__cxx11::path const&)+0xa10>
 --
-5697-
-5698-00000000000088c0 <std::_Function_handler<double (), run_profile_experiment(std::filesystem::__cxx11::path const&)::{lambda()#1}>::_M_invoke(std::_Any_data const&)>:
-5699-    88c0:	f3 0f 1e fa          	endbr64 
-5700-    88c4:	53                   	push   rbx
-5701-    88c5:	b9 00 08 00 00       	mov    ecx,0x800
-5702-    88ca:	48 8b 1f             	mov    rbx,QWORD PTR [rdi]
-5703-    88cd:	48 8b 03             	mov    rax,QWORD PTR [rbx]
-5704-    88d0:	48 8b 53 10          	mov    rdx,QWORD PTR [rbx+0x10]
-5705-    88d4:	48 8b 73 08          	mov    rsi,QWORD PTR [rbx+0x8]
-5706-    88d8:	48 8b 12             	mov    rdx,QWORD PTR [rdx]
-5707-    88db:	48 8b 38             	mov    rdi,QWORD PTR [rax]
-5708-    88de:	48 8b 36             	mov    rsi,QWORD PTR [rsi]
-5709:    88e1:	e8 1a eb ff ff       	call   7400 <matrix_dot_naive(double const*, double const*, double*, unsigned long)>
-5710-    88e6:	48 8b 43 10          	mov    rax,QWORD PTR [rbx+0x10]
-5711-    88ea:	c5 f9 57 c0          	vxorpd xmm0,xmm0,xmm0
-5712-    88ee:	48 8b 50 08          	mov    rdx,QWORD PTR [rax+0x8]
-5713-    88f2:	48 8b 00             	mov    rax,QWORD PTR [rax]
-5714-    88f5:	48 39 c2             	cmp    rdx,rax
-5715-    88f8:	74 13                	je     890d <std::_Function_handler<double (), run_profile_experiment(std::filesystem::__cxx11::path const&)::{lambda()#1}>::_M_invoke(std::_Any_data const&)+0x4d>
-5716-    88fa:	66 0f 1f 44 00 00    	nop    WORD PTR [rax+rax*1+0x0]
-5717-    8900:	c5 fb 58 00          	vaddsd xmm0,xmm0,QWORD PTR [rax]
-5718-    8904:	48 83 c0 08          	add    rax,0x8
-5719-    8908:	48 39 c2             	cmp    rdx,rax
-5720-    890b:	75 f3                	jne    8900 <std::_Function_handler<double (), run_profile_experiment(std::filesystem::__cxx11::path const&)::{lambda()#1}>::_M_invoke(std::_Any_data const&)+0x40>
-5721-    890d:	5b                   	pop    rbx
+5684-
+5685-00000000000088f0 <std::_Function_handler<double (), run_profile_experiment(std::filesystem::__cxx11::path const&)::{lambda()#1}>::_M_invoke(std::_Any_data const&)>:
+5686-    88f0:	f3 0f 1e fa          	endbr64 
+5687-    88f4:	53                   	push   rbx
+5688-    88f5:	48 8b 1f             	mov    rbx,QWORD PTR [rdi]
+5689-    88f8:	b9 00 08 00 00       	mov    ecx,0x800
+5690-    88fd:	48 8b 03             	mov    rax,QWORD PTR [rbx]
+5691-    8900:	48 8b 53 10          	mov    rdx,QWORD PTR [rbx+0x10]
+5692-    8904:	48 8b 73 08          	mov    rsi,QWORD PTR [rbx+0x8]
+5693-    8908:	48 8b 12             	mov    rdx,QWORD PTR [rdx]
+5694-    890b:	48 8b 38             	mov    rdi,QWORD PTR [rax]
+5695-    890e:	48 8b 36             	mov    rsi,QWORD PTR [rsi]
+5696:    8911:	e8 2a ea ff ff       	call   7340 <matrix_dot_naive(double const*, double const*, double*, unsigned long)>
+5697-    8916:	48 8b 43 10          	mov    rax,QWORD PTR [rbx+0x10]
+5698-    891a:	c5 f9 57 c0          	vxorpd xmm0,xmm0,xmm0
+5699-    891e:	48 8b 50 08          	mov    rdx,QWORD PTR [rax+0x8]
+5700-    8922:	48 8b 00             	mov    rax,QWORD PTR [rax]
+5701-    8925:	48 39 c2             	cmp    rdx,rax
+5702-    8928:	74 13                	je     893d <std::_Function_handler<double (), run_profile_experiment(std::filesystem::__cxx11::path const&)::{lambda()#1}>::_M_invoke(std::_Any_data const&)+0x4d>
+5703-    892a:	66 0f 1f 44 00 00    	nop    WORD PTR [rax+rax*1+0x0]
+5704-    8930:	c5 fb 58 00          	vaddsd xmm0,xmm0,QWORD PTR [rax]
+5705-    8934:	48 83 c0 08          	add    rax,0x8
+5706-    8938:	48 39 c2             	cmp    rdx,rax
+5707-    893b:	75 f3                	jne    8930 <std::_Function_handler<double (), run_profile_experiment(std::filesystem::__cxx11::path const&)::{lambda()#1}>::_M_invoke(std::_Any_data const&)+0x40>
+5708-    893d:	5b                   	pop    rbx
 --
-5724-
-5725-0000000000008910 <std::_Function_handler<double (), run_profile_experiment(std::filesystem::__cxx11::path const&)::{lambda()#2}>::_M_invoke(std::_Any_data const&)>:
-5726-    8910:	f3 0f 1e fa          	endbr64 
-5727-    8914:	53                   	push   rbx
-5728-    8915:	b9 00 08 00 00       	mov    ecx,0x800
-5729-    891a:	48 8b 1f             	mov    rbx,QWORD PTR [rdi]
-5730-    891d:	48 8b 03             	mov    rax,QWORD PTR [rbx]
-5731-    8920:	48 8b 53 10          	mov    rdx,QWORD PTR [rbx+0x10]
-5732-    8924:	48 8b 73 08          	mov    rsi,QWORD PTR [rbx+0x8]
-5733-    8928:	48 8b 12             	mov    rdx,QWORD PTR [rdx]
-5734-    892b:	48 8b 38             	mov    rdi,QWORD PTR [rax]
-5735-    892e:	48 8b 36             	mov    rsi,QWORD PTR [rsi]
-5736:    8931:	e8 2a eb ff ff       	call   7460 <matrix_dot_row_major(double const*, double const*, double*, unsigned long)>
-5737-    8936:	48 8b 43 10          	mov    rax,QWORD PTR [rbx+0x10]
-5738-    893a:	c5 f9 57 c0          	vxorpd xmm0,xmm0,xmm0
-5739-    893e:	48 8b 50 08          	mov    rdx,QWORD PTR [rax+0x8]
-5740-    8942:	48 8b 00             	mov    rax,QWORD PTR [rax]
-5741-    8945:	48 39 c2             	cmp    rdx,rax
-5742-    8948:	74 13                	je     895d <std::_Function_handler<double (), run_profile_experiment(std::filesystem::__cxx11::path const&)::{lambda()#2}>::_M_invoke(std::_Any_data const&)+0x4d>
-5743-    894a:	66 0f 1f 44 00 00    	nop    WORD PTR [rax+rax*1+0x0]
-5744-    8950:	c5 fb 58 00          	vaddsd xmm0,xmm0,QWORD PTR [rax]
-5745-    8954:	48 83 c0 08          	add    rax,0x8
-5746-    8958:	48 39 c2             	cmp    rdx,rax
-5747-    895b:	75 f3                	jne    8950 <std::_Function_handler<double (), run_profile_experiment(std::filesystem::__cxx11::path const&)::{lambda()#2}>::_M_invoke(std::_Any_data const&)+0x40>
-5748-    895d:	5b                   	pop    rbx
+5711-
+5712-0000000000008940 <std::_Function_handler<double (), run_profile_experiment(std::filesystem::__cxx11::path const&)::{lambda()#2}>::_M_invoke(std::_Any_data const&)>:
+5713-    8940:	f3 0f 1e fa          	endbr64 
+5714-    8944:	53                   	push   rbx
+5715-    8945:	48 8b 1f             	mov    rbx,QWORD PTR [rdi]
+5716-    8948:	b9 00 08 00 00       	mov    ecx,0x800
+5717-    894d:	48 8b 03             	mov    rax,QWORD PTR [rbx]
+5718-    8950:	48 8b 53 10          	mov    rdx,QWORD PTR [rbx+0x10]
+5719-    8954:	48 8b 73 08          	mov    rsi,QWORD PTR [rbx+0x8]
+5720-    8958:	48 8b 12             	mov    rdx,QWORD PTR [rdx]
+5721-    895b:	48 8b 38             	mov    rdi,QWORD PTR [rax]
+5722-    895e:	48 8b 36             	mov    rsi,QWORD PTR [rsi]
+5723:    8961:	e8 3a ea ff ff       	call   73a0 <matrix_dot_row_major(double const*, double const*, double*, unsigned long)>
+5724-    8966:	48 8b 43 10          	mov    rax,QWORD PTR [rbx+0x10]
+5725-    896a:	c5 f9 57 c0          	vxorpd xmm0,xmm0,xmm0
+5726-    896e:	48 8b 50 08          	mov    rdx,QWORD PTR [rax+0x8]
+5727-    8972:	48 8b 00             	mov    rax,QWORD PTR [rax]
+5728-    8975:	48 39 c2             	cmp    rdx,rax
+5729-    8978:	74 13                	je     898d <std::_Function_handler<double (), run_profile_experiment(std::filesystem::__cxx11::path const&)::{lambda()#2}>::_M_invoke(std::_Any_data const&)+0x4d>
+5730-    897a:	66 0f 1f 44 00 00    	nop    WORD PTR [rax+rax*1+0x0]
+5731-    8980:	c5 fb 58 00          	vaddsd xmm0,xmm0,QWORD PTR [rax]
+5732-    8984:	48 83 c0 08          	add    rax,0x8
+5733-    8988:	48 39 c2             	cmp    rdx,rax
+5734-    898b:	75 f3                	jne    8980 <std::_Function_handler<double (), run_profile_experiment(std::filesystem::__cxx11::path const&)::{lambda()#2}>::_M_invoke(std::_Any_data const&)+0x40>
+5735-    898d:	5b                   	pop    rbx
 --
-5751-
-5752-0000000000008960 <std::_Function_handler<double (), run_profile_experiment(std::filesystem::__cxx11::path const&)::{lambda()#3}>::_M_invoke(std::_Any_data const&)>:
-5753-    8960:	f3 0f 1e fa          	endbr64 
-5754-    8964:	53                   	push   rbx
-5755-    8965:	b9 00 08 00 00       	mov    ecx,0x800
-5756-    896a:	48 8b 1f             	mov    rbx,QWORD PTR [rdi]
-5757-    896d:	48 8b 03             	mov    rax,QWORD PTR [rbx]
-5758-    8970:	48 8b 53 10          	mov    rdx,QWORD PTR [rbx+0x10]
-5759-    8974:	48 8b 73 08          	mov    rsi,QWORD PTR [rbx+0x8]
-5760-    8978:	48 8b 12             	mov    rdx,QWORD PTR [rdx]
-5761-    897b:	48 8b 38             	mov    rdi,QWORD PTR [rax]
-5762-    897e:	48 8b 36             	mov    rsi,QWORD PTR [rsi]
-5763:    8981:	e8 6a eb ff ff       	call   74f0 <matrix_dot_row_major_unrolled4(double const*, double const*, double*, unsigned long)>
-5764-    8986:	48 8b 43 10          	mov    rax,QWORD PTR [rbx+0x10]
-5765-    898a:	c5 f9 57 c0          	vxorpd xmm0,xmm0,xmm0
-5766-    898e:	48 8b 50 08          	mov    rdx,QWORD PTR [rax+0x8]
-5767-    8992:	48 8b 00             	mov    rax,QWORD PTR [rax]
-5768-    8995:	48 39 c2             	cmp    rdx,rax
-5769-    8998:	74 13                	je     89ad <std::_Function_handler<double (), run_profile_experiment(std::filesystem::__cxx11::path const&)::{lambda()#3}>::_M_invoke(std::_Any_data const&)+0x4d>
-5770-    899a:	66 0f 1f 44 00 00    	nop    WORD PTR [rax+rax*1+0x0]
-5771-    89a0:	c5 fb 58 00          	vaddsd xmm0,xmm0,QWORD PTR [rax]
-5772-    89a4:	48 83 c0 08          	add    rax,0x8
-5773-    89a8:	48 39 c2             	cmp    rdx,rax
-5774-    89ab:	75 f3                	jne    89a0 <std::_Function_handler<double (), run_profile_experiment(std::filesystem::__cxx11::path const&)::{lambda()#3}>::_M_invoke(std::_Any_data const&)+0x40>
-5775-    89ad:	5b                   	pop    rbx
-5776-    89ae:	c3                   	ret    
-5777-    89af:	90                   	nop
-5778-
-5779-00000000000089b0 <std::_Function_handler<double (), run_profile_experiment(std::filesystem::__cxx11::path const&)::{lambda()#4}>::_M_invoke(std::_Any_data const&)>:
-5780-    89b0:	f3 0f 1e fa          	endbr64 
-5781-    89b4:	48 8b 07             	mov    rax,QWORD PTR [rdi]
-5782-    89b7:	be 00 00 10 00       	mov    esi,0x100000
-5783-    89bc:	48 8b 38             	mov    rdi,QWORD PTR [rax]
-5784:    89bf:	e9 bc 14 00 00       	jmp    9e80 <sum_naive(double const*, unsigned long)>
-5785-    89c4:	66 66 2e 0f 1f 84 00 	data16 nop WORD PTR cs:[rax+rax*1+0x0]
-5786-    89cb:	00 00 00 00 
-5787-    89cf:	90                   	nop
-5788-
-5789-00000000000089d0 <std::_Function_handler<double (), run_profile_experiment(std::filesystem::__cxx11::path const&)::{lambda()#5}>::_M_invoke(std::_Any_data const&)>:
-5790-    89d0:	f3 0f 1e fa          	endbr64 
-5791-    89d4:	48 8b 07             	mov    rax,QWORD PTR [rdi]
-5792-    89d7:	be 00 00 10 00       	mov    esi,0x100000
-5793-    89dc:	48 8b 38             	mov    rdi,QWORD PTR [rax]
-5794:    89df:	e9 dc 14 00 00       	jmp    9ec0 <sum_superscalar2(double const*, unsigned long)>
-5795-    89e4:	66 66 2e 0f 1f 84 00 	data16 nop WORD PTR cs:[rax+rax*1+0x0]
-5796-    89eb:	00 00 00 00 
-5797-    89ef:	90                   	nop
-5798-
-5799-00000000000089f0 <std::_Function_handler<double (), run_profile_experiment(std::filesystem::__cxx11::path const&)::{lambda()#6}>::_M_invoke(std::_Any_data const&)>:
-5800-    89f0:	f3 0f 1e fa          	endbr64 
-5801-    89f4:	48 8b 07             	mov    rax,QWORD PTR [rdi]
-5802-    89f7:	be 00 00 10 00       	mov    esi,0x100000
-5803-    89fc:	48 8b 38             	mov    rdi,QWORD PTR [rax]
-5804:    89ff:	e9 2c 15 00 00       	jmp    9f30 <sum_superscalar4(double const*, unsigned long)>
-5805-    8a04:	66 66 2e 0f 1f 84 00 	data16 nop WORD PTR cs:[rax+rax*1+0x0]
-5806-    8a0b:	00 00 00 00 
-5807-    8a0f:	90                   	nop
-5808-
-5809-0000000000008a10 <std::_Function_handler<double (), run_profile_experiment(std::filesystem::__cxx11::path const&)::{lambda()#7}>::_M_invoke(std::_Any_data const&)>:
-5810-    8a10:	f3 0f 1e fa          	endbr64 
-5811-    8a14:	48 8b 07             	mov    rax,QWORD PTR [rdi]
-5812-    8a17:	48 8b 57 08          	mov    rdx,QWORD PTR [rdi+0x8]
-5813-    8a1b:	48 8b 38             	mov    rdi,QWORD PTR [rax]
-5814-    8a1e:	be 00 00 10 00       	mov    esi,0x100000
-5815:    8a23:	e9 98 15 00 00       	jmp    9fc0 <sum_pairwise(double const*, unsigned long, std::vector<double, std::allocator<double> >&)>
-5816-    8a28:	0f 1f 84 00 00 00 00 	nop    DWORD PTR [rax+rax*1+0x0]
-5817-    8a2f:	00 
-5818-
-5819-0000000000008a30 <std::_Function_base::_Base_manager<run_profile_experiment(std::filesystem::__cxx11::path const&)::{lambda()#1}>::_M_manager(std::_Any_data&, std::_Function_base::_Base_manager<run_profile_experiment(std::filesystem::__cxx11::path const&)::{lambda()#1}> const&, std::_Manager_operation)>:
-5820-    8a30:	f3 0f 1e fa          	endbr64 
-5821-    8a34:	55                   	push   rbp
-5822-    8a35:	53                   	push   rbx
-5823-    8a36:	48 89 fb             	mov    rbx,rdi
-5824-    8a39:	48 83 ec 08          	sub    rsp,0x8
-5825-    8a3d:	83 fa 02             	cmp    edx,0x2
-5826-    8a40:	74 3e                	je     8a80 <std::_Function_base::_Base_manager<run_profile_experiment(std::filesystem::__cxx11::path const&)::{lambda()#1}>::_M_manager(std::_Any_data&, std::_Function_base::_Base_manager<run_profile_experiment(std::filesystem::__cxx11::path const&)::{lambda()#1}> const&, std::_Manager_operation)+0x50>
-5827-    8a42:	77 1c                	ja     8a60 <std::_Function_base::_Base_manager<run_profile_experiment(std::filesystem::__cxx11::path const&)::{lambda()#1}>::_M_manager(std::_Any_data&, std::_Function_base::_Base_manager<run_profile_experiment(std::filesystem::__cxx11::path const&)::{lambda()#1}> const&, std::_Manager_operation)+0x30>
+5738-
+5739-0000000000008990 <std::_Function_handler<double (), run_profile_experiment(std::filesystem::__cxx11::path const&)::{lambda()#3}>::_M_invoke(std::_Any_data const&)>:
+5740-    8990:	f3 0f 1e fa          	endbr64 
+5741-    8994:	53                   	push   rbx
+5742-    8995:	48 8b 1f             	mov    rbx,QWORD PTR [rdi]
+5743-    8998:	b9 00 08 00 00       	mov    ecx,0x800
+5744-    899d:	48 8b 03             	mov    rax,QWORD PTR [rbx]
+5745-    89a0:	48 8b 53 10          	mov    rdx,QWORD PTR [rbx+0x10]
+5746-    89a4:	48 8b 73 08          	mov    rsi,QWORD PTR [rbx+0x8]
+5747-    89a8:	48 8b 12             	mov    rdx,QWORD PTR [rdx]
+5748-    89ab:	48 8b 38             	mov    rdi,QWORD PTR [rax]
+5749-    89ae:	48 8b 36             	mov    rsi,QWORD PTR [rsi]
+5750:    89b1:	e8 7a ea ff ff       	call   7430 <matrix_dot_row_major_unrolled4(double const*, double const*, double*, unsigned long)>
+5751-    89b6:	48 8b 43 10          	mov    rax,QWORD PTR [rbx+0x10]
+5752-    89ba:	c5 f9 57 c0          	vxorpd xmm0,xmm0,xmm0
+5753-    89be:	48 8b 50 08          	mov    rdx,QWORD PTR [rax+0x8]
+5754-    89c2:	48 8b 00             	mov    rax,QWORD PTR [rax]
+5755-    89c5:	48 39 c2             	cmp    rdx,rax
+5756-    89c8:	74 13                	je     89dd <std::_Function_handler<double (), run_profile_experiment(std::filesystem::__cxx11::path const&)::{lambda()#3}>::_M_invoke(std::_Any_data const&)+0x4d>
+5757-    89ca:	66 0f 1f 44 00 00    	nop    WORD PTR [rax+rax*1+0x0]
+5758-    89d0:	c5 fb 58 00          	vaddsd xmm0,xmm0,QWORD PTR [rax]
+5759-    89d4:	48 83 c0 08          	add    rax,0x8
+5760-    89d8:	48 39 c2             	cmp    rdx,rax
+5761-    89db:	75 f3                	jne    89d0 <std::_Function_handler<double (), run_profile_experiment(std::filesystem::__cxx11::path const&)::{lambda()#3}>::_M_invoke(std::_Any_data const&)+0x40>
+5762-    89dd:	5b                   	pop    rbx
+5763-    89de:	c3                   	ret    
+5764-    89df:	90                   	nop
+5765-
+5766-00000000000089e0 <std::_Function_handler<double (), run_profile_experiment(std::filesystem::__cxx11::path const&)::{lambda()#4}>::_M_invoke(std::_Any_data const&)>:
+5767-    89e0:	f3 0f 1e fa          	endbr64 
+5768-    89e4:	48 8b 07             	mov    rax,QWORD PTR [rdi]
+5769-    89e7:	be 00 00 10 00       	mov    esi,0x100000
+5770-    89ec:	48 8b 38             	mov    rdi,QWORD PTR [rax]
+5771:    89ef:	e9 7c 15 00 00       	jmp    9f70 <sum_naive(double const*, unsigned long)>
+5772-    89f4:	66 66 2e 0f 1f 84 00 	data16 nop WORD PTR cs:[rax+rax*1+0x0]
+5773-    89fb:	00 00 00 00 
+5774-    89ff:	90                   	nop
+5775-
+5776-0000000000008a00 <std::_Function_handler<double (), run_profile_experiment(std::filesystem::__cxx11::path const&)::{lambda()#5}>::_M_invoke(std::_Any_data const&)>:
+5777-    8a00:	f3 0f 1e fa          	endbr64 
+5778-    8a04:	48 8b 07             	mov    rax,QWORD PTR [rdi]
+5779-    8a07:	be 00 00 10 00       	mov    esi,0x100000
+5780-    8a0c:	48 8b 38             	mov    rdi,QWORD PTR [rax]
+5781:    8a0f:	e9 9c 15 00 00       	jmp    9fb0 <sum_superscalar2(double const*, unsigned long)>
+5782-    8a14:	66 66 2e 0f 1f 84 00 	data16 nop WORD PTR cs:[rax+rax*1+0x0]
+5783-    8a1b:	00 00 00 00 
+5784-    8a1f:	90                   	nop
+5785-
+5786-0000000000008a20 <std::_Function_handler<double (), run_profile_experiment(std::filesystem::__cxx11::path const&)::{lambda()#6}>::_M_invoke(std::_Any_data const&)>:
+5787-    8a20:	f3 0f 1e fa          	endbr64 
+5788-    8a24:	48 8b 07             	mov    rax,QWORD PTR [rdi]
+5789-    8a27:	be 00 00 10 00       	mov    esi,0x100000
+5790-    8a2c:	48 8b 38             	mov    rdi,QWORD PTR [rax]
+5791:    8a2f:	e9 ec 15 00 00       	jmp    a020 <sum_superscalar4(double const*, unsigned long)>
+5792-    8a34:	66 66 2e 0f 1f 84 00 	data16 nop WORD PTR cs:[rax+rax*1+0x0]
+5793-    8a3b:	00 00 00 00 
+5794-    8a3f:	90                   	nop
+5795-
+5796-0000000000008a40 <std::_Function_handler<double (), run_profile_experiment(std::filesystem::__cxx11::path const&)::{lambda()#7}>::_M_invoke(std::_Any_data const&)>:
+5797-    8a40:	f3 0f 1e fa          	endbr64 
+5798-    8a44:	48 8b 07             	mov    rax,QWORD PTR [rdi]
+5799-    8a47:	48 8b 57 08          	mov    rdx,QWORD PTR [rdi+0x8]
+5800-    8a4b:	be 00 00 10 00       	mov    esi,0x100000
+5801-    8a50:	48 8b 38             	mov    rdi,QWORD PTR [rax]
+5802:    8a53:	e9 58 16 00 00       	jmp    a0b0 <sum_pairwise(double const*, unsigned long, std::vector<double, std::allocator<double> >&)>
+5803-    8a58:	0f 1f 84 00 00 00 00 	nop    DWORD PTR [rax+rax*1+0x0]
+5804-    8a5f:	00 
+5805-
+5806-0000000000008a60 <std::_Function_base::_Base_manager<run_profile_experiment(std::filesystem::__cxx11::path const&)::{lambda()#1}>::_M_manager(std::_Any_data&, std::_Function_base::_Base_manager<run_profile_experiment(std::filesystem::__cxx11::path const&)::{lambda()#1}> const&, std::_Manager_operation)>:
+5807-    8a60:	f3 0f 1e fa          	endbr64 
+5808-    8a64:	55                   	push   rbp
+5809-    8a65:	53                   	push   rbx
+5810-    8a66:	48 89 fb             	mov    rbx,rdi
+5811-    8a69:	48 83 ec 08          	sub    rsp,0x8
+5812-    8a6d:	83 fa 02             	cmp    edx,0x2
+5813-    8a70:	74 3e                	je     8ab0 <std::_Function_base::_Base_manager<run_profile_experiment(std::filesystem::__cxx11::path const&)::{lambda()#1}>::_M_manager(std::_Any_data&, std::_Function_base::_Base_manager<run_profile_experiment(std::filesystem::__cxx11::path const&)::{lambda()#1}> const&, std::_Manager_operation)+0x50>
+5814-    8a72:	77 1c                	ja     8a90 <std::_Function_base::_Base_manager<run_profile_experiment(std::filesystem::__cxx11::path const&)::{lambda()#1}>::_M_manager(std::_Any_data&, std::_Function_base::_Base_manager<run_profile_experiment(std::filesystem::__cxx11::path const&)::{lambda()#1}> const&, std::_Manager_operation)+0x30>
 --
-7122-    9e54:	48 89 c3             	mov    rbx,rax
-7123-    9e57:	c5 f8 77             	vzeroupper 
-7124-    9e5a:	e9 5e a0 ff ff       	jmp    3ebd <run_profile_experiment(std::filesystem::__cxx11::path const&) [clone .cold]+0x1d5>
-7125-    9e5f:	f3 0f 1e fa          	endbr64 
-7126-    9e63:	48 89 c3             	mov    rbx,rax
-7127-    9e66:	e9 10 a3 ff ff       	jmp    417b <run_profile_experiment(std::filesystem::__cxx11::path const&) [clone .cold]+0x493>
-7128-    9e6b:	f3 0f 1e fa          	endbr64 
-7129-    9e6f:	48 89 c3             	mov    rbx,rax
-7130-    9e72:	c5 f8 77             	vzeroupper 
-7131-    9e75:	e9 d8 a2 ff ff       	jmp    4152 <run_profile_experiment(std::filesystem::__cxx11::path const&) [clone .cold]+0x46a>
-7132-    9e7a:	66 0f 1f 44 00 00    	nop    WORD PTR [rax+rax*1+0x0]
-7133-
-7134:0000000000009e80 <sum_naive(double const*, unsigned long)>:
-7135-    9e80:	f3 0f 1e fa          	endbr64 
-7136-    9e84:	48 85 f6             	test   rsi,rsi
-7137:    9e87:	74 27                	je     9eb0 <sum_naive(double const*, unsigned long)+0x30>
-7138-    9e89:	48 8d 04 f7          	lea    rax,[rdi+rsi*8]
-7139-    9e8d:	c5 f9 57 c0          	vxorpd xmm0,xmm0,xmm0
-7140-    9e91:	0f 1f 80 00 00 00 00 	nop    DWORD PTR [rax+0x0]
-7141-    9e98:	c5 fb 58 07          	vaddsd xmm0,xmm0,QWORD PTR [rdi]
-7142-    9e9c:	48 83 c7 08          	add    rdi,0x8
-7143-    9ea0:	48 39 f8             	cmp    rax,rdi
-7144:    9ea3:	75 f3                	jne    9e98 <sum_naive(double const*, unsigned long)+0x18>
-7145-    9ea5:	c3                   	ret    
-7146-    9ea6:	66 2e 0f 1f 84 00 00 	nop    WORD PTR cs:[rax+rax*1+0x0]
-7147-    9ead:	00 00 00 
-7148-    9eb0:	c5 f9 57 c0          	vxorpd xmm0,xmm0,xmm0
-7149-    9eb4:	c3                   	ret    
-7150-    9eb5:	66 66 2e 0f 1f 84 00 	data16 nop WORD PTR cs:[rax+rax*1+0x0]
-7151-    9ebc:	00 00 00 00 
-7152-
-7153:0000000000009ec0 <sum_superscalar2(double const*, unsigned long)>:
-7154-    9ec0:	f3 0f 1e fa          	endbr64 
-7155-    9ec4:	48 89 f2             	mov    rdx,rsi
-7156-    9ec7:	48 83 e2 fe          	and    rdx,0xfffffffffffffffe
-7157:    9ecb:	74 53                	je     9f20 <sum_superscalar2(double const*, unsigned long)+0x60>
-7158-    9ecd:	c5 f1 57 c9          	vxorpd xmm1,xmm1,xmm1
-7159-    9ed1:	48 8d 4a ff          	lea    rcx,[rdx-0x1]
-7160-    9ed5:	48 89 f8             	mov    rax,rdi
-7161-    9ed8:	48 8d 14 d7          	lea    rdx,[rdi+rdx*8]
-7162-    9edc:	c5 f9 28 c1          	vmovapd xmm0,xmm1
-7163-    9ee0:	c5 fb 58 00          	vaddsd xmm0,xmm0,QWORD PTR [rax]
-7164-    9ee4:	c5 f3 58 48 08       	vaddsd xmm1,xmm1,QWORD PTR [rax+0x8]
-7165-    9ee9:	48 83 c0 10          	add    rax,0x10
-7166-    9eed:	48 39 c2             	cmp    rdx,rax
-7167:    9ef0:	75 ee                	jne    9ee0 <sum_superscalar2(double const*, unsigned long)+0x20>
-7168-    9ef2:	48 83 e1 fe          	and    rcx,0xfffffffffffffffe
-7169-    9ef6:	c5 fb 58 c1          	vaddsd xmm0,xmm0,xmm1
-7170-    9efa:	48 89 ca             	mov    rdx,rcx
-7171-    9efd:	48 83 c2 02          	add    rdx,0x2
-7172-    9f01:	48 39 d6             	cmp    rsi,rdx
-7173:    9f04:	76 17                	jbe    9f1d <sum_superscalar2(double const*, unsigned long)+0x5d>
-7174-    9f06:	48 8d 04 d7          	lea    rax,[rdi+rdx*8]
-7175-    9f0a:	48 8d 14 f7          	lea    rdx,[rdi+rsi*8]
-7176-    9f0e:	66 90                	xchg   ax,ax
-7177-    9f10:	c5 fb 58 00          	vaddsd xmm0,xmm0,QWORD PTR [rax]
-7178-    9f14:	48 83 c0 08          	add    rax,0x8
-7179-    9f18:	48 39 c2             	cmp    rdx,rax
-7180:    9f1b:	75 f3                	jne    9f10 <sum_superscalar2(double const*, unsigned long)+0x50>
-7181-    9f1d:	c3                   	ret    
-7182-    9f1e:	66 90                	xchg   ax,ax
-7183-    9f20:	c5 f9 57 c0          	vxorpd xmm0,xmm0,xmm0
-7184:    9f24:	eb db                	jmp    9f01 <sum_superscalar2(double const*, unsigned long)+0x41>
-7185-    9f26:	66 2e 0f 1f 84 00 00 	nop    WORD PTR cs:[rax+rax*1+0x0]
-7186-    9f2d:	00 00 00 
-7187-
-7188:0000000000009f30 <sum_superscalar4(double const*, unsigned long)>:
-7189-    9f30:	f3 0f 1e fa          	endbr64 
-7190-    9f34:	48 89 f2             	mov    rdx,rsi
-7191-    9f37:	48 83 e2 fc          	and    rdx,0xfffffffffffffffc
-7192:    9f3b:	74 73                	je     9fb0 <sum_superscalar4(double const*, unsigned long)+0x80>
-7193-    9f3d:	c5 e9 57 d2          	vxorpd xmm2,xmm2,xmm2
-7194-    9f41:	48 8d 4a ff          	lea    rcx,[rdx-0x1]
-7195-    9f45:	48 89 f8             	mov    rax,rdi
-7196-    9f48:	48 8d 14 d7          	lea    rdx,[rdi+rdx*8]
-7197-    9f4c:	c5 f9 28 c2          	vmovapd xmm0,xmm2
-7198-    9f50:	c5 f9 28 da          	vmovapd xmm3,xmm2
-7199-    9f54:	c5 f9 28 ca          	vmovapd xmm1,xmm2
-7200-    9f58:	0f 1f 84 00 00 00 00 	nop    DWORD PTR [rax+rax*1+0x0]
-7201-    9f5f:	00 
-7202-    9f60:	c5 f3 58 08          	vaddsd xmm1,xmm1,QWORD PTR [rax]
-7203-    9f64:	c5 e3 58 58 08       	vaddsd xmm3,xmm3,QWORD PTR [rax+0x8]
-7204-    9f69:	c5 fb 58 40 10       	vaddsd xmm0,xmm0,QWORD PTR [rax+0x10]
-7205-    9f6e:	c5 eb 58 50 18       	vaddsd xmm2,xmm2,QWORD PTR [rax+0x18]
-7206-    9f73:	48 83 c0 20          	add    rax,0x20
-7207-    9f77:	48 39 c2             	cmp    rdx,rax
-7208:    9f7a:	75 e4                	jne    9f60 <sum_superscalar4(double const*, unsigned long)+0x30>
-7209-    9f7c:	c5 f3 58 cb          	vaddsd xmm1,xmm1,xmm3
-7210-    9f80:	c5 fb 58 c2          	vaddsd xmm0,xmm0,xmm2
-7211-    9f84:	48 83 e1 fc          	and    rcx,0xfffffffffffffffc
-7212-    9f88:	48 89 ca             	mov    rdx,rcx
-7213-    9f8b:	c5 f3 58 c0          	vaddsd xmm0,xmm1,xmm0
-7214-    9f8f:	48 83 c2 04          	add    rdx,0x4
-7215-    9f93:	48 39 d6             	cmp    rsi,rdx
-7216:    9f96:	76 15                	jbe    9fad <sum_superscalar4(double const*, unsigned long)+0x7d>
-7217-    9f98:	48 8d 04 d7          	lea    rax,[rdi+rdx*8]
-7218-    9f9c:	48 8d 14 f7          	lea    rdx,[rdi+rsi*8]
-7219-    9fa0:	c5 fb 58 00          	vaddsd xmm0,xmm0,QWORD PTR [rax]
-7220-    9fa4:	48 83 c0 08          	add    rax,0x8
-7221-    9fa8:	48 39 c2             	cmp    rdx,rax
-7222:    9fab:	75 f3                	jne    9fa0 <sum_superscalar4(double const*, unsigned long)+0x70>
-7223-    9fad:	c3                   	ret    
-7224-    9fae:	66 90                	xchg   ax,ax
-7225-    9fb0:	c5 f9 57 c0          	vxorpd xmm0,xmm0,xmm0
-7226:    9fb4:	eb dd                	jmp    9f93 <sum_superscalar4(double const*, unsigned long)+0x63>
-7227-    9fb6:	66 2e 0f 1f 84 00 00 	nop    WORD PTR cs:[rax+rax*1+0x0]
-7228-    9fbd:	00 00 00 
-7229-
-7230:0000000000009fc0 <sum_pairwise(double const*, unsigned long, std::vector<double, std::allocator<double> >&)>:
-7231-    9fc0:	f3 0f 1e fa          	endbr64 
-7232-    9fc4:	55                   	push   rbp
-7233-    9fc5:	48 89 d5             	mov    rbp,rdx
-7234-    9fc8:	53                   	push   rbx
-7235-    9fc9:	48 89 f3             	mov    rbx,rsi
-7236-    9fcc:	48 83 ec 08          	sub    rsp,0x8
-7237-    9fd0:	4c 8b 02             	mov    r8,QWORD PTR [rdx]
-7238-    9fd3:	48 89 f2             	mov    rdx,rsi
-7239-    9fd6:	48 c1 e2 03          	shl    rdx,0x3
-7240:    9fda:	74 0f                	je     9feb <sum_pairwise(double const*, unsigned long, std::vector<double, std::allocator<double> >&)+0x2b>
-7241-    9fdc:	48 89 fe             	mov    rsi,rdi
-7242-    9fdf:	4c 89 c7             	mov    rdi,r8
-7243-    9fe2:	e8 29 97 ff ff       	call   3710 <memmove@plt>
-7244-    9fe7:	4c 8b 45 00          	mov    r8,QWORD PTR [rbp+0x0]
-7245-    9feb:	4d 8d 48 20          	lea    r9,[r8+0x20]
-7246-    9fef:	48 83 fb 01          	cmp    rbx,0x1
-7247:    9ff3:	76 70                	jbe    a065 <sum_pairwise(double const*, unsigned long, std::vector<double, std::allocator<double> >&)+0xa5>
-7248-    9ff5:	0f 1f 00             	nop    DWORD PTR [rax]
-7249-    9ff8:	48 89 df             	mov    rdi,rbx
-7250-    9ffb:	48 d1 ef             	shr    rdi,1
-7251-    9ffe:	48 83 ff 01          	cmp    rdi,0x1
-7252:    a002:	0f 84 d8 00 00 00    	je     a0e0 <sum_pairwise(double const*, unsigned long, std::vector<double, std::allocator<double> >&)+0x120>
-7253-    a008:	48 8d 77 fe          	lea    rsi,[rdi-0x2]
-7254-    a00c:	48 89 f1             	mov    rcx,rsi
-7255-    a00f:	48 d1 e9             	shr    rcx,1
-7256-    a012:	48 c1 e1 05          	shl    rcx,0x5
-7257-    a016:	4c 89 c0             	mov    rax,r8
-7258-    a019:	4c 01 c9             	add    rcx,r9
-7259-    a01c:	4c 89 c2             	mov    rdx,r8
-7260-    a01f:	90                   	nop
-7261-    a020:	c5 fb 10 00          	vmovsd xmm0,QWORD PTR [rax]
-7262-    a024:	48 83 c0 20          	add    rax,0x20
-7263-    a028:	c5 fb 58 40 e8       	vaddsd xmm0,xmm0,QWORD PTR [rax-0x18]
-7264-    a02d:	48 83 c2 10          	add    rdx,0x10
-7265-    a031:	c5 fb 11 42 f0       	vmovsd QWORD PTR [rdx-0x10],xmm0
-7266-    a036:	c5 fb 10 40 f0       	vmovsd xmm0,QWORD PTR [rax-0x10]
-7267-    a03b:	c5 fb 58 40 f8       	vaddsd xmm0,xmm0,QWORD PTR [rax-0x8]
-7268-    a040:	c5 fb 11 42 f8       	vmovsd QWORD PTR [rdx-0x8],xmm0
-7269-    a045:	48 39 c1             	cmp    rcx,rax
-7270:    a048:	75 d6                	jne    a020 <sum_pairwise(double const*, unsigned long, std::vector<double, std::allocator<double> >&)+0x60>
-7271-    a04a:	48 83 e6 fe          	and    rsi,0xfffffffffffffffe
-7272-    a04e:	48 8d 46 02          	lea    rax,[rsi+0x2]
-7273-    a052:	48 39 c7             	cmp    rdi,rax
-7274:    a055:	77 21                	ja     a078 <sum_pairwise(double const*, unsigned long, std::vector<double, std::allocator<double> >&)+0xb8>
-7275-    a057:	f6 c3 01             	test   bl,0x1
-7276:    a05a:	75 65                	jne    a0c1 <sum_pairwise(double const*, unsigned long, std::vector<double, std::allocator<double> >&)+0x101>
-7277-    a05c:	48 89 fb             	mov    rbx,rdi
-7278-    a05f:	48 83 fb 01          	cmp    rbx,0x1
-7279:    a063:	77 93                	ja     9ff8 <sum_pairwise(double const*, unsigned long, std::vector<double, std::allocator<double> >&)+0x38>
-7280-    a065:	c4 c1 7b 10 00       	vmovsd xmm0,QWORD PTR [r8]
-7281-    a06a:	48 83 c4 08          	add    rsp,0x8
-7282-    a06e:	5b                   	pop    rbx
-7283-    a06f:	5d                   	pop    rbp
-7284-    a070:	c3                   	ret    
-7285-    a071:	0f 1f 80 00 00 00 00 	nop    DWORD PTR [rax+0x0]
-7286-    a078:	48 8d 0c 00          	lea    rcx,[rax+rax*1]
-7287-    a07c:	c4 c1 7b 10 44 c8 08 	vmovsd xmm0,QWORD PTR [r8+rcx*8+0x8]
-7288-    a083:	48 89 c2             	mov    rdx,rax
-7289-    a086:	48 c1 e2 04          	shl    rdx,0x4
-7290-    a08a:	c4 c1 7b 58 04 10    	vaddsd xmm0,xmm0,QWORD PTR [r8+rdx*1]
-7291-    a090:	48 83 c6 03          	add    rsi,0x3
-7292-    a094:	4c 8d 14 c5 00 00 00 	lea    r10,[rax*8+0x0]
-7293-    a09b:	00 
-7294-    a09c:	c4 c1 7b 11 04 c0    	vmovsd QWORD PTR [r8+rax*8],xmm0
-7295-    a0a2:	48 39 f7             	cmp    rdi,rsi
-7296:    a0a5:	76 b0                	jbe    a057 <sum_pairwise(double const*, unsigned long, std::vector<double, std::allocator<double> >&)+0x97>
-7297-    a0a7:	c4 c1 7b 10 44 c8 18 	vmovsd xmm0,QWORD PTR [r8+rcx*8+0x18]
-7298-    a0ae:	c4 c1 7b 58 44 10 10 	vaddsd xmm0,xmm0,QWORD PTR [r8+rdx*1+0x10]
-7299-    a0b5:	c4 81 7b 11 44 10 08 	vmovsd QWORD PTR [r8+r10*1+0x8],xmm0
-7300-    a0bc:	f6 c3 01             	test   bl,0x1
-7301:    a0bf:	74 9b                	je     a05c <sum_pairwise(double const*, unsigned long, std::vector<double, std::allocator<double> >&)+0x9c>
-7302-    a0c1:	c4 c1 7b 10 44 d8 f8 	vmovsd xmm0,QWORD PTR [r8+rbx*8-0x8]
-7303-    a0c8:	48 8d 5f 01          	lea    rbx,[rdi+0x1]
-7304-    a0cc:	c4 c1 7b 11 04 f8    	vmovsd QWORD PTR [r8+rdi*8],xmm0
-7305:    a0d2:	e9 18 ff ff ff       	jmp    9fef <sum_pairwise(double const*, unsigned long, std::vector<double, std::allocator<double> >&)+0x2f>
-7306-    a0d7:	66 0f 1f 84 00 00 00 	nop    WORD PTR [rax+rax*1+0x0]
-7307-    a0de:	00 00 
-7308-    a0e0:	c4 c1 7b 10 00       	vmovsd xmm0,QWORD PTR [r8]
-7309-    a0e5:	c4 c1 7b 58 40 08    	vaddsd xmm0,xmm0,QWORD PTR [r8+0x8]
-7310-    a0eb:	c4 c1 7b 11 00       	vmovsd QWORD PTR [r8],xmm0
-7311:    a0f0:	e9 62 ff ff ff       	jmp    a057 <sum_pairwise(double const*, unsigned long, std::vector<double, std::allocator<double> >&)+0x97>
-7312-    a0f5:	66 66 2e 0f 1f 84 00 	data16 nop WORD PTR cs:[rax+rax*1+0x0]
-7313-    a0fc:	00 00 00 00 
-7314-
-7315-000000000000a100 <run_sum_experiment(std::filesystem::__cxx11::path const&)>:
-7316-    a100:	f3 0f 1e fa          	endbr64 
-7317-    a104:	41 57                	push   r15
-7318-    a106:	41 56                	push   r14
-7319-    a108:	41 55                	push   r13
-7320-    a10a:	41 54                	push   r12
-7321-    a10c:	55                   	push   rbp
-7322-    a10d:	53                   	push   rbx
-7323-    a10e:	48 89 fb             	mov    rbx,rdi
+7161-    9f40:	e9 99 a1 ff ff       	jmp    40de <run_profile_experiment(std::filesystem::__cxx11::path const&) [clone .cold]+0x3e9>
+7162-    9f45:	f3 0f 1e fa          	endbr64 
+7163-    9f49:	48 89 c3             	mov    rbx,rax
+7164-    9f4c:	e9 f2 a1 ff ff       	jmp    4143 <run_profile_experiment(std::filesystem::__cxx11::path const&) [clone .cold]+0x44e>
+7165-    9f51:	f3 0f 1e fa          	endbr64 
+7166-    9f55:	48 89 c3             	mov    rbx,rax
+7167-    9f58:	e9 0a a1 ff ff       	jmp    4067 <run_profile_experiment(std::filesystem::__cxx11::path const&) [clone .cold]+0x372>
+7168-    9f5d:	f3 0f 1e fa          	endbr64 
+7169-    9f61:	48 89 c3             	mov    rbx,rax
+7170-    9f64:	e9 5c a1 ff ff       	jmp    40c5 <run_profile_experiment(std::filesystem::__cxx11::path const&) [clone .cold]+0x3d0>
+7171-    9f69:	0f 1f 80 00 00 00 00 	nop    DWORD PTR [rax+0x0]
+7172-
+7173:0000000000009f70 <sum_naive(double const*, unsigned long)>:
+7174-    9f70:	f3 0f 1e fa          	endbr64 
+7175-    9f74:	48 85 f6             	test   rsi,rsi
+7176:    9f77:	74 27                	je     9fa0 <sum_naive(double const*, unsigned long)+0x30>
+7177-    9f79:	48 8d 04 f7          	lea    rax,[rdi+rsi*8]
+7178-    9f7d:	c5 f9 57 c0          	vxorpd xmm0,xmm0,xmm0
+7179-    9f81:	0f 1f 80 00 00 00 00 	nop    DWORD PTR [rax+0x0]
+7180-    9f88:	c5 fb 58 07          	vaddsd xmm0,xmm0,QWORD PTR [rdi]
+7181-    9f8c:	48 83 c7 08          	add    rdi,0x8
+7182-    9f90:	48 39 f8             	cmp    rax,rdi
+7183:    9f93:	75 f3                	jne    9f88 <sum_naive(double const*, unsigned long)+0x18>
+7184-    9f95:	c3                   	ret    
+7185-    9f96:	66 2e 0f 1f 84 00 00 	nop    WORD PTR cs:[rax+rax*1+0x0]
+7186-    9f9d:	00 00 00 
+7187-    9fa0:	c5 f9 57 c0          	vxorpd xmm0,xmm0,xmm0
+7188-    9fa4:	c3                   	ret    
+7189-    9fa5:	66 66 2e 0f 1f 84 00 	data16 nop WORD PTR cs:[rax+rax*1+0x0]
+7190-    9fac:	00 00 00 00 
+7191-
+7192:0000000000009fb0 <sum_superscalar2(double const*, unsigned long)>:
+7193-    9fb0:	f3 0f 1e fa          	endbr64 
+7194-    9fb4:	48 89 f2             	mov    rdx,rsi
+7195-    9fb7:	48 83 e2 fe          	and    rdx,0xfffffffffffffffe
+7196:    9fbb:	74 53                	je     a010 <sum_superscalar2(double const*, unsigned long)+0x60>
+7197-    9fbd:	c5 f1 57 c9          	vxorpd xmm1,xmm1,xmm1
+7198-    9fc1:	48 8d 4a ff          	lea    rcx,[rdx-0x1]
+7199-    9fc5:	48 8d 14 d7          	lea    rdx,[rdi+rdx*8]
+7200-    9fc9:	48 89 f8             	mov    rax,rdi
+7201-    9fcc:	c5 f9 28 c1          	vmovapd xmm0,xmm1
+7202-    9fd0:	c5 fb 58 00          	vaddsd xmm0,xmm0,QWORD PTR [rax]
+7203-    9fd4:	c5 f3 58 48 08       	vaddsd xmm1,xmm1,QWORD PTR [rax+0x8]
+7204-    9fd9:	48 83 c0 10          	add    rax,0x10
+7205-    9fdd:	48 39 c2             	cmp    rdx,rax
+7206:    9fe0:	75 ee                	jne    9fd0 <sum_superscalar2(double const*, unsigned long)+0x20>
+7207-    9fe2:	48 83 e1 fe          	and    rcx,0xfffffffffffffffe
+7208-    9fe6:	c5 fb 58 c1          	vaddsd xmm0,xmm0,xmm1
+7209-    9fea:	48 89 ca             	mov    rdx,rcx
+7210-    9fed:	48 83 c2 02          	add    rdx,0x2
+7211-    9ff1:	48 39 d6             	cmp    rsi,rdx
+7212:    9ff4:	76 17                	jbe    a00d <sum_superscalar2(double const*, unsigned long)+0x5d>
+7213-    9ff6:	48 8d 04 d7          	lea    rax,[rdi+rdx*8]
+7214-    9ffa:	48 8d 14 f7          	lea    rdx,[rdi+rsi*8]
+7215-    9ffe:	66 90                	xchg   ax,ax
+7216-    a000:	c5 fb 58 00          	vaddsd xmm0,xmm0,QWORD PTR [rax]
+7217-    a004:	48 83 c0 08          	add    rax,0x8
+7218-    a008:	48 39 c2             	cmp    rdx,rax
+7219:    a00b:	75 f3                	jne    a000 <sum_superscalar2(double const*, unsigned long)+0x50>
+7220-    a00d:	c3                   	ret    
+7221-    a00e:	66 90                	xchg   ax,ax
+7222-    a010:	c5 f9 57 c0          	vxorpd xmm0,xmm0,xmm0
+7223:    a014:	eb db                	jmp    9ff1 <sum_superscalar2(double const*, unsigned long)+0x41>
+7224-    a016:	66 2e 0f 1f 84 00 00 	nop    WORD PTR cs:[rax+rax*1+0x0]
+7225-    a01d:	00 00 00 
+7226-
+7227:000000000000a020 <sum_superscalar4(double const*, unsigned long)>:
+7228-    a020:	f3 0f 1e fa          	endbr64 
+7229-    a024:	48 89 f2             	mov    rdx,rsi
+7230-    a027:	48 83 e2 fc          	and    rdx,0xfffffffffffffffc
+7231:    a02b:	74 73                	je     a0a0 <sum_superscalar4(double const*, unsigned long)+0x80>
+7232-    a02d:	c5 e9 57 d2          	vxorpd xmm2,xmm2,xmm2
+7233-    a031:	48 8d 4a ff          	lea    rcx,[rdx-0x1]
+7234-    a035:	48 8d 14 d7          	lea    rdx,[rdi+rdx*8]
+7235-    a039:	48 89 f8             	mov    rax,rdi
+7236-    a03c:	c5 f9 28 c2          	vmovapd xmm0,xmm2
+7237-    a040:	c5 f9 28 da          	vmovapd xmm3,xmm2
+7238-    a044:	c5 f9 28 ca          	vmovapd xmm1,xmm2
+7239-    a048:	0f 1f 84 00 00 00 00 	nop    DWORD PTR [rax+rax*1+0x0]
+7240-    a04f:	00 
+7241-    a050:	c5 f3 58 08          	vaddsd xmm1,xmm1,QWORD PTR [rax]
+7242-    a054:	c5 e3 58 58 08       	vaddsd xmm3,xmm3,QWORD PTR [rax+0x8]
+7243-    a059:	48 83 c0 20          	add    rax,0x20
+7244-    a05d:	c5 fb 58 40 f0       	vaddsd xmm0,xmm0,QWORD PTR [rax-0x10]
+7245-    a062:	c5 eb 58 50 f8       	vaddsd xmm2,xmm2,QWORD PTR [rax-0x8]
+7246-    a067:	48 39 c2             	cmp    rdx,rax
+7247:    a06a:	75 e4                	jne    a050 <sum_superscalar4(double const*, unsigned long)+0x30>
+7248-    a06c:	c5 f3 58 cb          	vaddsd xmm1,xmm1,xmm3
+7249-    a070:	c5 fb 58 c2          	vaddsd xmm0,xmm0,xmm2
+7250-    a074:	48 83 e1 fc          	and    rcx,0xfffffffffffffffc
+7251-    a078:	48 89 ca             	mov    rdx,rcx
+7252-    a07b:	48 83 c2 04          	add    rdx,0x4
+7253-    a07f:	c5 f3 58 c0          	vaddsd xmm0,xmm1,xmm0
+7254-    a083:	48 39 d6             	cmp    rsi,rdx
+7255:    a086:	76 15                	jbe    a09d <sum_superscalar4(double const*, unsigned long)+0x7d>
+7256-    a088:	48 8d 04 d7          	lea    rax,[rdi+rdx*8]
+7257-    a08c:	48 8d 14 f7          	lea    rdx,[rdi+rsi*8]
+7258-    a090:	c5 fb 58 00          	vaddsd xmm0,xmm0,QWORD PTR [rax]
+7259-    a094:	48 83 c0 08          	add    rax,0x8
+7260-    a098:	48 39 c2             	cmp    rdx,rax
+7261:    a09b:	75 f3                	jne    a090 <sum_superscalar4(double const*, unsigned long)+0x70>
+7262-    a09d:	c3                   	ret    
+7263-    a09e:	66 90                	xchg   ax,ax
+7264-    a0a0:	c5 f9 57 c0          	vxorpd xmm0,xmm0,xmm0
+7265:    a0a4:	eb dd                	jmp    a083 <sum_superscalar4(double const*, unsigned long)+0x63>
+7266-    a0a6:	66 2e 0f 1f 84 00 00 	nop    WORD PTR cs:[rax+rax*1+0x0]
+7267-    a0ad:	00 00 00 
+7268-
+7269:000000000000a0b0 <sum_pairwise(double const*, unsigned long, std::vector<double, std::allocator<double> >&)>:
+7270-    a0b0:	f3 0f 1e fa          	endbr64 
+7271-    a0b4:	55                   	push   rbp
+7272-    a0b5:	48 89 d5             	mov    rbp,rdx
+7273-    a0b8:	53                   	push   rbx
+7274-    a0b9:	48 89 f3             	mov    rbx,rsi
+7275-    a0bc:	48 83 ec 08          	sub    rsp,0x8
+7276-    a0c0:	4c 8b 02             	mov    r8,QWORD PTR [rdx]
+7277-    a0c3:	48 89 f2             	mov    rdx,rsi
+7278-    a0c6:	48 c1 e2 03          	shl    rdx,0x3
+7279:    a0ca:	74 0f                	je     a0db <sum_pairwise(double const*, unsigned long, std::vector<double, std::allocator<double> >&)+0x2b>
+7280-    a0cc:	48 89 fe             	mov    rsi,rdi
+7281-    a0cf:	4c 89 c7             	mov    rdi,r8
+7282-    a0d2:	e8 39 96 ff ff       	call   3710 <memmove@plt>
+7283-    a0d7:	4c 8b 45 00          	mov    r8,QWORD PTR [rbp+0x0]
+7284-    a0db:	4d 8d 48 20          	lea    r9,[r8+0x20]
+7285-    a0df:	48 83 fb 01          	cmp    rbx,0x1
+7286:    a0e3:	76 70                	jbe    a155 <sum_pairwise(double const*, unsigned long, std::vector<double, std::allocator<double> >&)+0xa5>
+7287-    a0e5:	0f 1f 00             	nop    DWORD PTR [rax]
+7288-    a0e8:	48 89 df             	mov    rdi,rbx
+7289-    a0eb:	48 d1 ef             	shr    rdi,1
+7290-    a0ee:	48 83 ff 01          	cmp    rdi,0x1
+7291:    a0f2:	0f 84 d8 00 00 00    	je     a1d0 <sum_pairwise(double const*, unsigned long, std::vector<double, std::allocator<double> >&)+0x120>
+7292-    a0f8:	48 8d 77 fe          	lea    rsi,[rdi-0x2]
+7293-    a0fc:	4c 89 c0             	mov    rax,r8
+7294-    a0ff:	4c 89 c2             	mov    rdx,r8
+7295-    a102:	48 89 f1             	mov    rcx,rsi
+7296-    a105:	48 d1 e9             	shr    rcx,1
+7297-    a108:	48 c1 e1 05          	shl    rcx,0x5
+7298-    a10c:	4c 01 c9             	add    rcx,r9
+7299-    a10f:	90                   	nop
+7300-    a110:	c5 fb 10 00          	vmovsd xmm0,QWORD PTR [rax]
+7301-    a114:	c5 fb 58 40 08       	vaddsd xmm0,xmm0,QWORD PTR [rax+0x8]
+7302-    a119:	48 83 c0 20          	add    rax,0x20
+7303-    a11d:	48 83 c2 10          	add    rdx,0x10
+7304-    a121:	c5 fb 11 42 f0       	vmovsd QWORD PTR [rdx-0x10],xmm0
+7305-    a126:	c5 fb 10 40 f0       	vmovsd xmm0,QWORD PTR [rax-0x10]
+7306-    a12b:	c5 fb 58 40 f8       	vaddsd xmm0,xmm0,QWORD PTR [rax-0x8]
+7307-    a130:	c5 fb 11 42 f8       	vmovsd QWORD PTR [rdx-0x8],xmm0
+7308-    a135:	48 39 c1             	cmp    rcx,rax
+7309:    a138:	75 d6                	jne    a110 <sum_pairwise(double const*, unsigned long, std::vector<double, std::allocator<double> >&)+0x60>
+7310-    a13a:	48 83 e6 fe          	and    rsi,0xfffffffffffffffe
+7311-    a13e:	48 8d 46 02          	lea    rax,[rsi+0x2]
+7312-    a142:	48 39 c7             	cmp    rdi,rax
+7313:    a145:	77 21                	ja     a168 <sum_pairwise(double const*, unsigned long, std::vector<double, std::allocator<double> >&)+0xb8>
+7314-    a147:	f6 c3 01             	test   bl,0x1
+7315:    a14a:	75 65                	jne    a1b1 <sum_pairwise(double const*, unsigned long, std::vector<double, std::allocator<double> >&)+0x101>
+7316-    a14c:	48 89 fb             	mov    rbx,rdi
+7317-    a14f:	48 83 fb 01          	cmp    rbx,0x1
+7318:    a153:	77 93                	ja     a0e8 <sum_pairwise(double const*, unsigned long, std::vector<double, std::allocator<double> >&)+0x38>
+7319-    a155:	c4 c1 7b 10 00       	vmovsd xmm0,QWORD PTR [r8]
+7320-    a15a:	48 83 c4 08          	add    rsp,0x8
+7321-    a15e:	5b                   	pop    rbx
+7322-    a15f:	5d                   	pop    rbp
+7323-    a160:	c3                   	ret    
+7324-    a161:	0f 1f 80 00 00 00 00 	nop    DWORD PTR [rax+0x0]
+7325-    a168:	48 89 c2             	mov    rdx,rax
+7326-    a16b:	48 8d 0c 00          	lea    rcx,[rax+rax*1]
+7327-    a16f:	48 83 c6 03          	add    rsi,0x3
+7328-    a173:	48 c1 e2 04          	shl    rdx,0x4
+7329-    a177:	c4 c1 7b 10 44 c8 08 	vmovsd xmm0,QWORD PTR [r8+rcx*8+0x8]
+7330-    a17e:	4c 8d 14 c5 00 00 00 	lea    r10,[rax*8+0x0]
+7331-    a185:	00 
+7332-    a186:	c4 c1 7b 58 04 10    	vaddsd xmm0,xmm0,QWORD PTR [r8+rdx*1]
+7333-    a18c:	c4 c1 7b 11 04 c0    	vmovsd QWORD PTR [r8+rax*8],xmm0
+7334-    a192:	48 39 f7             	cmp    rdi,rsi
+7335:    a195:	76 b0                	jbe    a147 <sum_pairwise(double const*, unsigned long, std::vector<double, std::allocator<double> >&)+0x97>
+7336-    a197:	c4 c1 7b 10 44 c8 18 	vmovsd xmm0,QWORD PTR [r8+rcx*8+0x18]
+7337-    a19e:	c4 c1 7b 58 44 10 10 	vaddsd xmm0,xmm0,QWORD PTR [r8+rdx*1+0x10]
+7338-    a1a5:	c4 81 7b 11 44 10 08 	vmovsd QWORD PTR [r8+r10*1+0x8],xmm0
+7339-    a1ac:	f6 c3 01             	test   bl,0x1
+7340:    a1af:	74 9b                	je     a14c <sum_pairwise(double const*, unsigned long, std::vector<double, std::allocator<double> >&)+0x9c>
+7341-    a1b1:	c4 c1 7b 10 44 d8 f8 	vmovsd xmm0,QWORD PTR [r8+rbx*8-0x8]
+7342-    a1b8:	48 8d 5f 01          	lea    rbx,[rdi+0x1]
+7343-    a1bc:	c4 c1 7b 11 04 f8    	vmovsd QWORD PTR [r8+rdi*8],xmm0
+7344:    a1c2:	e9 18 ff ff ff       	jmp    a0df <sum_pairwise(double const*, unsigned long, std::vector<double, std::allocator<double> >&)+0x2f>
+7345-    a1c7:	66 0f 1f 84 00 00 00 	nop    WORD PTR [rax+rax*1+0x0]
+7346-    a1ce:	00 00 
+7347-    a1d0:	c4 c1 7b 10 00       	vmovsd xmm0,QWORD PTR [r8]
+7348-    a1d5:	c4 c1 7b 58 40 08    	vaddsd xmm0,xmm0,QWORD PTR [r8+0x8]
+7349-    a1db:	c4 c1 7b 11 00       	vmovsd QWORD PTR [r8],xmm0
+7350:    a1e0:	e9 62 ff ff ff       	jmp    a147 <sum_pairwise(double const*, unsigned long, std::vector<double, std::allocator<double> >&)+0x97>
+7351-    a1e5:	66 66 2e 0f 1f 84 00 	data16 nop WORD PTR cs:[rax+rax*1+0x0]
+7352-    a1ec:	00 00 00 00 
+7353-
+7354-000000000000a1f0 <run_sum_experiment(std::filesystem::__cxx11::path const&)>:
+7355-    a1f0:	f3 0f 1e fa          	endbr64 
+7356-    a1f4:	41 57                	push   r15
+7357-    a1f6:	41 56                	push   r14
+7358-    a1f8:	41 55                	push   r13
+7359-    a1fa:	41 54                	push   r12
+7360-    a1fc:	55                   	push   rbp
+7361-    a1fd:	53                   	push   rbx
+7362-    a1fe:	48 89 fb             	mov    rbx,rdi
 --
-7558-    a534:	31 f6                	xor    esi,esi
-7559-    a536:	48 89 84 24 e0 00 00 	mov    QWORD PTR [rsp+0xe0],rax
-7560-    a53d:	00 
-7561-    a53e:	48 89 9c 24 f0 00 00 	mov    QWORD PTR [rsp+0xf0],rbx
-7562-    a545:	00 
-7563-    a546:	e8 b5 8f ff ff       	call   3500 <memset@plt>
-7564-    a54b:	4c 8b 84 24 c0 00 00 	mov    r8,QWORD PTR [rsp+0xc0]
-7565-    a552:	00 
-7566-    a553:	48 89 ee             	mov    rsi,rbp
-7567-    a556:	4c 89 c7             	mov    rdi,r8
-7568-    a559:	48 89 9c 24 e8 00 00 	mov    QWORD PTR [rsp+0xe8],rbx
-7569-    a560:	00 
-7570:    a561:	e8 1a f9 ff ff       	call   9e80 <sum_naive(double const*, unsigned long)>
-7571-    a566:	4c 89 c7             	mov    rdi,r8
-7572-    a569:	c5 fb 11 44 24 28    	vmovsd QWORD PTR [rsp+0x28],xmm0
-7573-    a56f:	4c 8d a4 24 e0 00 00 	lea    r12,[rsp+0xe0]
-7574-    a576:	00 
-7575:    a577:	e8 44 f9 ff ff       	call   9ec0 <sum_superscalar2(double const*, unsigned long)>
-7576-    a57c:	c5 fb 11 44 24 30    	vmovsd QWORD PTR [rsp+0x30],xmm0
-7577:    a582:	e8 a9 f9 ff ff       	call   9f30 <sum_superscalar4(double const*, unsigned long)>
-7578-    a587:	4c 89 e2             	mov    rdx,r12
-7579-    a58a:	c5 fb 11 44 24 38    	vmovsd QWORD PTR [rsp+0x38],xmm0
-7580:    a590:	e8 2b fa ff ff       	call   9fc0 <sum_pairwise(double const*, unsigned long, std::vector<double, std::allocator<double> >&)>
-7581-    a595:	48 8b bc 24 c0 00 00 	mov    rdi,QWORD PTR [rsp+0xc0]
-7582-    a59c:	00 
-7583-    a59d:	48 89 ee             	mov    rsi,rbp
-7584-    a5a0:	48 c7 84 24 b8 00 00 	mov    QWORD PTR [rsp+0xb8],0x0
-7585-    a5a7:	00 00 00 00 00 
-7586-    a5ac:	c5 fb 11 44 24 58    	vmovsd QWORD PTR [rsp+0x58],xmm0
-7587:    a5b2:	e8 c9 f8 ff ff       	call   9e80 <sum_naive(double const*, unsigned long)>
-7588-    a5b7:	c4 e1 f9 7e c0       	vmovq  rax,xmm0
-7589-    a5bc:	c5 fb 10 8c 24 b8 00 	vmovsd xmm1,QWORD PTR [rsp+0xb8]
-7590-    a5c3:	00 00 
-7591-    a5c5:	c5 fb 58 c1          	vaddsd xmm0,xmm0,xmm1
-7592-    a5c9:	c5 fb 11 84 24 b8 00 	vmovsd QWORD PTR [rsp+0xb8],xmm0
-7593-    a5d0:	00 00 
-7594-    a5d2:	48 8b bc 24 c0 00 00 	mov    rdi,QWORD PTR [rsp+0xc0]
-7595-    a5d9:	00 
-7596:    a5da:	e8 a1 f8 ff ff       	call   9e80 <sum_naive(double const*, unsigned long)>
-7597-    a5df:	c4 e1 f9 7e c0       	vmovq  rax,xmm0
-7598-    a5e4:	c5 fb 10 8c 24 b8 00 	vmovsd xmm1,QWORD PTR [rsp+0xb8]
-7599-    a5eb:	00 00 
-7600-    a5ed:	c5 f3 58 c0          	vaddsd xmm0,xmm1,xmm0
-7601-    a5f1:	c5 fb 11 84 24 b8 00 	vmovsd QWORD PTR [rsp+0xb8],xmm0
-7602-    a5f8:	00 00 
-7603-    a5fa:	41 bf 16 00 00 00    	mov    r15d,0x16
-7604-    a600:	41 be 01 00 00 00    	mov    r14d,0x1
-7605-    a606:	66 2e 0f 1f 84 00 00 	nop    WORD PTR cs:[rax+rax*1+0x0]
-7606-    a60d:	00 00 00 
-7607-    a610:	e8 2b 90 ff ff       	call   3640 <std::chrono::_V2::steady_clock::now()@plt>
-7608-    a615:	48 c7 04 24 00 00 00 	mov    QWORD PTR [rsp],0x0
-7609-    a61c:	00 
-7610-    a61d:	49 89 c5             	mov    r13,rax
-7611-    a620:	31 db                	xor    ebx,ebx
-7612-    a622:	66 0f 1f 44 00 00    	nop    WORD PTR [rax+rax*1+0x0]
-7613-    a628:	48 8b bc 24 c0 00 00 	mov    rdi,QWORD PTR [rsp+0xc0]
-7614-    a62f:	00 
-7615-    a630:	48 89 ee             	mov    rsi,rbp
-7616:    a633:	e8 48 f8 ff ff       	call   9e80 <sum_naive(double const*, unsigned long)>
-7617-    a638:	c4 e1 f9 7e c0       	vmovq  rax,xmm0
-7618-    a63d:	c5 fb 58 3c 24       	vaddsd xmm7,xmm0,QWORD PTR [rsp]
-7619-    a642:	c5 fb 11 3c 24       	vmovsd QWORD PTR [rsp],xmm7
-7620-    a647:	48 ff c3             	inc    rbx
-7621-    a64a:	49 39 de             	cmp    r14,rbx
-7622-    a64d:	75 d9                	jne    a628 <run_sum_experiment(std::filesystem::__cxx11::path const&)+0x528>
-7623-    a64f:	e8 ec 8f ff ff       	call   3640 <std::chrono::_V2::steady_clock::now()@plt>
-7624-    a654:	4c 29 e8             	sub    rax,r13
-7625-    a657:	c5 d1 57 ed          	vxorpd xmm5,xmm5,xmm5
-7626-    a65b:	c4 e1 d3 2a c0       	vcvtsi2sd xmm0,xmm5,rax
-7627-    a660:	c5 fb 5e 05 00 1d 00 	vdivsd xmm0,xmm0,QWORD PTR [rip+0x1d00]        # c368 <_IO_stdin_used+0x368>
-7628-    a667:	00 
+7598-    a628:	00 
+7599-    a629:	48 89 9c 24 f0 00 00 	mov    QWORD PTR [rsp+0xf0],rbx
+7600-    a630:	00 
+7601-    a631:	e8 ca 8e ff ff       	call   3500 <memset@plt>
+7602-    a636:	4c 8b 84 24 c0 00 00 	mov    r8,QWORD PTR [rsp+0xc0]
+7603-    a63d:	00 
+7604-    a63e:	48 89 ee             	mov    rsi,rbp
+7605-    a641:	48 89 9c 24 e8 00 00 	mov    QWORD PTR [rsp+0xe8],rbx
+7606-    a648:	00 
+7607-    a649:	48 8d 9c 24 e0 00 00 	lea    rbx,[rsp+0xe0]
+7608-    a650:	00 
+7609-    a651:	4c 89 c7             	mov    rdi,r8
+7610:    a654:	e8 17 f9 ff ff       	call   9f70 <sum_naive(double const*, unsigned long)>
+7611-    a659:	4c 89 c7             	mov    rdi,r8
+7612-    a65c:	c5 fb 11 44 24 30    	vmovsd QWORD PTR [rsp+0x30],xmm0
+7613:    a662:	e8 49 f9 ff ff       	call   9fb0 <sum_superscalar2(double const*, unsigned long)>
+7614-    a667:	c5 fb 11 44 24 38    	vmovsd QWORD PTR [rsp+0x38],xmm0
+7615:    a66d:	e8 ae f9 ff ff       	call   a020 <sum_superscalar4(double const*, unsigned long)>
+7616-    a672:	48 89 da             	mov    rdx,rbx
+7617-    a675:	c5 fb 11 44 24 40    	vmovsd QWORD PTR [rsp+0x40],xmm0
+7618:    a67b:	e8 30 fa ff ff       	call   a0b0 <sum_pairwise(double const*, unsigned long, std::vector<double, std::allocator<double> >&)>
+7619-    a680:	48 8b bc 24 c0 00 00 	mov    rdi,QWORD PTR [rsp+0xc0]
+7620-    a687:	00 
+7621-    a688:	48 89 ee             	mov    rsi,rbp
+7622-    a68b:	48 c7 84 24 b8 00 00 	mov    QWORD PTR [rsp+0xb8],0x0
+7623-    a692:	00 00 00 00 00 
+7624-    a697:	c5 fb 11 44 24 58    	vmovsd QWORD PTR [rsp+0x58],xmm0
+7625:    a69d:	e8 ce f8 ff ff       	call   9f70 <sum_naive(double const*, unsigned long)>
+7626-    a6a2:	c4 e1 f9 7e c0       	vmovq  rax,xmm0
+7627-    a6a7:	c5 fb 10 8c 24 b8 00 	vmovsd xmm1,QWORD PTR [rsp+0xb8]
+7628-    a6ae:	00 00 
+7629-    a6b0:	c5 fb 58 c1          	vaddsd xmm0,xmm0,xmm1
+7630-    a6b4:	c5 fb 11 84 24 b8 00 	vmovsd QWORD PTR [rsp+0xb8],xmm0
+7631-    a6bb:	00 00 
+7632-    a6bd:	48 8b bc 24 c0 00 00 	mov    rdi,QWORD PTR [rsp+0xc0]
+7633-    a6c4:	00 
+7634:    a6c5:	e8 a6 f8 ff ff       	call   9f70 <sum_naive(double const*, unsigned long)>
+7635-    a6ca:	c4 e1 f9 7e c0       	vmovq  rax,xmm0
+7636-    a6cf:	c5 fb 10 8c 24 b8 00 	vmovsd xmm1,QWORD PTR [rsp+0xb8]
+7637-    a6d6:	00 00 
+7638-    a6d8:	c5 f3 58 c0          	vaddsd xmm0,xmm1,xmm0
+7639-    a6dc:	c5 fb 11 84 24 b8 00 	vmovsd QWORD PTR [rsp+0xb8],xmm0
+7640-    a6e3:	00 00 
+7641-    a6e5:	48 89 5c 24 10       	mov    QWORD PTR [rsp+0x10],rbx
+7642-    a6ea:	41 bf 16 00 00 00    	mov    r15d,0x16
+7643-    a6f0:	41 be 01 00 00 00    	mov    r14d,0x1
+7644-    a6f6:	66 2e 0f 1f 84 00 00 	nop    WORD PTR cs:[rax+rax*1+0x0]
+7645-    a6fd:	00 00 00 
+7646-    a700:	e8 3b 8f ff ff       	call   3640 <std::chrono::_V2::steady_clock::now()@plt>
+7647-    a705:	31 db                	xor    ebx,ebx
+7648-    a707:	48 c7 44 24 08 00 00 	mov    QWORD PTR [rsp+0x8],0x0
+7649-    a70e:	00 00 
+7650-    a710:	49 89 c4             	mov    r12,rax
+7651-    a713:	0f 1f 44 00 00       	nop    DWORD PTR [rax+rax*1+0x0]
+7652-    a718:	48 8b bc 24 c0 00 00 	mov    rdi,QWORD PTR [rsp+0xc0]
+7653-    a71f:	00 
+7654-    a720:	48 89 ee             	mov    rsi,rbp
+7655:    a723:	e8 48 f8 ff ff       	call   9f70 <sum_naive(double const*, unsigned long)>
+7656-    a728:	c4 e1 f9 7e c0       	vmovq  rax,xmm0
+7657-    a72d:	c5 fb 58 7c 24 08    	vaddsd xmm7,xmm0,QWORD PTR [rsp+0x8]
+7658-    a733:	c5 fb 11 7c 24 08    	vmovsd QWORD PTR [rsp+0x8],xmm7
+7659-    a739:	48 83 c3 01          	add    rbx,0x1
+7660-    a73d:	49 39 de             	cmp    r14,rbx
+7661-    a740:	75 d6                	jne    a718 <run_sum_experiment(std::filesystem::__cxx11::path const&)+0x528>
+7662-    a742:	e8 f9 8e ff ff       	call   3640 <std::chrono::_V2::steady_clock::now()@plt>
+7663-    a747:	c5 d1 57 ed          	vxorpd xmm5,xmm5,xmm5
+7664-    a74b:	4c 29 e0             	sub    rax,r12
+7665-    a74e:	c4 e1 d3 2a c8       	vcvtsi2sd xmm1,xmm5,rax
+7666-    a753:	c5 f3 5e 0d 0d 1c 00 	vdivsd xmm1,xmm1,QWORD PTR [rip+0x1c0d]        # c368 <_IO_stdin_used+0x368>
+7667-    a75a:	00 
 --
-7643-    a69c:	e9 fc fb ff ff       	jmp    a29d <run_sum_experiment(std::filesystem::__cxx11::path const&)+0x19d>
-7644-    a6a1:	0f 1f 80 00 00 00 00 	nop    DWORD PTR [rax+0x0]
-7645-    a6a8:	62 f1 f7 08 7b cb    	vcvtusi2sd xmm1,xmm1,rbx
-7646-    a6ae:	48 8b bc 24 c0 00 00 	mov    rdi,QWORD PTR [rsp+0xc0]
-7647-    a6b5:	00 
-7648-    a6b6:	48 89 ee             	mov    rsi,rbp
-7649-    a6b9:	c5 fb 5e f9          	vdivsd xmm7,xmm0,xmm1
-7650-    a6bd:	c5 fb 10 84 24 b8 00 	vmovsd xmm0,QWORD PTR [rsp+0xb8]
-7651-    a6c4:	00 00 
-7652-    a6c6:	48 c7 84 24 b0 00 00 	mov    QWORD PTR [rsp+0xb0],0x0
-7653-    a6cd:	00 00 00 00 00 
-7654-    a6d2:	c5 fb 11 7c 24 08    	vmovsd QWORD PTR [rsp+0x8],xmm7
-7655:    a6d8:	e8 e3 f7 ff ff       	call   9ec0 <sum_superscalar2(double const*, unsigned long)>
-7656-    a6dd:	c4 e1 f9 7e c0       	vmovq  rax,xmm0
-7657-    a6e2:	c5 fb 10 8c 24 b0 00 	vmovsd xmm1,QWORD PTR [rsp+0xb0]
-7658-    a6e9:	00 00 
-7659-    a6eb:	c5 fb 58 c1          	vaddsd xmm0,xmm0,xmm1
-7660-    a6ef:	c5 fb 11 84 24 b0 00 	vmovsd QWORD PTR [rsp+0xb0],xmm0
-7661-    a6f6:	00 00 
-7662-    a6f8:	48 8b bc 24 c0 00 00 	mov    rdi,QWORD PTR [rsp+0xc0]
-7663-    a6ff:	00 
-7664:    a700:	e8 bb f7 ff ff       	call   9ec0 <sum_superscalar2(double const*, unsigned long)>
-7665-    a705:	c4 e1 f9 7e c0       	vmovq  rax,xmm0
-7666-    a70a:	c5 fb 10 8c 24 b0 00 	vmovsd xmm1,QWORD PTR [rsp+0xb0]
-7667-    a711:	00 00 
-7668-    a713:	c5 fb 58 c1          	vaddsd xmm0,xmm0,xmm1
-7669-    a717:	c5 fb 11 84 24 b0 00 	vmovsd QWORD PTR [rsp+0xb0],xmm0
-7670-    a71e:	00 00 
-7671-    a720:	41 bf 16 00 00 00    	mov    r15d,0x16
-7672-    a726:	41 be 01 00 00 00    	mov    r14d,0x1
-7673-    a72c:	0f 1f 40 00          	nop    DWORD PTR [rax+0x0]
-7674-    a730:	e8 0b 8f ff ff       	call   3640 <std::chrono::_V2::steady_clock::now()@plt>
-7675-    a735:	48 c7 04 24 00 00 00 	mov    QWORD PTR [rsp],0x0
-7676-    a73c:	00 
-7677-    a73d:	49 89 c5             	mov    r13,rax
-7678-    a740:	31 db                	xor    ebx,ebx
-7679-    a742:	66 0f 1f 44 00 00    	nop    WORD PTR [rax+rax*1+0x0]
-7680-    a748:	48 8b bc 24 c0 00 00 	mov    rdi,QWORD PTR [rsp+0xc0]
-7681-    a74f:	00 
-7682-    a750:	48 89 ee             	mov    rsi,rbp
-7683:    a753:	e8 68 f7 ff ff       	call   9ec0 <sum_superscalar2(double const*, unsigned long)>
-7684-    a758:	c4 e1 f9 7e c0       	vmovq  rax,xmm0
-7685-    a75d:	c5 fb 58 1c 24       	vaddsd xmm3,xmm0,QWORD PTR [rsp]
-7686-    a762:	c5 fb 11 1c 24       	vmovsd QWORD PTR [rsp],xmm3
-7687-    a767:	48 ff c3             	inc    rbx
-7688-    a76a:	49 39 de             	cmp    r14,rbx
-7689-    a76d:	75 d9                	jne    a748 <run_sum_experiment(std::filesystem::__cxx11::path const&)+0x648>
-7690-    a76f:	e8 cc 8e ff ff       	call   3640 <std::chrono::_V2::steady_clock::now()@plt>
-7691-    a774:	4c 29 e8             	sub    rax,r13
-7692-    a777:	c5 d1 57 ed          	vxorpd xmm5,xmm5,xmm5
-7693-    a77b:	c4 e1 d3 2a c0       	vcvtsi2sd xmm0,xmm5,rax
-7694-    a780:	c5 fb 5e 05 e0 1b 00 	vdivsd xmm0,xmm0,QWORD PTR [rip+0x1be0]        # c368 <_IO_stdin_used+0x368>
-7695-    a787:	00 
+7687-    a7a3:	0f 88 4f 0a 00 00    	js     b1f8 <run_sum_experiment(std::filesystem::__cxx11::path const&)+0x1008>
+7688-    a7a9:	c5 d9 57 e4          	vxorpd xmm4,xmm4,xmm4
+7689-    a7ad:	c4 c1 db 2a c4       	vcvtsi2sd xmm0,xmm4,r12
+7690-    a7b2:	c5 f3 5e f8          	vdivsd xmm7,xmm1,xmm0
+7691-    a7b6:	48 8b bc 24 c0 00 00 	mov    rdi,QWORD PTR [rsp+0xc0]
+7692-    a7bd:	00 
+7693-    a7be:	48 89 ee             	mov    rsi,rbp
+7694-    a7c1:	c5 fb 10 84 24 b8 00 	vmovsd xmm0,QWORD PTR [rsp+0xb8]
+7695-    a7c8:	00 00 
+7696-    a7ca:	48 c7 84 24 b0 00 00 	mov    QWORD PTR [rsp+0xb0],0x0
+7697-    a7d1:	00 00 00 00 00 
+7698-    a7d6:	c5 fb 11 7c 24 10    	vmovsd QWORD PTR [rsp+0x10],xmm7
+7699:    a7dc:	e8 cf f7 ff ff       	call   9fb0 <sum_superscalar2(double const*, unsigned long)>
+7700-    a7e1:	c4 e1 f9 7e c0       	vmovq  rax,xmm0
+7701-    a7e6:	c5 fb 10 8c 24 b0 00 	vmovsd xmm1,QWORD PTR [rsp+0xb0]
+7702-    a7ed:	00 00 
+7703-    a7ef:	c5 fb 58 c1          	vaddsd xmm0,xmm0,xmm1
+7704-    a7f3:	c5 fb 11 84 24 b0 00 	vmovsd QWORD PTR [rsp+0xb0],xmm0
+7705-    a7fa:	00 00 
+7706-    a7fc:	48 8b bc 24 c0 00 00 	mov    rdi,QWORD PTR [rsp+0xc0]
+7707-    a803:	00 
+7708:    a804:	e8 a7 f7 ff ff       	call   9fb0 <sum_superscalar2(double const*, unsigned long)>
+7709-    a809:	c4 e1 f9 7e c0       	vmovq  rax,xmm0
+7710-    a80e:	c5 fb 10 8c 24 b0 00 	vmovsd xmm1,QWORD PTR [rsp+0xb0]
+7711-    a815:	00 00 
+7712-    a817:	c5 fb 58 c1          	vaddsd xmm0,xmm0,xmm1
+7713-    a81b:	c5 fb 11 84 24 b0 00 	vmovsd QWORD PTR [rsp+0xb0],xmm0
+7714-    a822:	00 00 
+7715-    a824:	48 89 5c 24 20       	mov    QWORD PTR [rsp+0x20],rbx
+7716-    a829:	41 bf 16 00 00 00    	mov    r15d,0x16
+7717-    a82f:	41 be 01 00 00 00    	mov    r14d,0x1
+7718-    a835:	0f 1f 00             	nop    DWORD PTR [rax]
+7719-    a838:	e8 03 8e ff ff       	call   3640 <std::chrono::_V2::steady_clock::now()@plt>
+7720-    a83d:	31 db                	xor    ebx,ebx
+7721-    a83f:	48 c7 44 24 08 00 00 	mov    QWORD PTR [rsp+0x8],0x0
+7722-    a846:	00 00 
+7723-    a848:	49 89 c4             	mov    r12,rax
+7724-    a84b:	0f 1f 44 00 00       	nop    DWORD PTR [rax+rax*1+0x0]
+7725-    a850:	48 8b bc 24 c0 00 00 	mov    rdi,QWORD PTR [rsp+0xc0]
+7726-    a857:	00 
+7727-    a858:	48 89 ee             	mov    rsi,rbp
+7728:    a85b:	e8 50 f7 ff ff       	call   9fb0 <sum_superscalar2(double const*, unsigned long)>
+7729-    a860:	c4 e1 f9 7e c0       	vmovq  rax,xmm0
+7730-    a865:	c5 fb 58 5c 24 08    	vaddsd xmm3,xmm0,QWORD PTR [rsp+0x8]
+7731-    a86b:	c5 fb 11 5c 24 08    	vmovsd QWORD PTR [rsp+0x8],xmm3
+7732-    a871:	48 83 c3 01          	add    rbx,0x1
+7733-    a875:	49 39 de             	cmp    r14,rbx
+7734-    a878:	75 d6                	jne    a850 <run_sum_experiment(std::filesystem::__cxx11::path const&)+0x660>
+7735-    a87a:	e8 c1 8d ff ff       	call   3640 <std::chrono::_V2::steady_clock::now()@plt>
+7736-    a87f:	c5 d1 57 ed          	vxorpd xmm5,xmm5,xmm5
+7737-    a883:	4c 29 e0             	sub    rax,r12
+7738-    a886:	c4 e1 d3 2a c8       	vcvtsi2sd xmm1,xmm5,rax
+7739-    a88b:	c5 f3 5e 0d d5 1a 00 	vdivsd xmm1,xmm1,QWORD PTR [rip+0x1ad5]        # c368 <_IO_stdin_used+0x368>
+7740-    a892:	00 
 --
-7705-    a7a8:	eb 86                	jmp    a730 <run_sum_experiment(std::filesystem::__cxx11::path const&)+0x630>
-7706-    a7aa:	66 0f 1f 44 00 00    	nop    WORD PTR [rax+rax*1+0x0]
-7707-    a7b0:	62 f1 f7 08 7b cb    	vcvtusi2sd xmm1,xmm1,rbx
-7708-    a7b6:	48 8b bc 24 c0 00 00 	mov    rdi,QWORD PTR [rsp+0xc0]
-7709-    a7bd:	00 
-7710-    a7be:	48 89 ee             	mov    rsi,rbp
-7711-    a7c1:	c5 fb 5e d9          	vdivsd xmm3,xmm0,xmm1
-7712-    a7c5:	c5 fb 10 84 24 b0 00 	vmovsd xmm0,QWORD PTR [rsp+0xb0]
-7713-    a7cc:	00 00 
-7714-    a7ce:	48 c7 84 24 a8 00 00 	mov    QWORD PTR [rsp+0xa8],0x0
-7715-    a7d5:	00 00 00 00 00 
-7716-    a7da:	c5 fb 11 5c 24 20    	vmovsd QWORD PTR [rsp+0x20],xmm3
-7717:    a7e0:	e8 4b f7 ff ff       	call   9f30 <sum_superscalar4(double const*, unsigned long)>
-7718-    a7e5:	c4 e1 f9 7e c0       	vmovq  rax,xmm0
-7719-    a7ea:	c5 fb 10 8c 24 a8 00 	vmovsd xmm1,QWORD PTR [rsp+0xa8]
-7720-    a7f1:	00 00 
-7721-    a7f3:	c5 fb 58 c1          	vaddsd xmm0,xmm0,xmm1
-7722-    a7f7:	c5 fb 11 84 24 a8 00 	vmovsd QWORD PTR [rsp+0xa8],xmm0
-7723-    a7fe:	00 00 
-7724-    a800:	48 8b bc 24 c0 00 00 	mov    rdi,QWORD PTR [rsp+0xc0]
-7725-    a807:	00 
-7726:    a808:	e8 23 f7 ff ff       	call   9f30 <sum_superscalar4(double const*, unsigned long)>
-7727-    a80d:	c4 e1 f9 7e c0       	vmovq  rax,xmm0
-7728-    a812:	c5 fb 10 8c 24 a8 00 	vmovsd xmm1,QWORD PTR [rsp+0xa8]
-7729-    a819:	00 00 
-7730-    a81b:	c5 f3 58 c0          	vaddsd xmm0,xmm1,xmm0
-7731-    a81f:	c5 fb 11 84 24 a8 00 	vmovsd QWORD PTR [rsp+0xa8],xmm0
-7732-    a826:	00 00 
-7733-    a828:	41 bf 16 00 00 00    	mov    r15d,0x16
-7734-    a82e:	41 be 01 00 00 00    	mov    r14d,0x1
-7735-    a834:	0f 1f 40 00          	nop    DWORD PTR [rax+0x0]
-7736-    a838:	e8 03 8e ff ff       	call   3640 <std::chrono::_V2::steady_clock::now()@plt>
-7737-    a83d:	48 c7 04 24 00 00 00 	mov    QWORD PTR [rsp],0x0
-7738-    a844:	00 
-7739-    a845:	49 89 c5             	mov    r13,rax
-7740-    a848:	31 db                	xor    ebx,ebx
-7741-    a84a:	66 0f 1f 44 00 00    	nop    WORD PTR [rax+rax*1+0x0]
-7742-    a850:	48 8b bc 24 c0 00 00 	mov    rdi,QWORD PTR [rsp+0xc0]
-7743-    a857:	00 
-7744-    a858:	48 89 ee             	mov    rsi,rbp
-7745:    a85b:	e8 d0 f6 ff ff       	call   9f30 <sum_superscalar4(double const*, unsigned long)>
-7746-    a860:	c4 e1 f9 7e c0       	vmovq  rax,xmm0
-7747-    a865:	c5 fb 58 1c 24       	vaddsd xmm3,xmm0,QWORD PTR [rsp]
-7748-    a86a:	c5 fb 11 1c 24       	vmovsd QWORD PTR [rsp],xmm3
-7749-    a86f:	48 ff c3             	inc    rbx
-7750-    a872:	49 39 de             	cmp    r14,rbx
-7751-    a875:	75 d9                	jne    a850 <run_sum_experiment(std::filesystem::__cxx11::path const&)+0x750>
-7752-    a877:	e8 c4 8d ff ff       	call   3640 <std::chrono::_V2::steady_clock::now()@plt>
-7753-    a87c:	4c 29 e8             	sub    rax,r13
-7754-    a87f:	c5 d1 57 ed          	vxorpd xmm5,xmm5,xmm5
-7755-    a883:	c4 e1 d3 2a c0       	vcvtsi2sd xmm0,xmm5,rax
-7756-    a888:	c5 fb 5e 05 d8 1a 00 	vdivsd xmm0,xmm0,QWORD PTR [rip+0x1ad8]        # c368 <_IO_stdin_used+0x368>
-7757-    a88f:	00 
+7756-    a8cb:	0f 88 ff 08 00 00    	js     b1d0 <run_sum_experiment(std::filesystem::__cxx11::path const&)+0xfe0>
+7757-    a8d1:	c5 e1 57 db          	vxorpd xmm3,xmm3,xmm3
+7758-    a8d5:	c4 c1 e3 2a c4       	vcvtsi2sd xmm0,xmm3,r12
+7759-    a8da:	c5 f3 5e d8          	vdivsd xmm3,xmm1,xmm0
+7760-    a8de:	48 8b bc 24 c0 00 00 	mov    rdi,QWORD PTR [rsp+0xc0]
+7761-    a8e5:	00 
+7762-    a8e6:	48 89 ee             	mov    rsi,rbp
+7763-    a8e9:	c5 fb 10 84 24 b0 00 	vmovsd xmm0,QWORD PTR [rsp+0xb0]
+7764-    a8f0:	00 00 
+7765-    a8f2:	48 c7 84 24 a8 00 00 	mov    QWORD PTR [rsp+0xa8],0x0
+7766-    a8f9:	00 00 00 00 00 
+7767-    a8fe:	c5 fb 11 5c 24 28    	vmovsd QWORD PTR [rsp+0x28],xmm3
+7768:    a904:	e8 17 f7 ff ff       	call   a020 <sum_superscalar4(double const*, unsigned long)>
+7769-    a909:	c4 e1 f9 7e c0       	vmovq  rax,xmm0
+7770-    a90e:	c5 fb 10 8c 24 a8 00 	vmovsd xmm1,QWORD PTR [rsp+0xa8]
+7771-    a915:	00 00 
+7772-    a917:	c5 fb 58 c1          	vaddsd xmm0,xmm0,xmm1
+7773-    a91b:	c5 fb 11 84 24 a8 00 	vmovsd QWORD PTR [rsp+0xa8],xmm0
+7774-    a922:	00 00 
+7775-    a924:	48 8b bc 24 c0 00 00 	mov    rdi,QWORD PTR [rsp+0xc0]
+7776-    a92b:	00 
+7777:    a92c:	e8 ef f6 ff ff       	call   a020 <sum_superscalar4(double const*, unsigned long)>
+7778-    a931:	c4 e1 f9 7e c0       	vmovq  rax,xmm0
+7779-    a936:	c5 fb 10 8c 24 a8 00 	vmovsd xmm1,QWORD PTR [rsp+0xa8]
+7780-    a93d:	00 00 
+7781-    a93f:	c5 f3 58 c0          	vaddsd xmm0,xmm1,xmm0
+7782-    a943:	c5 fb 11 84 24 a8 00 	vmovsd QWORD PTR [rsp+0xa8],xmm0
+7783-    a94a:	00 00 
+7784-    a94c:	48 89 5c 24 20       	mov    QWORD PTR [rsp+0x20],rbx
+7785-    a951:	41 bf 16 00 00 00    	mov    r15d,0x16
+7786-    a957:	41 be 01 00 00 00    	mov    r14d,0x1
+7787-    a95d:	0f 1f 00             	nop    DWORD PTR [rax]
+7788-    a960:	e8 db 8c ff ff       	call   3640 <std::chrono::_V2::steady_clock::now()@plt>
+7789-    a965:	31 db                	xor    ebx,ebx
+7790-    a967:	48 c7 44 24 08 00 00 	mov    QWORD PTR [rsp+0x8],0x0
+7791-    a96e:	00 00 
+7792-    a970:	49 89 c4             	mov    r12,rax
+7793-    a973:	0f 1f 44 00 00       	nop    DWORD PTR [rax+rax*1+0x0]
+7794-    a978:	48 8b bc 24 c0 00 00 	mov    rdi,QWORD PTR [rsp+0xc0]
+7795-    a97f:	00 
+7796-    a980:	48 89 ee             	mov    rsi,rbp
+7797:    a983:	e8 98 f6 ff ff       	call   a020 <sum_superscalar4(double const*, unsigned long)>
+7798-    a988:	c4 e1 f9 7e c0       	vmovq  rax,xmm0
+7799-    a98d:	c5 fb 58 5c 24 08    	vaddsd xmm3,xmm0,QWORD PTR [rsp+0x8]
+7800-    a993:	c5 fb 11 5c 24 08    	vmovsd QWORD PTR [rsp+0x8],xmm3
+7801-    a999:	48 83 c3 01          	add    rbx,0x1
+7802-    a99d:	49 39 de             	cmp    r14,rbx
+7803-    a9a0:	75 d6                	jne    a978 <run_sum_experiment(std::filesystem::__cxx11::path const&)+0x788>
+7804-    a9a2:	e8 99 8c ff ff       	call   3640 <std::chrono::_V2::steady_clock::now()@plt>
+7805-    a9a7:	c5 d1 57 ed          	vxorpd xmm5,xmm5,xmm5
+7806-    a9ab:	4c 29 e0             	sub    rax,r12
+7807-    a9ae:	c4 e1 d3 2a c8       	vcvtsi2sd xmm1,xmm5,rax
+7808-    a9b3:	c5 f3 5e 0d ad 19 00 	vdivsd xmm1,xmm1,QWORD PTR [rip+0x19ad]        # c368 <_IO_stdin_used+0x368>
+7809-    a9ba:	00 
 --
-7768-    a8b2:	66 0f 1f 44 00 00    	nop    WORD PTR [rax+rax*1+0x0]
-7769-    a8b8:	62 f1 f7 08 7b cb    	vcvtusi2sd xmm1,xmm1,rbx
-7770-    a8be:	48 8b bc 24 c0 00 00 	mov    rdi,QWORD PTR [rsp+0xc0]
-7771-    a8c5:	00 
-7772-    a8c6:	4c 89 e2             	mov    rdx,r12
-7773-    a8c9:	48 89 ee             	mov    rsi,rbp
-7774-    a8cc:	c5 fb 5e f1          	vdivsd xmm6,xmm0,xmm1
-7775-    a8d0:	c5 fb 10 84 24 a8 00 	vmovsd xmm0,QWORD PTR [rsp+0xa8]
-7776-    a8d7:	00 00 
-7777-    a8d9:	48 c7 84 24 a0 00 00 	mov    QWORD PTR [rsp+0xa0],0x0
-7778-    a8e0:	00 00 00 00 00 
-7779-    a8e5:	c5 fb 11 74 24 18    	vmovsd QWORD PTR [rsp+0x18],xmm6
-7780:    a8eb:	e8 d0 f6 ff ff       	call   9fc0 <sum_pairwise(double const*, unsigned long, std::vector<double, std::allocator<double> >&)>
-7781-    a8f0:	c4 e1 f9 7e c0       	vmovq  rax,xmm0
-7782-    a8f5:	c5 fb 10 8c 24 a0 00 	vmovsd xmm1,QWORD PTR [rsp+0xa0]
-7783-    a8fc:	00 00 
-7784-    a8fe:	c5 f3 58 c0          	vaddsd xmm0,xmm1,xmm0
-7785-    a902:	c5 fb 11 84 24 a0 00 	vmovsd QWORD PTR [rsp+0xa0],xmm0
-7786-    a909:	00 00 
-7787-    a90b:	48 8b bc 24 c0 00 00 	mov    rdi,QWORD PTR [rsp+0xc0]
-7788-    a912:	00 
-7789-    a913:	4c 89 e2             	mov    rdx,r12
-7790-    a916:	48 89 ee             	mov    rsi,rbp
-7791:    a919:	e8 a2 f6 ff ff       	call   9fc0 <sum_pairwise(double const*, unsigned long, std::vector<double, std::allocator<double> >&)>
-7792-    a91e:	c4 e1 f9 7e c0       	vmovq  rax,xmm0
-7793-    a923:	c5 fb 10 8c 24 a0 00 	vmovsd xmm1,QWORD PTR [rsp+0xa0]
-7794-    a92a:	00 00 
-7795-    a92c:	c5 fb 58 c1          	vaddsd xmm0,xmm0,xmm1
-7796-    a930:	c5 fb 11 84 24 a0 00 	vmovsd QWORD PTR [rsp+0xa0],xmm0
-7797-    a937:	00 00 
-7798-    a939:	41 bf 16 00 00 00    	mov    r15d,0x16
-7799-    a93f:	41 be 01 00 00 00    	mov    r14d,0x1
-7800-    a945:	0f 1f 00             	nop    DWORD PTR [rax]
-7801-    a948:	e8 f3 8c ff ff       	call   3640 <std::chrono::_V2::steady_clock::now()@plt>
-7802-    a94d:	48 c7 04 24 00 00 00 	mov    QWORD PTR [rsp],0x0
-7803-    a954:	00 
-7804-    a955:	49 89 c5             	mov    r13,rax
-7805-    a958:	31 db                	xor    ebx,ebx
-7806-    a95a:	66 0f 1f 44 00 00    	nop    WORD PTR [rax+rax*1+0x0]
-7807-    a960:	48 8b bc 24 c0 00 00 	mov    rdi,QWORD PTR [rsp+0xc0]
-7808-    a967:	00 
-7809-    a968:	4c 89 e2             	mov    rdx,r12
-7810-    a96b:	48 89 ee             	mov    rsi,rbp
-7811:    a96e:	e8 4d f6 ff ff       	call   9fc0 <sum_pairwise(double const*, unsigned long, std::vector<double, std::allocator<double> >&)>
-7812-    a973:	c4 e1 f9 7e c0       	vmovq  rax,xmm0
-7813-    a978:	c5 fb 58 1c 24       	vaddsd xmm3,xmm0,QWORD PTR [rsp]
-7814-    a97d:	c5 fb 11 1c 24       	vmovsd QWORD PTR [rsp],xmm3
-7815-    a982:	48 ff c3             	inc    rbx
-7816-    a985:	49 39 de             	cmp    r14,rbx
-7817-    a988:	75 d6                	jne    a960 <run_sum_experiment(std::filesystem::__cxx11::path const&)+0x860>
-7818-    a98a:	e8 b1 8c ff ff       	call   3640 <std::chrono::_V2::steady_clock::now()@plt>
-7819-    a98f:	4c 29 e8             	sub    rax,r13
-7820-    a992:	c5 d1 57 ed          	vxorpd xmm5,xmm5,xmm5
-7821-    a996:	c4 e1 d3 2a c0       	vcvtsi2sd xmm0,xmm5,rax
-7822-    a99b:	c5 fb 5e 05 c5 19 00 	vdivsd xmm0,xmm0,QWORD PTR [rip+0x19c5]        # c368 <_IO_stdin_used+0x368>
-7823-    a9a2:	00 
+7825-    a9f1:	c5 c9 57 f6          	vxorpd xmm6,xmm6,xmm6
+7826-    a9f5:	c4 c1 cb 2a c4       	vcvtsi2sd xmm0,xmm6,r12
+7827-    a9fa:	c5 f3 5e f0          	vdivsd xmm6,xmm1,xmm0
+7828-    a9fe:	48 8b bc 24 c0 00 00 	mov    rdi,QWORD PTR [rsp+0xc0]
+7829-    aa05:	00 
+7830-    aa06:	48 89 da             	mov    rdx,rbx
+7831-    aa09:	48 89 ee             	mov    rsi,rbp
+7832-    aa0c:	c5 fb 10 84 24 a8 00 	vmovsd xmm0,QWORD PTR [rsp+0xa8]
+7833-    aa13:	00 00 
+7834-    aa15:	48 c7 84 24 a0 00 00 	mov    QWORD PTR [rsp+0xa0],0x0
+7835-    aa1c:	00 00 00 00 00 
+7836-    aa21:	c5 fb 11 74 24 20    	vmovsd QWORD PTR [rsp+0x20],xmm6
+7837:    aa27:	e8 84 f6 ff ff       	call   a0b0 <sum_pairwise(double const*, unsigned long, std::vector<double, std::allocator<double> >&)>
+7838-    aa2c:	c4 e1 f9 7e c0       	vmovq  rax,xmm0
+7839-    aa31:	c5 fb 10 8c 24 a0 00 	vmovsd xmm1,QWORD PTR [rsp+0xa0]
+7840-    aa38:	00 00 
+7841-    aa3a:	c5 f3 58 c0          	vaddsd xmm0,xmm1,xmm0
+7842-    aa3e:	c5 fb 11 84 24 a0 00 	vmovsd QWORD PTR [rsp+0xa0],xmm0
+7843-    aa45:	00 00 
+7844-    aa47:	48 8b bc 24 c0 00 00 	mov    rdi,QWORD PTR [rsp+0xc0]
+7845-    aa4e:	00 
+7846-    aa4f:	48 89 da             	mov    rdx,rbx
+7847-    aa52:	48 89 ee             	mov    rsi,rbp
+7848:    aa55:	e8 56 f6 ff ff       	call   a0b0 <sum_pairwise(double const*, unsigned long, std::vector<double, std::allocator<double> >&)>
+7849-    aa5a:	c4 e1 f9 7e c0       	vmovq  rax,xmm0
+7850-    aa5f:	c5 fb 10 8c 24 a0 00 	vmovsd xmm1,QWORD PTR [rsp+0xa0]
+7851-    aa66:	00 00 
+7852-    aa68:	c5 fb 58 c1          	vaddsd xmm0,xmm0,xmm1
+7853-    aa6c:	c5 fb 11 84 24 a0 00 	vmovsd QWORD PTR [rsp+0xa0],xmm0
+7854-    aa73:	00 00 
+7855-    aa75:	4c 89 6c 24 48       	mov    QWORD PTR [rsp+0x48],r13
+7856-    aa7a:	41 bf 16 00 00 00    	mov    r15d,0x16
+7857-    aa80:	41 be 01 00 00 00    	mov    r14d,0x1
+7858-    aa86:	49 89 dc             	mov    r12,rbx
+7859-    aa89:	0f 1f 80 00 00 00 00 	nop    DWORD PTR [rax+0x0]
+7860-    aa90:	e8 ab 8b ff ff       	call   3640 <std::chrono::_V2::steady_clock::now()@plt>
+7861-    aa95:	45 31 ed             	xor    r13d,r13d
+7862-    aa98:	48 c7 44 24 08 00 00 	mov    QWORD PTR [rsp+0x8],0x0
+7863-    aa9f:	00 00 
+7864-    aaa1:	48 89 c3             	mov    rbx,rax
+7865-    aaa4:	0f 1f 40 00          	nop    DWORD PTR [rax+0x0]
+7866-    aaa8:	48 8b bc 24 c0 00 00 	mov    rdi,QWORD PTR [rsp+0xc0]
+7867-    aaaf:	00 
+7868-    aab0:	4c 89 e2             	mov    rdx,r12
+7869-    aab3:	48 89 ee             	mov    rsi,rbp
+7870:    aab6:	e8 f5 f5 ff ff       	call   a0b0 <sum_pairwise(double const*, unsigned long, std::vector<double, std::allocator<double> >&)>
+7871-    aabb:	c4 e1 f9 7e c0       	vmovq  rax,xmm0
+7872-    aac0:	c5 fb 58 5c 24 08    	vaddsd xmm3,xmm0,QWORD PTR [rsp+0x8]
+7873-    aac6:	c5 fb 11 5c 24 08    	vmovsd QWORD PTR [rsp+0x8],xmm3
+7874-    aacc:	49 83 c5 01          	add    r13,0x1
+7875-    aad0:	4d 39 ee             	cmp    r14,r13
+7876-    aad3:	75 d3                	jne    aaa8 <run_sum_experiment(std::filesystem::__cxx11::path const&)+0x8b8>
+7877-    aad5:	e8 66 8b ff ff       	call   3640 <std::chrono::_V2::steady_clock::now()@plt>
+7878-    aada:	c5 d1 57 ed          	vxorpd xmm5,xmm5,xmm5
+7879-    aade:	48 29 d8             	sub    rax,rbx
+7880-    aae1:	c4 e1 d3 2a c8       	vcvtsi2sd xmm1,xmm5,rax
+7881-    aae6:	c5 f3 5e 0d 7a 18 00 	vdivsd xmm1,xmm1,QWORD PTR [rip+0x187a]        # c368 <_IO_stdin_used+0x368>
+7882-    aaed:	00 

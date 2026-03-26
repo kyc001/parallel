@@ -1,11 +1,11 @@
-OS: Ubuntu 20.04.3 LTS
-Kernel: Linux version 5.15.0-60-generic (buildd@lcy02-amd64-054) (gcc (Ubuntu 11.3.0-1ubuntu1~22.04) 11.3.0, GNU ld (GNU Binutils for Ubuntu) 2.38) #66-Ubuntu SMP Fri Jan 20 14:29:49 UTC 2023
-Compiler: g++ 9.3.0
+OS: Ubuntu 20.04.6 LTS
+Kernel: Linux version 5.15.0-139-generic (buildd@lcy02-amd64-067) (gcc (Ubuntu 9.4.0-1ubuntu1~20.04.2) 9.4.0, GNU ld (GNU Binutils for Ubuntu) 2.34) #149~20.04.1-Ubuntu SMP Wed Apr 16 08:29:56 UTC 2025
+Compiler: g++ 9.4.0
 Benchmark affinity pinned: yes
 Pinned CPU: 0
 Build flags: -std=c++17 -O3 -march=native -fno-tree-vectorize -fno-tree-slp-vectorize
-CPU model: Intel(R) Xeon(R) Platinum 8358 CPU @ 2.60GHz
+CPU model: 13th Gen Intel(R) Core(TM) i9-13900H
 L1d cache: 48K
 L2 cache: 1280K
-L3 cache: 49152K
+L3 cache: 24576K
 perf_event_paranoid: 4

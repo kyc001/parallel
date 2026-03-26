@@ -3,11 +3,12 @@ Flat profile:
 Each sample counts as 0.01 seconds.
   %   cumulative   self              self     total           
  time   seconds   seconds    calls  Ts/call  Ts/call  name    
-100.04      0.72     0.72                             sum_superscalar4(double const*, unsigned long)
-  0.00      0.72     0.00        2     0.00     0.00  std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string<std::allocator<char> >(char const*, std::allocator<char> const&)
-  0.00      0.72     0.00        1     0.00     0.00  _GLOBAL__sub_I__Z16matrix_dot_naivePKdS0_Pdm
-  0.00      0.72     0.00        1     0.00     0.00  _GLOBAL__sub_I__Z9sum_naivePKdm
-  0.00      0.72     0.00        1     0.00     0.00  _GLOBAL__sub_I_main
+ 99.64      2.47     2.47                             sum_superscalar4(double const*, unsigned long)
+  0.40      2.48     0.01                             std::vector<double, std::allocator<double> >::vector(unsigned long, double const&, std::allocator<double> const&)
+  0.00      2.48     0.00        2     0.00     0.00  std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string<std::allocator<char> >(char const*, std::allocator<char> const&)
+  0.00      2.48     0.00        1     0.00     0.00  _GLOBAL__sub_I__Z16matrix_dot_naivePKdS0_Pdm
+  0.00      2.48     0.00        1     0.00     0.00  _GLOBAL__sub_I__Z9sum_naivePKdm
+  0.00      2.48     0.00        1     0.00     0.00  _GLOBAL__sub_I_main
 
  %         the percentage of the total running time of the
 time       program used by this function.
@@ -45,23 +46,26 @@ notice and this notice are preserved.
 		     Call graph (explanation follows)
 
 
-granularity: each sample hit covers 2 byte(s) for 1.39% of 0.72 seconds
+granularity: each sample hit covers 2 byte(s) for 0.40% of 2.48 seconds
 
 index % time    self  children    called     name
                                                  <spontaneous>
-[1]    100.0    0.72    0.00                 sum_superscalar4(double const*, unsigned long) [1]
+[1]     99.6    2.47    0.00                 sum_superscalar4(double const*, unsigned long) [1]
 -----------------------------------------------
-                0.00    0.00       2/2           (anonymous namespace)::parse_size(char const*, char const*) [29]
-[9]      0.0    0.00    0.00       2         std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string<std::allocator<char> >(char const*, std::allocator<char> const&) [9]
+                                                 <spontaneous>
+[2]      0.4    0.01    0.00                 std::vector<double, std::allocator<double> >::vector(unsigned long, double const&, std::allocator<double> const&) [2]
 -----------------------------------------------
-                0.00    0.00       1/1           __libc_csu_init [56]
-[10]     0.0    0.00    0.00       1         _GLOBAL__sub_I__Z16matrix_dot_naivePKdS0_Pdm [10]
------------------------------------------------
-                0.00    0.00       1/1           __libc_csu_init [56]
-[11]     0.0    0.00    0.00       1         _GLOBAL__sub_I__Z9sum_naivePKdm [11]
+                0.00    0.00       2/2           (anonymous namespace)::parse_size(char const*, char const*) [30]
+[10]     0.0    0.00    0.00       2         std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string<std::allocator<char> >(char const*, std::allocator<char> const&) [10]
 -----------------------------------------------
                 0.00    0.00       1/1           __libc_csu_init [56]
-[12]     0.0    0.00    0.00       1         _GLOBAL__sub_I_main [12]
+[11]     0.0    0.00    0.00       1         _GLOBAL__sub_I__Z16matrix_dot_naivePKdS0_Pdm [11]
+-----------------------------------------------
+                0.00    0.00       1/1           __libc_csu_init [56]
+[12]     0.0    0.00    0.00       1         _GLOBAL__sub_I__Z9sum_naivePKdm [12]
+-----------------------------------------------
+                0.00    0.00       1/1           __libc_csu_init [56]
+[13]     0.0    0.00    0.00       1         _GLOBAL__sub_I_main [13]
 -----------------------------------------------
 
  This table describes the call tree of the program, and was sorted by
@@ -154,5 +158,5 @@ notice and this notice are preserved.
 
 Index by function name
 
-  [10] _GLOBAL__sub_I__Z16matrix_dot_naivePKdS0_Pdm (matrix_experiment.cpp) [12] _GLOBAL__sub_I_main (perf_driver.cpp) [9] std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string<std::allocator<char> >(char const*, std::allocator<char> const&)
-  [11] _GLOBAL__sub_I__Z9sum_naivePKdm (sum_experiment.cpp) [1] sum_superscalar4(double const*, unsigned long)
+  [11] _GLOBAL__sub_I__Z16matrix_dot_naivePKdS0_Pdm (matrix_experiment.cpp) [13] _GLOBAL__sub_I_main (perf_driver.cpp) [2] std::vector<double, std::allocator<double> >::vector(unsigned long, double const&, std::allocator<double> const&)
+  [12] _GLOBAL__sub_I__Z9sum_naivePKdm (sum_experiment.cpp) [1] sum_superscalar4(double const*, unsigned long) [10] std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string<std::allocator<char> >(char const*, std::allocator<char> const&)

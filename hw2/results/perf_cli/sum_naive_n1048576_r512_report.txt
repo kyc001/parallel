@@ -1,0 +1,247 @@
+# To display the perf.data header info, please use --header/--header-only options.
+#
+#
+# Total Lost Samples: 0
+#
+# Samples: 4K of event 'cpu-clock:pppH'
+# Event count (approx.): 1227500000
+#
+# Children      Self  Command    Shared Object        Symbol                                                                                      
+# ........  ........  .........  ...................  ............................................................................................
+#
+    99.55%     0.00%  lab1_perf  libc-2.31.so         [.] __libc_start_main
+            |
+            ---__libc_start_main
+               |          
+               |--96.80%--sum_naive
+               |          
+                --2.48%--main
+                          |          
+                          |--1.06%--__memset_avx2_erms
+                          |          |          
+                          |           --0.88%--asm_exc_page_fault
+                          |                     exc_page_fault
+                          |                     do_user_addr_fault
+                          |                     |          
+                          |                      --0.57%--handle_mm_fault
+                          |                                |          
+                          |                                 --0.53%--__handle_mm_fault
+                          |          
+                          |--0.90%--std::vector<double, std::allocator<double> >::vector
+                          |          |          
+                          |           --0.59%--asm_exc_page_fault
+                          |                     exc_page_fault
+                          |                     do_user_addr_fault
+                          |          
+                           --0.51%--make_vector
+
+    96.80%    96.66%  lab1_perf  lab1_perf            [.] sum_naive
+            |          
+             --96.66%--__libc_start_main
+                       sum_naive
+
+     2.48%     0.02%  lab1_perf  lab1_perf            [.] main
+            |          
+             --2.46%--main
+                       |          
+                       |--1.06%--__memset_avx2_erms
+                       |          |          
+                       |           --0.88%--asm_exc_page_fault
+                       |                     exc_page_fault
+                       |                     do_user_addr_fault
+                       |                     |          
+                       |                      --0.57%--handle_mm_fault
+                       |                                |          
+                       |                                 --0.53%--__handle_mm_fault
+                       |          
+                       |--0.90%--std::vector<double, std::allocator<double> >::vector
+                       |          |          
+                       |           --0.59%--asm_exc_page_fault
+                       |                     exc_page_fault
+                       |                     do_user_addr_fault
+                       |          
+                        --0.51%--make_vector
+
+     1.51%     0.00%  lab1_perf  [kernel.kallsyms]    [k] asm_exc_page_fault
+            |
+            ---asm_exc_page_fault
+               exc_page_fault
+               do_user_addr_fault
+               |          
+                --0.90%--handle_mm_fault
+                          |          
+                           --0.84%--__handle_mm_fault
+                                     |          
+                                      --0.67%--do_anonymous_page
+
+     1.51%     0.00%  lab1_perf  [kernel.kallsyms]    [k] exc_page_fault
+            |
+            ---exc_page_fault
+               do_user_addr_fault
+               |          
+                --0.90%--handle_mm_fault
+                          |          
+                           --0.84%--__handle_mm_fault
+                                     |          
+                                      --0.67%--do_anonymous_page
+
+     1.51%     0.51%  lab1_perf  [kernel.kallsyms]    [k] do_user_addr_fault
+            |          
+            |--1.00%--do_user_addr_fault
+            |          |          
+            |           --0.90%--handle_mm_fault
+            |                     |          
+            |                      --0.84%--__handle_mm_fault
+            |                                |          
+            |                                 --0.67%--do_anonymous_page
+            |          
+             --0.51%--__libc_start_main
+                       main
+
+     1.06%     0.18%  lab1_perf  libc-2.31.so         [.] __memset_avx2_erms
+            |          
+             --0.88%--__memset_avx2_erms
+                       asm_exc_page_fault
+                       exc_page_fault
+                       do_user_addr_fault
+                       |          
+                        --0.57%--handle_mm_fault
+                                  |          
+                                   --0.53%--__handle_mm_fault
+
+     0.90%     0.31%  lab1_perf  lab1_perf            [.] std::vector<double, std::allocator<double> >::vector
+            |          
+             --0.59%--std::vector<double, std::allocator<double> >::vector
+                       asm_exc_page_fault
+                       exc_page_fault
+                       do_user_addr_fault
+
+     0.90%     0.06%  lab1_perf  [kernel.kallsyms]    [k] handle_mm_fault
+            |          
+             --0.84%--handle_mm_fault
+                       __handle_mm_fault
+                       |          
+                        --0.67%--do_anonymous_page
+
+     0.84%     0.10%  lab1_perf  [kernel.kallsyms]    [k] __handle_mm_fault
+            |          
+             --0.73%--__handle_mm_fault
+                       |          
+                        --0.67%--do_anonymous_page
+
+     0.67%     0.00%  lab1_perf  [kernel.kallsyms]    [k] do_anonymous_page
+            |
+            ---do_anonymous_page
+
+     0.51%     0.51%  lab1_perf  lab1_perf            [.] make_vector
+            |
+            ---__libc_start_main
+               main
+               make_vector
+
+     0.39%     0.02%  lab1_perf  [kernel.kallsyms]    [k] alloc_pages_vma
+     0.37%     0.06%  lab1_perf  [kernel.kallsyms]    [k] get_page_from_freelist
+     0.37%     0.00%  lab1_perf  [kernel.kallsyms]    [k] __alloc_pages
+     0.24%     0.24%  lab1_perf  [kernel.kallsyms]    [k] __lock_text_start
+     0.20%     0.20%  lab1_perf  [kernel.kallsyms]    [k] clear_page_erms
+     0.20%     0.00%  lab1_perf  [kernel.kallsyms]    [k] lru_cache_add_inactive_or_unevictable
+     0.20%     0.00%  lab1_perf  [kernel.kallsyms]    [k] prep_new_page
+     0.18%     0.00%  lab1_perf  [kernel.kallsyms]    [k] lru_cache_add
+     0.16%     0.00%  lab1_perf  [unknown]            [.] 0x41e589480000b274
+     0.14%     0.00%  lab1_perf  [kernel.kallsyms]    [k] entry_SYSCALL_64_after_hwframe
+     0.14%     0.00%  lab1_perf  [kernel.kallsyms]    [k] do_syscall_64
+     0.14%     0.00%  lab1_perf  [kernel.kallsyms]    [k] __pagevec_lru_add
+     0.12%     0.00%  lab1_perf  [kernel.kallsyms]    [k] asm_sysvec_apic_timer_interrupt
+     0.12%     0.00%  lab1_perf  [kernel.kallsyms]    [k] x64_sys_call
+     0.12%     0.00%  lab1_perf  [kernel.kallsyms]    [k] sysvec_apic_timer_interrupt
+     0.12%     0.00%  lab1_perf  [kernel.kallsyms]    [k] irq_exit_rcu
+     0.12%     0.00%  lab1_perf  [kernel.kallsyms]    [k] handle_softirqs
+     0.12%     0.04%  lab1_perf  ld-2.31.so           [.] _dl_sysdep_start
+     0.10%     0.10%  lab1_perf  [kernel.kallsyms]    [k] rmqueue
+     0.10%     0.00%  lab1_perf  [kernel.kallsyms]    [k] run_timer_softirq
+     0.10%     0.00%  lab1_perf  [kernel.kallsyms]    [k] call_timer_fn
+     0.10%     0.00%  lab1_perf  [kernel.kallsyms]    [k] rh_timer_func
+     0.10%     0.00%  lab1_perf  [kernel.kallsyms]    [k] usb_hcd_poll_rh_status
+     0.10%     0.00%  lab1_perf  [kernel.kallsyms]    [k] uhci_hub_status_data
+     0.08%     0.00%  lab1_perf  libc-2.31.so         [.] __munmap
+     0.08%     0.00%  lab1_perf  [kernel.kallsyms]    [k] __x64_sys_munmap
+     0.08%     0.00%  lab1_perf  [kernel.kallsyms]    [k] __vm_munmap
+     0.08%     0.00%  lab1_perf  [kernel.kallsyms]    [k] __do_munmap
+     0.08%     0.00%  lab1_perf  [kernel.kallsyms]    [k] unmap_region
+     0.08%     0.08%  lab1_perf  libstdc++.so.6.0.28  [.] std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::compare
+     0.08%     0.00%  lab1_perf  ld-2.31.so           [.] dl_main
+     0.06%     0.00%  lab1_perf  ld-2.31.so           [.] _dl_map_object
+     0.06%     0.06%  lab1_perf  [kernel.kallsyms]    [k] vmacache_find
+     0.06%     0.00%  lab1_perf  [kernel.kallsyms]    [k] unmap_vmas
+     0.06%     0.06%  lab1_perf  ld-2.31.so           [.] _dl_relocate_object
+     0.06%     0.00%  lab1_perf  [kernel.kallsyms]    [k] release_pages
+     0.06%     0.06%  lab1_perf  libc-2.31.so         [.] __strlen_avx2
+     0.04%     0.04%  lab1_perf  [kernel.kallsyms]    [k] pagevec_add_and_need_flush
+     0.04%     0.04%  lab1_perf  [kernel.kallsyms]    [k] __cgroup_throttle_swaprate
+     0.04%     0.04%  lab1_perf  [kernel.kallsyms]    [k] mem_cgroup_from_task
+     0.04%     0.00%  lab1_perf  [kernel.kallsyms]    [k] tlb_finish_mmu
+     0.04%     0.00%  lab1_perf  [kernel.kallsyms]    [k] tlb_flush_mmu
+     0.04%     0.00%  lab1_perf  [kernel.kallsyms]    [k] unmap_single_vma
+     0.04%     0.00%  lab1_perf  [kernel.kallsyms]    [k] free_pages_and_swap_cache
+     0.04%     0.00%  lab1_perf  [kernel.kallsyms]    [k] unmap_page_range
+     0.04%     0.04%  lab1_perf  ld-2.31.so           [.] get_common_indices.constprop.0
+     0.04%     0.04%  lab1_perf  libc-2.31.so         [.] intel_check_word.isra.0
+     0.04%     0.00%  lab1_perf  [kernel.kallsyms]    [k] zap_pte_range.isra.0
+     0.04%     0.00%  lab1_perf  [unknown]            [.] 0x037f0000006497cf
+     0.02%     0.02%  lab1_perf  [kernel.kallsyms]    [k] uncharge_page
+     0.02%     0.02%  lab1_perf  [kernel.kallsyms]    [k] __mod_lruvec_page_state
+     0.02%     0.02%  lab1_perf  [kernel.kallsyms]    [k] free_unref_page_list
+     0.02%     0.02%  lab1_perf  [kernel.kallsyms]    [k] lock_page_memcg
+     0.02%     0.02%  lab1_perf  [kernel.kallsyms]    [k] lock_page_lruvec_irqsave
+     0.02%     0.02%  lab1_perf  [kernel.kallsyms]    [k] kmem_cache_alloc
+     0.02%     0.00%  lab1_perf  ld-2.31.so           [.] memset
+     0.02%     0.02%  lab1_perf  [kernel.kallsyms]    [k] get_mem_cgroup_from_mm
+     0.02%     0.02%  lab1_perf  [kernel.kallsyms]    [k] policy_nodemask
+     0.02%     0.02%  lab1_perf  [kernel.kallsyms]    [k] uprobe_munmap
+     0.02%     0.00%  lab1_perf  ld-2.31.so           [.] __GI___open64_nocancel
+     0.02%     0.02%  lab1_perf  [kernel.kallsyms]    [k] _raw_spin_lock
+     0.02%     0.02%  lab1_perf  [kernel.kallsyms]    [k] pmd_page_vaddr
+     0.02%     0.02%  lab1_perf  [kernel.kallsyms]    [k] pfn_pte
+     0.02%     0.02%  lab1_perf  [kernel.kallsyms]    [k] update_blocked_averages
+     0.02%     0.00%  lab1_perf  libc-2.31.so         [.] sysmalloc
+     0.02%     0.02%  lab1_perf  [kernel.kallsyms]    [k] exit_to_user_mode_prepare
+     0.02%     0.00%  lab1_perf  [kernel.kallsyms]    [k] __x64_sys_exit_group
+     0.02%     0.00%  lab1_perf  [kernel.kallsyms]    [k] __x64_sys_openat
+     0.02%     0.00%  lab1_perf  [kernel.kallsyms]    [k] do_group_exit
+     0.02%     0.02%  lab1_perf  [kernel.kallsyms]    [k] __x64_sys_mprotect
+     0.02%     0.02%  lab1_perf  libc-2.31.so         [.] __uselocale
+     0.02%     0.00%  lab1_perf  [kernel.kallsyms]    [k] asm_sysvec_call_function_single
+     0.02%     0.00%  lab1_perf  [kernel.kallsyms]    [k] do_exit
+     0.02%     0.00%  lab1_perf  [kernel.kallsyms]    [k] do_fault
+     0.02%     0.00%  lab1_perf  [kernel.kallsyms]    [k] do_sys_open
+     0.02%     0.00%  lab1_perf  [unknown]            [.] 0x4810c08348000bd4
+     0.02%     0.02%  lab1_perf  ld-2.31.so           [.] _dl_lookup_symbol_x
+     0.02%     0.00%  lab1_perf  [kernel.kallsyms]    [k] do_sys_openat2
+     0.02%     0.00%  lab1_perf  [kernel.kallsyms]    [k] mmput
+     0.02%     0.00%  lab1_perf  [kernel.kallsyms]    [k] sysvec_call_function_single
+     0.02%     0.00%  lab1_perf  ld-2.31.so           [.] mprotect
+     0.02%     0.00%  lab1_perf  libstdc++.so.6.0.28  [.] std::num_put<char, std::ostreambuf_iterator<char, std::char_traits<char> > >::~num_put
+     0.02%     0.00%  lab1_perf  [kernel.kallsyms]    [k] exit_mmap
+     0.02%     0.00%  lab1_perf  [kernel.kallsyms]    [k] getname
+     0.02%     0.00%  lab1_perf  [kernel.kallsyms]    [k] irqentry_exit
+     0.02%     0.00%  lab1_perf  [unknown]            [.] 0x0000000000000002
+     0.02%     0.02%  lab1_perf  lab1_perf            [.] 0x00000000000034f0
+     0.02%     0.02%  lab1_perf  libstdc++.so.6.0.28  [.] free@plt
+     0.02%     0.00%  lab1_perf  [kernel.kallsyms]    [k] __mem_cgroup_uncharge_list
+     0.02%     0.00%  lab1_perf  [kernel.kallsyms]    [k] getname_flags
+     0.02%     0.00%  lab1_perf  [kernel.kallsyms]    [k] irqentry_exit_to_user_mode
+     0.02%     0.00%  lab1_perf  [kernel.kallsyms]    [k] run_rebalance_domains
+     0.02%     0.00%  lab1_perf  libstdc++.so.6.0.28  [.] std::ostream::_M_insert<double>
+     0.02%     0.02%  lab1_perf  libc-2.31.so         [.] __memcmp_avx2_movbe
+     0.02%     0.02%  lab1_perf  libc-2.31.so         [.] _dl_addr
+     0.02%     0.02%  lab1_perf  libc-2.31.so         [.] handle_intel.constprop.0
+     0.02%     0.02%  lab1_perf  libc-2.31.so         [.] init_cacheinfo
+     0.02%     0.02%  lab1_perf  libgcc_s.so.1        [.] __cpu_indicator_init
+     0.02%     0.02%  lab1_perf  libstdc++.so.6.0.28  [.] 0x000000000009e080
+     0.02%     0.00%  lab1_perf  lab1_perf            [.] 0x000055935b22d4f0
+     0.02%     0.00%  lab1_perf  libstdc++.so.6.0.28  [.] 0x00007f66836c1080
+
+
+#
+# (Cannot load tips.txt file, please install perf!)
+#
