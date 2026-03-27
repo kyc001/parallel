@@ -19,21 +19,22 @@
 \pgfplotsset{compat=1.18}
 \graphicspath{{./}{fig/}}
 \hypersetup{colorlinks=true,linkcolor=black,urlcolor=black}
-\linespread{1.08}
+\linespread{1.05}
 \renewcommand{\today}{\number\year 年 \number\month 月 \number\day 日}
 \renewcommand{\contentsname}{目录}
 \renewcommand{\figurename}{图}
 \renewcommand{\tablename}{表}
 \captionsetup{font=small,labelsep=quad}
 \setlist{nosep,leftmargin=1.5em}
-\setlength{\textfloatsep}{8pt}
-\setlength{\intextsep}{6pt}
+\setlength{\textfloatsep}{6pt}
+\setlength{\intextsep}{5pt}
 \setlength{\abovecaptionskip}{4pt}
 \setlength{\belowcaptionskip}{2pt}
 \setlength{\parindent}{2em}
 \setlength{\parskip}{1pt}
 \setlength{\abovedisplayskip}{5pt}
 \setlength{\belowdisplayskip}{5pt}
+\newcommand{\HRule}{\rule{\linewidth}{0.4mm}}
 
 \lstset{
   basicstyle=\ttfamily\scriptsize,
@@ -57,38 +58,27 @@
 
 \begin{document}
 
-\begin{titlepage}
-  \thispagestyle{empty}
-  \begin{center}
-    \includegraphics[width=0.8\textwidth]{NKU.png}\\[1cm]
-    \vspace{20mm}
-    {\huge\kaishu 计算机学院\par}
-    \vspace{0.5cm}
-    {\huge\kaishu 并行程序设计实验报告\par}
-    \vspace{2.2cm}
-    {\Huge\kaishu Lab1 CPU 架构编程\par}
-    \vspace{0.5cm}
-    {\Large\kaishu Cache 与超标量对程序性能的影响\par}
-    \vspace{\fill}
-    {\LARGE\kaishu 姓名\ :\ 柯云超\par}
-    \vspace{0.5cm}
-    {\LARGE\kaishu 学号\ :\ 2413575\par}
-    \vspace{0.5cm}
-    {\LARGE\kaishu 专业\ :\ 计算机科学与技术\par}
-    \vfill
-    {\Large \today\par}
-  \end{center}
-\end{titlepage}
+\begin{center}
+  \includegraphics[width=0.42\textwidth]{NKU.png}\\[0.45cm]
+  {\large\kaishu 计算机学院\quad 并行程序设计实验报告}\\[0.3cm]
+  \HRule\\[0.4cm]
+  {\LARGE\kaishu Lab1 CPU 架构编程\par}
+  \vspace{0.18cm}
+  {\large\kaishu Cache 与超标量对程序性能的影响\par}
+  \vspace{0.28cm}
+  \HRule\\[0.35cm]
+  {\normalsize 柯云超\quad 2413575\quad 计算机科学与技术\quad \today}
+\end{center}
+\vspace{0.25cm}
 
 \renewcommand{\thefigure}{\thesection{}.\arabic{figure}}
-\setcounter{page}{1}
 \pagestyle{fancy}
 
 \section*{摘要}
 \addcontentsline{toc}{section}{摘要}
 \markboth{摘要}{}
 
-本文围绕两个 CPU 架构实验问题展开：矩阵列内积中的 cache 局部性优化，以及浮点数组求和中的超标量优化。针对矩阵问题，本文实现并比较了逐列访问的平凡算法、行优先的 cache 优化算法以及 4 路循环展开版本；针对求和问题，本文实现并比较了链式累加、两路独立累加、四路独立累加与两两归约四种写法。实验采用固定公式生成测试数据，通过高精度计时与统一累计时长阈值的方法测量平均执行时间，结合工作集规模与 L2/L3 cache 大小分析性能变化。结果表明，行优先算法在大规模下可获得数量级加速（$n=2048$ 时达 22.41 倍）；四路独立累加最高达 3.81 倍加速。VTune 与汇编分析证实，矩阵优化本质在于降低 Memory Bound，求和优化本质在于缩短依赖链提高 IPC。
+本文围绕两个 CPU 架构实验问题展开：矩阵列内积中的 cache 局部性优化，以及浮点数组求和中的超标量优化。针对矩阵问题，本文实现并比较了逐列访问的平凡算法、行优先的 cache 优化算法以及 4 路循环展开版本；针对求和问题，本文实现并比较了链式累加、两路独立累加、四路独立累加与两两归约四种写法。实验采用固定公式生成测试数据，通过高精度计时与统一累计时长阈值的方法测量平均执行时间，结合工作集规模与 L2/L3 cache 大小分析性能变化。结果表明，行优先算法在大规模下可获得显著加速（$n=2048$ 时行优先达 20.09 倍，加上 4 路展开达 22.41 倍）；四路独立累加最高达 3.81 倍加速。VTune 与汇编分析证实，矩阵优化的主要收益来自降低 Memory Bound，求和优化的主要收益来自缩短依赖链、提高 IPC。
 
 \noindent\textbf{关键词：} cache 局部性，超标量，循环展开，高精度计时，VTune
 
@@ -111,7 +101,7 @@
 
 \section{实验平台与测试方法}
 \subsection{实验平台}
-源码仓库链接：\url{https://github.com/kyc001/parallel}。实验平台配置如表 \ref{tab:env} 所示。
+源码仓库链接：\url{https://github.com/kyc001/parallel/tree/master/hw2}。实验平台配置如表 \ref{tab:env} 所示。
 
 \begin{table}[H]
   \centering\small
@@ -133,9 +123,7 @@
   \label{tab:env}
 \end{table}
 
-关闭自动向量化的目的是避免编译器 SIMD 化掩盖 cache 局部性和指令级并行本身的差异；单核绑核用于减少调度抖动。
-
-本实验使用 \texttt{-O3} 优化级别，并在可能情况下开启 \texttt{-march=native} 以利用目标平台的 SIMD 单元和指令调度特性。关闭向量化（\texttt{-fno-tree-vectorize}）是为了把变量收敛到算法本身的 cache 局部性和指令级并行，避免编译器自动生成的 SIMD 指令把两类优化效果混在一起，使得实验现象更易分析。从性能角度看，\texttt{-O0} 通常仅用作正确性验证的基线；\texttt{-O2} 会开启大部分优化但可能保留部分循环；\texttt{-O3} 额外启用激进的内联和向量化（本实验中手动关闭），更适合本实验关注的高级优化效果分析。
+关闭自动向量化的目的是避免编译器 SIMD 化掩盖 cache 局部性和指令级并行本身的差异；单核绑核用于减少调度抖动。测试时系统电源计划设为"高性能"，未手动关闭 Turbo Boost 和超线程，但通过绑核到单个 P-core 并以累计时长阈值（250\,ms）取平均的方式，尽量削弱频率波动和调度迁移的影响。具体而言，关闭向量化（\texttt{-fno-tree-vectorize}）是禁止跨元素的 SIMD 打包（如 \texttt{vaddpd} 一次处理 4 个 double），但仍允许标量 FMA 指令（如 \texttt{vfmadd213sd}）——这类指令虽融合乘加，但在同一时刻只处理一个数据，属于超标量优化范畴而非向量化。这样做是为了把变量收敛到算法本身的 cache 局部性和指令级并行，避免编译器自动生成的 SIMD 指令把两类优化效果混在一起，使得实验现象更易分析。
 
 \subsection{测试数据与规模设计}
 两部分实验均采用固定公式生成数据：
@@ -265,6 +253,8 @@ double sum_pairwise(const double* data, size_t n,
 \subsection{矩阵列内积实验}
 表 \ref{tab:matrix} 给出矩阵实验结果。加速比 1 表示"平凡 / 行优先"，加速比 2 表示"平凡 / 行优先+U4"。
 
+值得注意的是，$n=1024$ 时行优先+4 路展开反而略慢于行优先（13.96 vs 16.14 倍）。从汇编可以看到，展开后的内循环并未出现寄存器溢出（仍仅使用 \texttt{xmm0}、\texttt{xmm1}），但每次迭代包含 4 组 load--FMA--store 共 12 条访存密集指令，在该工作集大小下可能加剧了执行端口和 store buffer 的竞争；VTune 中 Core Bound 从 13.9\% 升至 29.4\% 也与此一致。这说明循环展开的收益并非线性，指令密度过高时反而可能在执行资源上形成新的瓶颈。
+
 \begin{table}[H]
   \centering\scriptsize
   \begin{tabular}{rrrrrr}
@@ -290,7 +280,7 @@ double sum_pairwise(const double* data, size_t n,
   \centering
   \begin{tikzpicture}
     \begin{axis}[
-      width=0.85\textwidth, height=5cm,
+      width=0.85\textwidth, height=4.6cm,
       xlabel={矩阵规模 $n$},
       ylabel={加速比（相对平凡算法）},
       xtick={64,128,256,384,512,768,1024,1536,2048},
@@ -311,6 +301,10 @@ double sum_pairwise(const double* data, size_t n,
       (512,9.11) (768,7.20) (1024,13.96) (1536,12.09) (2048,22.41)
     };
     \addlegendentry{行优先+4路展开}
+    \draw[densely dotted, thick, violet] (axis cs:384,0) -- (axis cs:384,26)
+      node[pos=0.55, right, font=\scriptsize, violet] {L2 1.25\,MiB};
+    \draw[densely dotted, thick, teal] (axis cs:1536,0) -- (axis cs:1536,26)
+      node[pos=0.45, left, font=\scriptsize, teal] {L3 24\,MiB};
     \end{axis}
   \end{tikzpicture}
   \caption{矩阵列内积加速比随问题规模的变化}
@@ -320,7 +314,7 @@ double sum_pairwise(const double* data, size_t n,
 矩阵实验有三点比较明显：
 \begin{enumerate}
   \item 当 $n \leq 384$ 时（工作集 $\leq$ L2），行优先带来约 $1.8 \sim 2.1$ 倍加速，此时 cache miss 差异尚不悬殊。
-  \item $n=512$ 以后，矩阵越过 L2（2\,MiB），平凡算法时间急剧升高；到 $n=512$ 时加速比已达 9.11 倍。
+  \item $n=512$ 以后，矩阵约 2\,MiB 已超过 L2（1.25\,MiB），平凡算法时间急剧升高；到 $n=512$ 时加速比已达 9.11 倍。
   \item $n=2048$ 时矩阵 32\,MiB 超过 L3，平凡算法耗时 55.48\,ms，行优先+展开仅 2.48\,ms，最高 22.41 倍。
 \end{enumerate}
 
@@ -353,7 +347,7 @@ double sum_pairwise(const double* data, size_t n,
   \centering
   \begin{tikzpicture}
     \begin{semilogxaxis}[
-      width=0.85\textwidth, height=5cm,
+      width=0.85\textwidth, height=4.6cm,
       xlabel={数组规模 $n$},
       ylabel={加速比（相对链式累加）},
       log basis x=2,
@@ -383,13 +377,13 @@ double sum_pairwise(const double* data, size_t n,
     \draw[dashed, gray] (axis cs:1024,1) -- (axis cs:8388608,1);
     \end{semilogxaxis}
   \end{tikzpicture}
-  \caption{求和加速比随问题规模的变化}
+  \caption{求和加速比随问题规模的变化（横轴按 $\log_2 n$ 绘制）}
   \label{fig:sum_speedup}
 \end{figure}
 
 求和实验说明了超标量优化与内存约束之间的关系：
 \begin{enumerate}
-  \item 两路独立累加在各规模下稳定接近 2 倍加速，说明拆为两条依赖链后处理器可并行调度。
+  \item 两路独立累加在中小规模下稳定接近 2 倍加速（$n \leq 2^{20}$ 时约 $1.85 \sim 2.07$ 倍），说明拆为两条依赖链后处理器可并行调度；当数据超出 L3 后加速比回落至约 1.4 倍，瓶颈转为内存带宽。
   \item 四路独立累加表现最好，$n=4096$ 时达 3.81 倍；$n=2^{20}$ 时仍保持 1.93 倍。
   \item 当 $n \geq 2^{22}$（$\geq$32\,MiB），超过 L3，四路加速比降至 $\sim$1.5 倍，瓶颈转为内存带宽。
   \item 两两归约在 $n \geq 2^{16}$ 后明显慢于链式累加。归约虽缩短依赖深度，但 scratch 缓冲区的反复读写带来额外访存开销。
@@ -422,7 +416,7 @@ jne         <loop>
 \end{lstlisting}
 \end{multicols}
 
-平凡算法 \texttt{add r10, r11} 使指针以 $n \times 8$ 字节跳跃，每次迭代跨越多个 cache line，几乎每次都 miss。行优先版本地址连续递增 8 字节，完美匹配 cache line 预取，且编译器自动生成了 FMA 指令（\texttt{vfmadd213sd}），将乘法和加法合为一条。
+平凡算法 \texttt{add r10, r11} 使指针以 $n \times 8$ 字节跳跃，每次迭代跨越多个 cache line，miss 率显著增高。行优先版本地址连续递增 8 字节，更有利于硬件预取，且编译器自动生成了 FMA 指令（\texttt{vfmadd213sd}），将乘法和加法合为一条。
 
 \subsubsection{矩阵：行优先 + 4 路展开}
 \begin{lstlisting}[caption=unrolled4 内循环,basicstyle=\ttfamily\tiny,numbers=none]
@@ -441,7 +435,7 @@ vmovsd      [rax-0x8], xmm1
 jne         <loop>
 \end{lstlisting}
 
-每次迭代 4 条独立 FMA，步进 32 字节（0x20），覆盖半个 cache line，循环判断摊销降至 $1/4$。
+每次迭代 4 条独立 FMA，步进 32 字节（0x20），每两次迭代恰好消费一整条 cache line（64\,B），循环判断摊销降至 $1/4$。
 
 \subsubsection{求和：链式累加 vs 四路独立累加}
 
@@ -463,7 +457,7 @@ jne    <loop>
 \end{lstlisting}
 \end{multicols}
 
-链式版本虽被编译器 2 路展开，但两条 \texttt{vaddsd} 均写 \texttt{xmm0}，形成串行依赖链（FP 加法延迟 $\sim$4 周期，IPC $\sim 1/4$）。四路版本使用 \texttt{xmm0}--\texttt{xmm3} 四个独立寄存器，相邻指令无数据依赖，超标量可并行发射，理论 IPC 可达约 1。
+链式版本虽被编译器 2 路展开，但两条 \texttt{vaddsd} 均写 \texttt{xmm0}，形成串行依赖链（FP 加法延迟 $\sim$4 周期，IPC $\sim 1/4$）。四路版本使用 \texttt{xmm0}--\texttt{xmm3} 四个独立寄存器，相邻指令无数据依赖，超标量可并行发射，FP add 吞吐理论上可达每周期 1 条。
 
 \subsection{VTune 微架构分析}
 使用 VTune \texttt{uarch-exploration} 分析类型，对 $n=2048$（矩阵）和 $n=2^{20}$（求和）的关键 workload 采样。表 \ref{tab:vtune_full} 汇总了 Top-Down 方法学的核心指标。
@@ -478,13 +472,13 @@ jne    <loop>
     矩阵 & \texttt{naive}       & 3.29  & 4.0  & 80.0 & 65.5 & 14.5 & 79.3 \\
     矩阵 & \texttt{row\_major}  & 0.34  & 45.6 & 50.0 & 36.1 & 13.9 & 17.7 \\
     矩阵 & \texttt{row\_major\_u4} & 0.49 & 32.1 & 67.4 & 38.0 & 29.4 & 23.1 \\
-    求和 & \texttt{naive}       & 0.83  & 14.5 & 81.8 & 23.6 & 58.2 & --- \\
-    求和 & \texttt{superscalar2}& 0.46  & 29.5 & 70.1 & 10.6 & 59.5 & --- \\
-    求和 & \texttt{superscalar4}& 0.54  & 27.9 & 75.6 & 27.9 & 47.7 & --- \\
-    求和 & \texttt{pairwise}    & 0.82  & 19.7 & 78.4 & 60.4 & 18.0 & --- \\
+    求和 & \texttt{naive}       & 0.83  & 14.5 & 81.8 & 23.6 & 58.2 & N/A \\
+    求和 & \texttt{superscalar2}& 0.46  & 29.5 & 70.1 & 10.6 & 59.5 & N/A \\
+    求和 & \texttt{superscalar4}& 0.54  & 27.9 & 75.6 & 27.9 & 47.7 & N/A \\
+    求和 & \texttt{pairwise}    & 0.82  & 19.7 & 78.4 & 60.4 & 18.0 & N/A \\
     \bottomrule
   \end{tabular}
-  \caption{VTune 微架构分析结果（Top-Down 指标，P-core）}
+  \caption{VTune 微架构分析结果（Top-Down 指标，P-core）。求和实验采样规模 $n=2^{20}$（8\,MiB），工作集在 L3 以内，DRAM Bound 占比极低，故不单独列出。}
   \label{tab:vtune_full}
 \end{table}
 
@@ -501,14 +495,14 @@ jne    <loop>
     \texttt{row\_major\_u4} & 13{,}755{,}775 & 0.0\% & 11.3\% & 21.6\% \\
     \bottomrule
   \end{tabular}
-  \caption{矩阵问题的 VTune memory-access 指标对比}
+  \caption{矩阵问题的 VTune memory-access 指标对比（此处选取 naive 与 row\_major\_u4 两个端点对比，row\_major 的趋势介于二者之间）}
   \label{tab:vtune_mem_matrix}
 \end{table}
 
 表 \ref{tab:vtune_mem_matrix} 进一步说明了 cache 层级上的变化。优化后 LLC miss 数量下降约 53.7\%，同时 DRAM Bound 从 77.7\% 明显降到 21.6\%。虽然 L3 Bound 占比上升，但这恰好说明更多访问停留在片上 cache 内解决，没有继续落到主存，因此整体延迟显著降低。
 
 \paragraph{求和问题。}
-链式累加 CPI 0.83，Retiring 14.5\%，Core Bound 58.2\%，瓶颈主要在依赖等待而非内存。四路版本将 CPI 降至 0.54，Retiring 升至 27.9\%，Core Bound 降至 47.7\%；同时其 Memory Bound 为 27.9\%，其中 L1/L2/L3/DRAM Bound 分别为 1.9\%/1.9\%/24.1\%/6.3\%，说明大部分代价已不再是长链串行累加。两两归约则 Memory Bound 高达 60.4\%（Store Bound 7.4\%），验证了 scratch 缓冲区读写的高开销。
+链式累加 CPI 0.83，Retiring 14.5\%，Core Bound 58.2\%，瓶颈主要在依赖等待而非内存。两路版本 CPI 最低（0.46），四路版本 CPI 为 0.54；四路的 CPI 略高于两路，可能是因为 4 条累加链的循环体更大，分支预测和指令缓存的微小开销使每周期退休效率略有下降，但四路版本的总迭代次数更少，实际耗时仍更短。四路版本 Retiring 升至 27.9\%，Core Bound 降至 47.7\%；同时其 Memory Bound 为 27.9\%，其中 L1/L2/L3/DRAM Bound 分别为 1.9\%/1.9\%/24.1\%/6.3\%，说明大部分代价已不再是长链串行累加。两两归约则 Memory Bound 高达 60.4\%（Store Bound 7.4\%），验证了 scratch 缓冲区读写的高开销。
 
 \begin{table}[H]
   \centering\scriptsize
@@ -526,32 +520,23 @@ jne    <loop>
   \label{tab:vtune_mem_sum}
 \end{table}
 
-表 \ref{tab:vtune_mem_sum} 可以看出，链式累加的主要问题并不是 DRAM，而是单条依赖链导致的核心等待；而两两归约由于额外的 scratch 写回，把压力明显推高到了更低效的 cache/内存层级。相比之下，超标量版本虽然仍有一定 L3/DRAM 开销，但总体上把更多周期用于有效退休指令，因此整体吞吐更高。
+表 \ref{tab:vtune_mem_sum} 可以看出，链式累加的主要问题并不是 DRAM，而是单条依赖链导致的核心等待；而两两归约由于额外的 scratch 写回，把压力明显推高到了更低效的 cache/内存层级。相比之下，超标量版本虽然仍有一定 L3/DRAM 开销，但总体上把更多周期用于有效退休指令，因此整体吞吐更高。两两归约缩短关键路径的思想更适合多线程或分布式场景；而在单核超标量处理器上，寄存器内的独立累加链远快于对 scratch 数组的反复读写，因此理论上的依赖深度优势会被访存代价抵消。
 
-\subsection{补充讨论}
-这里再补充两点实验中的观察。第一，矩阵部分在 $n=512$ 前后出现了很明显的拐点：在这之前，行优先主要体现为稳定的 2 倍左右收益；越过 L2 以后，平凡写法的代价迅速放大，说明这部分性能差异确实主要来自访存顺序，而不是常数级的指令优化。
+\subsection{补充：编译器优化级别对比}
+在保持 \texttt{-march=native} 和关闭向量化不变的前提下，本文额外对比了 \texttt{-O0} 与 \texttt{-O3} 的性能差异，共 118 组结果，原始数据见仓库 \texttt{results/opt\_levels} 目录。代表性结果（均为 \texttt{-O0} $\to$ \texttt{-O3}）：矩阵 \texttt{naive} 在 $n=2048$ 时由 72.81\,ms 降至 67.96\,ms（1.07 倍），\texttt{row\_major} 由 8.47\,ms 降至 3.45\,ms（2.45 倍）；求和 \texttt{naive} 在 $n=2^{20}$ 时由 2.87\,ms 降至 0.82\,ms（3.48 倍），\texttt{superscalar4} 由 0.90\,ms 降至 0.40\,ms（2.22 倍）。
 
-第二，求和部分里，两路和四路独立累加在中小规模下收益很稳定，但数组继续增大后，加速比会逐渐回落。这和 VTune 中看到的现象是一致的：依赖链被拆开以后，核心等待显著减少；但当数据规模继续扩大，内存层次的代价又会重新变得明显，因此不可能一直保持接近理想值的加速。
-
-另外，本次测试关闭了自动向量化，并固定在 P-core 上采样。这样做是为了尽量把变量收敛到 cache 局部性和指令级并行本身，避免编译器自动生成 SIMD 后，把两类优化效果混在一起，导致实验现象不容易解释。
+这些结果说明，编译器优化不能替代算法优化。对大规模 Memory Bound 的矩阵平凡算法，\texttt{-O3} 的收益很有限；而对访存模式已改善或依赖链已拆开的 kernel，\texttt{-O3} 仍可提供约 2--3.5 倍的额外加速。也就是说，当瓶颈仍在循环开销、寄存器分配和指令调度时，编译器优化能显著放大算法设计收益；而当瓶颈已转为主存带宽时，其额外收益就会明显受限。
 
 \section{结论}
 本次实验的结果比较一致，可以归纳为以下几点：
 
 \begin{enumerate}
-  \item 矩阵问题里，访存顺序是最关键的因素。行优先 + 展开在 $n=2048$ 时达到 22.41 倍加速；VTune 中 CPI 从 3.29 降到 0.34，DRAM Bound 从 79.3\% 降到 17.7\%，LLC miss 也从 29.7M 降到 13.8M。
+  \item 矩阵问题里，访存顺序是最关键的因素。行优先在 $n=2048$ 时达到 20.09 倍加速，加上 4 路展开后达到 22.41 倍；VTune 中行优先的 CPI 从 3.29 降到 0.34，DRAM Bound 从 79.3\% 降到 17.7\%，LLC miss 也从 29.7M 降到 13.8M（u4）。
   \item 求和问题里，多条独立累加链确实能缓解串行依赖。四路版本最高达到 3.81 倍加速，汇编中可以看到 4 条独立 \texttt{vaddsd} 指令链；VTune 中 CPI 从 0.83 降到 0.54，Core Bound 从 58.2\% 降到 47.7\%。超过 L3 后，瓶颈逐渐转为带宽，加速比也回落到 $\sim$1.5 倍。
   \item 两两归约并不一定更快。虽然它缩短了归约深度，但 scratch 缓冲区带来的额外读写使 Memory Bound 达到 60.4\%，大规模时反而慢于链式累加。
   \item 从计时结果、汇编和 VTune 指标可以相互印证：矩阵优化的核心是改善 cache 局部性，求和优化的核心是缩短依赖链；循环展开只有在访存已经连续化之后才更容易带来收益。
 \end{enumerate}
 
-\section*{附录：实验过程与注意事项}
-\addcontentsline{toc}{section}{附录}
-\begin{enumerate}
-  \item 编译时关闭自动向量化（\texttt{-fno-tree-vectorize}）以隔离 cache/ILP 效应；绑核 CPU 0（P-core）减少调度抖动。
-  \item 计时采用 250\,ms 阈值自适应重复次数，保证各规模下均有充分采样。
-  \item \texttt{results/vtune\_cli/} 包含 7 组 \texttt{uarch-exploration} 导出（3 矩阵 + 4 求和）；线程绑 P-core，E-core 数据为 0 属正常。
-  \item 正确性通过 \texttt{max\_abs\_diff} 校验：矩阵 bit-exact，求和最大误差 $\sim 4.66\times 10^{-9}$。
-\end{enumerate}
+综合来看，本次实验体现了软硬协同的基本思路：当瓶颈在访存（Memory Bound）时，算法层面的 cache 局部性优化是第一优先级，编译器和微架构层面的优化空间有限；当访存已不再是瓶颈、瓶颈转为算力（Core Bound）时，减少数据依赖、提高指令级并行度（ILP）才能进一步释放超标量处理器的吞吐能力。两类优化并非相互替代，而是分别对应不同层级的性能瓶颈，需要结合 profiling 工具定位后有针对性地施加。
 
 \end{document}
