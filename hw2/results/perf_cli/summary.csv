@@ -1,8 +1,0 @@
-kind,algorithm,n,repeat,task_clock,cycles,instructions,ipc,cache_references,cache_misses,miss_rate,branch_misses,l1_loads,l1_load_misses,l1_miss_rate,llc_loads,llc_load_misses,llc_miss_rate
-matrix,naive,2048,8,605.86,<notsupported>,<notsupported>,-nan,<notsupported>,<notsupported>,-nan,,,,,,,
-matrix,row_major,2048,200,1667.46,<notsupported>,<notsupported>,-nan,<notsupported>,<notsupported>,-nan,,,,,,,
-matrix,row_major_unrolled4,2048,256,2666.38,<notsupported>,<notsupported>,-nan,<notsupported>,<notsupported>,-nan,,,,,,,
-sum,naive,1048576,1024,3249.82,<notsupported>,<notsupported>,-nan,<notsupported>,<notsupported>,-nan,,,,,,,
-sum,superscalar2,1048576,2048,3179.19,<notsupported>,<notsupported>,-nan,<notsupported>,<notsupported>,-nan,,,,,,,
-sum,superscalar4,1048576,4096,4573.90,<notsupported>,<notsupported>,-nan,<notsupported>,<notsupported>,-nan,,,,,,,
-sum,pairwise,1048576,1024,6201.69,<notsupported>,<notsupported>,-nan,<notsupported>,<notsupported>,-nan,,,,,,,

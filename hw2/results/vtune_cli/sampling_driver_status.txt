@@ -1,8 +1,0 @@
-Checking sepdrv5 driver path...OK
-Checking sepdrv5 service...
-Driver status: the sepdrv5 service is running
-Checking sepdal driver path...OK
-Checking sepdal service...
-Driver status: the sepdal service is running
-Checking vtss driver path...OK
-Checking vtss service...OK
