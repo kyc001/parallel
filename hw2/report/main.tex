@@ -107,7 +107,7 @@
   的两类设计思路：链式累加与超标量优化算法。
 \end{enumerate}
 
-在基本要求之外，本文还补充了两项进阶内容：对矩阵算法加入 4 路循环展开，对关键 workload 使用 VTune 与汇编观察分析性能原因。
+此外，实验还加入了两项进阶内容：对矩阵算法加入 4 路循环展开，对关键 workload 使用 VTune 与汇编观察分析性能原因。
 
 \section{实验平台与测试方法}
 \subsection{实验平台}
@@ -134,6 +134,8 @@
 \end{table}
 
 关闭自动向量化的目的是避免编译器 SIMD 化掩盖 cache 局部性和指令级并行本身的差异；单核绑核用于减少调度抖动。
+
+本实验使用 \texttt{-O3} 优化级别，并在可能情况下开启 \texttt{-march=native} 以利用目标平台的 SIMD 单元和指令调度特性。关闭向量化（\texttt{-fno-tree-vectorize}）是为了把变量收敛到算法本身的 cache 局部性和指令级并行，避免编译器自动生成的 SIMD 指令把两类优化效果混在一起，使得实验现象更易分析。从性能角度看，\texttt{-O0} 通常仅用作正确性验证的基线；\texttt{-O2} 会开启大部分优化但可能保留部分循环；\texttt{-O3} 额外启用激进的内联和向量化（本实验中手动关闭），更适合本实验关注的高级优化效果分析。
 
 \subsection{测试数据与规模设计}
 两部分实验均采用固定公式生成数据：
@@ -315,7 +317,7 @@ double sum_pairwise(const double* data, size_t n,
   \label{fig:matrix_speedup}
 \end{figure}
 
-矩阵实验有三点值得注意：
+矩阵实验有三点比较明显：
 \begin{enumerate}
   \item 当 $n \leq 384$ 时（工作集 $\leq$ L2），行优先带来约 $1.8 \sim 2.1$ 倍加速，此时 cache miss 差异尚不悬殊。
   \item $n=512$ 以后，矩阵越过 L2（2\,MiB），平凡算法时间急剧升高；到 $n=512$ 时加速比已达 9.11 倍。
@@ -390,7 +392,7 @@ double sum_pairwise(const double* data, size_t n,
   \item 两路独立累加在各规模下稳定接近 2 倍加速，说明拆为两条依赖链后处理器可并行调度。
   \item 四路独立累加表现最好，$n=4096$ 时达 3.81 倍；$n=2^{20}$ 时仍保持 1.93 倍。
   \item 当 $n \geq 2^{22}$（$\geq$32\,MiB），超过 L3，四路加速比降至 $\sim$1.5 倍，瓶颈转为内存带宽。
-  \item 两两归约在 $n \geq 2^{16}$ 后明显慢于链式累加——归约虽缩短依赖深度，但 scratch 缓冲区的反复读写带来额外访存开销。
+  \item 两两归约在 $n \geq 2^{16}$ 后明显慢于链式累加。归约虽缩短依赖深度，但 scratch 缓冲区的反复读写带来额外访存开销。
 \end{enumerate}
 
 不同求和顺序的浮点舍入差异极小，最大绝对误差约 $4.66\times 10^{-9}$。
@@ -476,10 +478,10 @@ jne    <loop>
     矩阵 & \texttt{naive}       & 3.29  & 4.0  & 80.0 & 65.5 & 14.5 & 79.3 \\
     矩阵 & \texttt{row\_major}  & 0.34  & 45.6 & 50.0 & 36.1 & 13.9 & 17.7 \\
     矩阵 & \texttt{row\_major\_u4} & 0.49 & 32.1 & 67.4 & 38.0 & 29.4 & 23.1 \\
-    求和 & \texttt{naive}       & 0.83  & 19.6 & 78.8 & 21.4 & 57.4 & --- \\
+    求和 & \texttt{naive}       & 0.83  & 14.5 & 81.8 & 23.6 & 58.2 & --- \\
     求和 & \texttt{superscalar2}& 0.46  & 29.5 & 70.1 & 10.6 & 59.5 & --- \\
-    求和 & \texttt{superscalar4}& 0.54  & 28.0 & 70.5 & 22.8 & 47.7 & --- \\
-    求和 & \texttt{pairwise}    & 0.64  & 26.4 & 72.2 & 60.4 & 11.8 & --- \\
+    求和 & \texttt{superscalar4}& 0.54  & 27.9 & 75.6 & 27.9 & 47.7 & --- \\
+    求和 & \texttt{pairwise}    & 0.82  & 19.7 & 78.4 & 60.4 & 18.0 & --- \\
     \bottomrule
   \end{tabular}
   \caption{VTune 微架构分析结果（Top-Down 指标，P-core）}
@@ -487,19 +489,60 @@ jne    <loop>
 \end{table}
 
 \paragraph{矩阵问题。}
-平凡算法 CPI 高达 3.29，Retiring 仅 4.0\%，Back-End Bound 80.0\%，其中 Memory Bound 65.5\%、DRAM Bound 79.3\%——处理器几乎完全被主存延迟制约。改为行优先后，CPI 降至 0.34，Retiring 升至 45.6\%，DRAM Bound 从 79.3\% 降至 17.7\%；3+ Ports Utilized 达 56.0\%，多端口被充分利用。4 路展开 CPI 略升至 0.49（Core Bound 从 13.9\% 升至 29.4\%），因为展开引入了更多寄存器压力和 store 操作，但总指令数更少，实际耗时仍更短。
+平凡算法 CPI 高达 3.29，Retiring 仅 4.0\%，Back-End Bound 80.0\%，其中 Memory Bound 65.5\%、DRAM Bound 79.3\%，处理器几乎一直在等主存。改为行优先后，CPI 降至 0.34，Retiring 升至 45.6\%，DRAM Bound 从 79.3\% 降至 17.7\%；3+ Ports Utilized 达 56.0\%，多端口得到更充分利用。4 路展开 CPI 略升至 0.49（Core Bound 从 13.9\% 升至 29.4\%），因为展开引入了更多寄存器压力和 store 操作，但总指令数更少，实际耗时仍更短。
+
+\begin{table}[H]
+  \centering\scriptsize
+  \begin{tabular}{lcccc}
+    \toprule
+    workload & LLC Miss Count & L1 Bound & L3 Bound & DRAM Bound \\
+    \midrule
+    \texttt{matrix\_naive} & 29{,}712{,}474 & 0.0\% & 2.1\% & 77.7\% \\
+    \texttt{row\_major\_u4} & 13{,}755{,}775 & 0.0\% & 11.3\% & 21.6\% \\
+    \bottomrule
+  \end{tabular}
+  \caption{矩阵问题的 VTune memory-access 指标对比}
+  \label{tab:vtune_mem_matrix}
+\end{table}
+
+表 \ref{tab:vtune_mem_matrix} 进一步说明了 cache 层级上的变化。优化后 LLC miss 数量下降约 53.7\%，同时 DRAM Bound 从 77.7\% 明显降到 21.6\%。虽然 L3 Bound 占比上升，但这恰好说明更多访问停留在片上 cache 内解决，没有继续落到主存，因此整体延迟显著降低。
 
 \paragraph{求和问题。}
-链式累加 CPI 0.83，Core Bound 57.4\%——瓶颈在依赖等待而非内存。四路版本将 CPI 降至 0.54，Core Bound 降至 47.7\%。两两归约则 Memory Bound 高达 60.4\%（Store Bound 7.4\%），验证了 scratch 缓冲区读写的高开销。
+链式累加 CPI 0.83，Retiring 14.5\%，Core Bound 58.2\%，瓶颈主要在依赖等待而非内存。四路版本将 CPI 降至 0.54，Retiring 升至 27.9\%，Core Bound 降至 47.7\%；同时其 Memory Bound 为 27.9\%，其中 L1/L2/L3/DRAM Bound 分别为 1.9\%/1.9\%/24.1\%/6.3\%，说明大部分代价已不再是长链串行累加。两两归约则 Memory Bound 高达 60.4\%（Store Bound 7.4\%），验证了 scratch 缓冲区读写的高开销。
+
+\begin{table}[H]
+  \centering\scriptsize
+  \begin{tabular}{lcccc}
+    \toprule
+    workload & L1 Bound & L2 Bound & L3 Bound & DRAM Bound \\
+    \midrule
+    \texttt{naive} & 30.6\% & 0.0\% & 3.4\% & 0.0\% \\
+    \texttt{superscalar2} & 0.0\% & 0.5\% & 5.5\% & 5.3\% \\
+    \texttt{superscalar4} & 1.9\% & 1.9\% & 24.1\% & 6.3\% \\
+    \texttt{pairwise} & 10.5\% & 0.0\% & 22.3\% & 28.9\% \\
+    \bottomrule
+  \end{tabular}
+  \caption{求和问题的 cache/memory 层级压力分布}
+  \label{tab:vtune_mem_sum}
+\end{table}
+
+表 \ref{tab:vtune_mem_sum} 可以看出，链式累加的主要问题并不是 DRAM，而是单条依赖链导致的核心等待；而两两归约由于额外的 scratch 写回，把压力明显推高到了更低效的 cache/内存层级。相比之下，超标量版本虽然仍有一定 L3/DRAM 开销，但总体上把更多周期用于有效退休指令，因此整体吞吐更高。
+
+\subsection{补充讨论}
+这里再补充两点实验中的观察。第一，矩阵部分在 $n=512$ 前后出现了很明显的拐点：在这之前，行优先主要体现为稳定的 2 倍左右收益；越过 L2 以后，平凡写法的代价迅速放大，说明这部分性能差异确实主要来自访存顺序，而不是常数级的指令优化。
+
+第二，求和部分里，两路和四路独立累加在中小规模下收益很稳定，但数组继续增大后，加速比会逐渐回落。这和 VTune 中看到的现象是一致的：依赖链被拆开以后，核心等待显著减少；但当数据规模继续扩大，内存层次的代价又会重新变得明显，因此不可能一直保持接近理想值的加速。
+
+另外，本次测试关闭了自动向量化，并固定在 P-core 上采样。这样做是为了尽量把变量收敛到 cache 局部性和指令级并行本身，避免编译器自动生成 SIMD 后，把两类优化效果混在一起，导致实验现象不容易解释。
 
 \section{结论}
-本次实验通过算法设计、性能测试、汇编观察和 VTune 微架构分析四个层面，系统研究了 cache 局部性与超标量并行对程序性能的影响：
+本次实验的结果比较一致，可以归纳为以下几点：
 
 \begin{enumerate}
-  \item \textbf{访存模式是矩阵运算的首要性能因素。}行优先 + 展开在 $n=2048$ 时达 22.41 倍加速。VTune 显示 CPI 从 3.29 降至 0.34，DRAM Bound 从 79.3\% 降至 17.7\%。
-  \item \textbf{多链独立累加有效缓解串行依赖。}四路最高达 3.81 倍，汇编确认 4 条独立 \texttt{vaddsd} 指令链；VTune 中 CPI 从 0.83 降至 0.54，Core Bound 从 57.4\% 降至 47.7\%。超过 L3 后瓶颈转为带宽，加速比回落至 $\sim$1.5 倍。
-  \item \textbf{两两归约并非天然更快。}scratch 缓冲区读写使 Memory Bound 达 60.4\%，大规模时反而慢于链式累加。
-  \item \textbf{理论分析、计时、汇编与 profiling 四者一致。}矩阵优化本质是改善 cache 局部性（降低 Memory Bound），求和优化本质是缩短依赖链（降低 Core Bound，提升 IPC）。循环展开的收益必须建立在访存已连续化的前提之上。
+  \item 矩阵问题里，访存顺序是最关键的因素。行优先 + 展开在 $n=2048$ 时达到 22.41 倍加速；VTune 中 CPI 从 3.29 降到 0.34，DRAM Bound 从 79.3\% 降到 17.7\%，LLC miss 也从 29.7M 降到 13.8M。
+  \item 求和问题里，多条独立累加链确实能缓解串行依赖。四路版本最高达到 3.81 倍加速，汇编中可以看到 4 条独立 \texttt{vaddsd} 指令链；VTune 中 CPI 从 0.83 降到 0.54，Core Bound 从 58.2\% 降到 47.7\%。超过 L3 后，瓶颈逐渐转为带宽，加速比也回落到 $\sim$1.5 倍。
+  \item 两两归约并不一定更快。虽然它缩短了归约深度，但 scratch 缓冲区带来的额外读写使 Memory Bound 达到 60.4\%，大规模时反而慢于链式累加。
+  \item 从计时结果、汇编和 VTune 指标可以相互印证：矩阵优化的核心是改善 cache 局部性，求和优化的核心是缩短依赖链；循环展开只有在访存已经连续化之后才更容易带来收益。
 \end{enumerate}
 
 \section*{附录：实验过程与注意事项}
