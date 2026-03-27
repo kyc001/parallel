@@ -1,5 +1,6 @@
 param(
-    [switch]$SkipBuild
+    [switch]$SkipBuild,
+    [string[]]$Only
 )
 
 $ErrorActionPreference = "Stop"
@@ -61,7 +62,13 @@ New-Item -ItemType Directory -Force -Path $vtuneRoot | Out-Null
 
 $driverCheck = Join-Path (Split-Path -Parent $vtune) "amplxe-sepreg.exe"
 if (Test-Path $driverCheck) {
-    & $driverCheck -c | Tee-Object -FilePath (Join-Path $vtuneRoot "sampling_driver_check.txt")
+    try {
+        & $driverCheck -c | Tee-Object -FilePath (Join-Path $vtuneRoot "sampling_driver_check.txt")
+    } catch {
+        $message = "sampling driver check skipped: $($_.Exception.Message)"
+        Write-Warning $message
+        $message | Set-Content -Path (Join-Path $vtuneRoot "sampling_driver_check.txt")
+    }
 }
 
 $collections = @(
@@ -74,12 +81,44 @@ $collections = @(
         Repeat = "8"
     },
     @{
+        Name = "matrix_naive_uarch"
+        Analysis = "uarch-exploration"
+        Kind = "matrix"
+        Algorithm = "naive"
+        N = "2048"
+        Repeat = "16"
+    },
+    @{
+        Name = "matrix_row_major_memory_access"
+        Analysis = "memory-access"
+        Kind = "matrix"
+        Algorithm = "row_major"
+        N = "2048"
+        Repeat = "200"
+    },
+    @{
+        Name = "matrix_row_major_uarch"
+        Analysis = "uarch-exploration"
+        Kind = "matrix"
+        Algorithm = "row_major"
+        N = "2048"
+        Repeat = "200"
+    },
+    @{
         Name = "matrix_row_major_unrolled4_memory_access"
         Analysis = "memory-access"
         Kind = "matrix"
         Algorithm = "row_major_unrolled4"
         N = "2048"
         Repeat = "256"
+    },
+    @{
+        Name = "matrix_row_major_unrolled4_uarch"
+        Analysis = "uarch-exploration"
+        Kind = "matrix"
+        Algorithm = "row_major_unrolled4"
+        N = "2048"
+        Repeat = "1024"
     },
     @{
         Name = "sum_naive_uarch"
@@ -90,14 +129,40 @@ $collections = @(
         Repeat = "1024"
     },
     @{
+        Name = "sum_superscalar2_uarch"
+        Analysis = "uarch-exploration"
+        Kind = "sum"
+        Algorithm = "superscalar2"
+        N = "1048576"
+        Repeat = "16384"
+    },
+    @{
         Name = "sum_superscalar4_uarch"
         Analysis = "uarch-exploration"
         Kind = "sum"
         Algorithm = "superscalar4"
         N = "1048576"
         Repeat = "4096"
+    },
+    @{
+        Name = "sum_pairwise_uarch"
+        Analysis = "uarch-exploration"
+        Kind = "sum"
+        Algorithm = "pairwise"
+        N = "1048576"
+        Repeat = "1024"
     }
 )
+
+if ($Only -and $Only.Count -gt 0) {
+    $selected = @($collections | Where-Object { $Only -contains $_.Name })
+    if ($selected.Count -ne $Only.Count) {
+        $known = ($collections | ForEach-Object { $_.Name }) -join ", "
+        $missing = @($Only | Where-Object { $_ -notin $selected.Name })
+        throw "Unknown collection name(s): $($missing -join ', '). Known names: $known"
+    }
+    $collections = $selected
+}
 
 foreach ($item in $collections) {
     $resultDir = Join-Path $vtuneRoot $item.Name
