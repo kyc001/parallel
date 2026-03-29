@@ -230,7 +230,7 @@ double sum_superscalar2(const double* data, size_t n) {
 \end{lstlisting}
 
 \subsubsection{两两归约}
-递归式地将相邻元素配对求和，每轮规模减半，共 $\lceil\log_2 n\rceil$ 轮。虽然缩短了理论依赖深度，但引入了对 scratch 缓冲区的大量读写。
+递归式地将相邻元素配对求和，每轮规模减半，共 $\lceil\log_2 n\rceil$ 轮。当前实现为了保持输入只读，先把数据全量拷贝到 \texttt{scratch}，再在该缓冲区上逐轮覆盖。这样虽然缩短了理论依赖深度，但也引入了一次完整拷贝和后续多轮写回；若允许覆写输入，也可以采用原地 stride 跳跃的树状归约来省去额外缓冲区，不过在单核场景下，这类访存模式通常仍难胜过完全在寄存器内进行的多路独立累加。
 
 \begin{lstlisting}[language=C++,caption=两两归约]
 double sum_pairwise(const double* data, size_t n,
@@ -279,11 +279,13 @@ double sum_pairwise(const double* data, size_t n,
 \begin{figure}[H]
   \centering
   \begin{tikzpicture}
-    \begin{axis}[
+    \begin{semilogxaxis}[
       width=0.85\textwidth, height=4.6cm,
       xlabel={矩阵规模 $n$},
       ylabel={加速比（相对平凡算法）},
+      log basis x=2,
       xtick={64,128,256,384,512,768,1024,1536,2048},
+      xticklabels={64,128,256,384,512,768,1024,1536,2048},
       xticklabel style={font=\scriptsize, rotate=30, anchor=east},
       ytick={0,5,10,15,20,25},
       ymin=0, ymax=26,
@@ -305,9 +307,9 @@ double sum_pairwise(const double* data, size_t n,
       node[pos=0.55, right, font=\scriptsize, violet] {L2 1.25\,MiB};
     \draw[densely dotted, thick, teal] (axis cs:1536,0) -- (axis cs:1536,26)
       node[pos=0.45, left, font=\scriptsize, teal] {L3 24\,MiB};
-    \end{axis}
+    \end{semilogxaxis}
   \end{tikzpicture}
-  \caption{矩阵列内积加速比随问题规模的变化}
+  \caption{矩阵列内积加速比随问题规模的变化（横轴使用对数尺度）}
   \label{fig:matrix_speedup}
 \end{figure}
 
@@ -346,13 +348,12 @@ double sum_pairwise(const double* data, size_t n,
 \begin{figure}[H]
   \centering
   \begin{tikzpicture}
-    \begin{semilogxaxis}[
+    \begin{axis}[
       width=0.85\textwidth, height=4.6cm,
-      xlabel={数组规模 $n$},
+      xlabel={$\log_2 n$},
       ylabel={加速比（相对链式累加）},
-      log basis x=2,
-      xtick={1024,4096,16384,65536,262144,1048576,4194304,8388608},
-      xticklabels={$2^{10}$,$2^{12}$,$2^{14}$,$2^{16}$,$2^{18}$,$2^{20}$,$2^{22}$,$2^{23}$},
+      xtick={10,12,14,16,18,20,22,23},
+      xticklabels={10,12,14,16,18,20,22,23},
       xticklabel style={font=\scriptsize},
       ymin=0, ymax=4.5,
       legend style={font=\scriptsize, at={(0.98,0.98)}, anchor=north east},
@@ -360,24 +361,24 @@ double sum_pairwise(const double* data, size_t n,
       every axis plot/.append style={thick, mark size=2pt},
     ]
     \addplot[blue, mark=triangle*] coordinates {
-      (1024,1.85) (4096,1.86) (16384,2.07) (65536,1.97)
-      (262144,1.96) (1048576,1.90) (4194304,1.37) (8388608,1.41)
+      (10,1.85) (12,1.86) (14,2.07) (16,1.97)
+      (18,1.96) (20,1.90) (22,1.37) (23,1.41)
     };
     \addlegendentry{两路独立累加}
     \addplot[red, mark=square*] coordinates {
-      (1024,3.54) (4096,3.81) (16384,3.13) (65536,2.98)
-      (262144,2.57) (1048576,1.93) (4194304,1.43) (8388608,1.49)
+      (10,3.54) (12,3.81) (14,3.13) (16,2.98)
+      (18,2.57) (20,1.93) (22,1.43) (23,1.49)
     };
     \addlegendentry{四路独立累加}
     \addplot[olive, mark=diamond*] coordinates {
-      (1024,1.31) (4096,1.38) (16384,1.12) (65536,0.48)
-      (262144,0.45) (1048576,0.26) (4194304,0.38) (8388608,0.40)
+      (10,1.31) (12,1.38) (14,1.12) (16,0.48)
+      (18,0.45) (20,0.26) (22,0.38) (23,0.40)
     };
     \addlegendentry{两两归约}
-    \draw[dashed, gray] (axis cs:1024,1) -- (axis cs:8388608,1);
-    \end{semilogxaxis}
+    \draw[dashed, gray] (axis cs:10,1) -- (axis cs:23,1);
+    \end{axis}
   \end{tikzpicture}
-  \caption{求和加速比随问题规模的变化（横轴按 $\log_2 n$ 绘制）}
+  \caption{求和加速比随问题规模的变化（横轴为 $\log_2 n$）}
   \label{fig:sum_speedup}
 \end{figure}
 
@@ -386,10 +387,10 @@ double sum_pairwise(const double* data, size_t n,
   \item 两路独立累加在中小规模下稳定接近 2 倍加速（$n \leq 2^{20}$ 时约 $1.85 \sim 2.07$ 倍），说明拆为两条依赖链后处理器可并行调度；当数据超出 L3 后加速比回落至约 1.4 倍，瓶颈转为内存带宽。
   \item 四路独立累加表现最好，$n=4096$ 时达 3.81 倍；$n=2^{20}$ 时仍保持 1.93 倍。
   \item 当 $n \geq 2^{22}$（$\geq$32\,MiB），超过 L3，四路加速比降至 $\sim$1.5 倍，瓶颈转为内存带宽。
-  \item 两两归约在 $n \geq 2^{16}$ 后明显慢于链式累加。归约虽缩短依赖深度，但 scratch 缓冲区的反复读写带来额外访存开销。
+  \item 两两归约在 $n \geq 2^{16}$ 后明显慢于链式累加。当前实现中的 \texttt{scratch} 缓冲区全量拷贝与逐轮写回带来额外访存开销；即便改成原地 stride 归约以减少空间开销，单核下其跨步访存模式也通常难以胜过寄存器内的多路独立累加。
 \end{enumerate}
 
-不同求和顺序的浮点舍入差异极小，最大绝对误差约 $4.66\times 10^{-9}$。
+由于浮点数加法不满足严格结合律，中间结果的舍入路径不同，不同求和顺序会产生极小的浮点舍入差异；以链式累加结果为比较基准，最大绝对误差约 $4.66\times 10^{-9}$。
 
 \subsection{汇编观察}
 通过 \texttt{objdump -Cd -Mintel} 导出各核心函数的汇编，验证编译器指令流是否符合设计预期。以下摘录关键内循环（已省略 nop 对齐）。
@@ -397,7 +398,7 @@ double sum_pairwise(const double* data, size_t n,
 \subsubsection{矩阵：平凡 vs 行优先}
 
 \begin{multicols}{2}
-\begin{lstlisting}[caption=naive 内循环,basicstyle=\ttfamily\tiny,numbers=none]
+\begin{lstlisting}[language={[x86masm]Assembler},caption=naive 内循环,basicstyle=\ttfamily\tiny,numbers=none]
 vmovsd  xmm0, [r10]
 vmulsd  xmm0, xmm0, [rax]
 add     rax,  0x8
@@ -406,7 +407,7 @@ vaddsd  xmm1, xmm1, xmm0
 jne     <loop>
 \end{lstlisting}
 \columnbreak
-\begin{lstlisting}[caption=row\_major 内循环,basicstyle=\ttfamily\tiny,numbers=none]
+\begin{lstlisting}[language={[x86masm]Assembler},caption=row\_major 内循环,basicstyle=\ttfamily\tiny,numbers=none]
 vmovsd      xmm0, [r10+rax*8]
 vfmadd213sd xmm0, xmm1,
             [rcx+rax*8]
@@ -419,7 +420,7 @@ jne         <loop>
 平凡算法 \texttt{add r10, r11} 使指针以 $n \times 8$ 字节跳跃，每次迭代跨越多个 cache line，miss 率显著增高。行优先版本地址连续递增 8 字节，更有利于硬件预取，且编译器自动生成了 FMA 指令（\texttt{vfmadd213sd}），将乘法和加法合为一条。
 
 \subsubsection{矩阵：行优先 + 4 路展开}
-\begin{lstlisting}[caption=unrolled4 内循环,basicstyle=\ttfamily\tiny,numbers=none]
+\begin{lstlisting}[language={[x86masm]Assembler},caption=unrolled4 内循环,basicstyle=\ttfamily\tiny,numbers=none]
 vmovsd      xmm1, [r14]              ; load row[col+0]
 vfmadd213sd xmm1, xmm0, [rax]       ; out[col+0] += row[col+0]*f
 vmovsd      [rax], xmm1
@@ -440,19 +441,19 @@ jne         <loop>
 \subsubsection{求和：链式累加 vs 四路独立累加}
 
 \begin{multicols}{2}
-\begin{lstlisting}[caption=链式累加（单依赖链）,basicstyle=\ttfamily\tiny,numbers=none]
+\begin{lstlisting}[language={[x86masm]Assembler},caption=链式累加（单依赖链）,basicstyle=\ttfamily\tiny,numbers=none]
 vaddsd xmm0, xmm0, [rcx]
 add    rcx, 0x10
 vaddsd xmm0, xmm0, [rcx-0x8]
 jne    <loop>
 \end{lstlisting}
 \columnbreak
-\begin{lstlisting}[caption=四路独立累加,basicstyle=\ttfamily\tiny,numbers=none]
-vaddsd xmm0, xmm0, [rax]
-vaddsd xmm3, xmm3, [rax+0x8]
+\begin{lstlisting}[language={[x86masm]Assembler},caption=四路独立累加,basicstyle=\ttfamily\tiny,numbers=none]
+vaddsd xmm0, xmm0, [rax]       ; chain 0
+vaddsd xmm3, xmm3, [rax+0x8]   ; chain 1
 add    rax, 0x20
-vaddsd xmm1, xmm1, [rax-0x10]
-vaddsd xmm2, xmm2, [rax-0x8]
+vaddsd xmm1, xmm1, [rax-0x10]  ; chain 2
+vaddsd xmm2, xmm2, [rax-0x8]   ; chain 3
 jne    <loop>
 \end{lstlisting}
 \end{multicols}
@@ -478,7 +479,7 @@ jne    <loop>
     求和 & \texttt{pairwise}    & 0.82  & 19.7 & 78.4 & 60.4 & 18.0 & N/A \\
     \bottomrule
   \end{tabular}
-  \caption{VTune 微架构分析结果（Top-Down 指标，P-core）。求和实验采样规模 $n=2^{20}$（8\,MiB），工作集在 L3 以内，DRAM Bound 占比极低，故不单独列出。}
+  \caption{VTune 微架构分析结果（Top-Down 指标，P-core）。求和实验采样规模 $n=2^{20}$（8\,MiB），工作集在 L3 以内，DRAM Bound 占比极低，故表中记为 N/A。注：Top-Down 的 Front-End Bound 与 Bad Speculation 占比极小，未在表中列出，故 Retiring 与 Back-End Bound 之和不为 100\%。}
   \label{tab:vtune_full}
 \end{table}
 
@@ -502,7 +503,7 @@ jne    <loop>
 表 \ref{tab:vtune_mem_matrix} 进一步说明了 cache 层级上的变化。优化后 LLC miss 数量下降约 53.7\%，同时 DRAM Bound 从 77.7\% 明显降到 21.6\%。虽然 L3 Bound 占比上升，但这恰好说明更多访问停留在片上 cache 内解决，没有继续落到主存，因此整体延迟显著降低。
 
 \paragraph{求和问题。}
-链式累加 CPI 0.83，Retiring 14.5\%，Core Bound 58.2\%，瓶颈主要在依赖等待而非内存。两路版本 CPI 最低（0.46），四路版本 CPI 为 0.54；四路的 CPI 略高于两路，可能是因为 4 条累加链的循环体更大，分支预测和指令缓存的微小开销使每周期退休效率略有下降，但四路版本的总迭代次数更少，实际耗时仍更短。四路版本 Retiring 升至 27.9\%，Core Bound 降至 47.7\%；同时其 Memory Bound 为 27.9\%，其中 L1/L2/L3/DRAM Bound 分别为 1.9\%/1.9\%/24.1\%/6.3\%，说明大部分代价已不再是长链串行累加。两两归约则 Memory Bound 高达 60.4\%（Store Bound 7.4\%），验证了 scratch 缓冲区读写的高开销。
+链式累加 CPI 0.83，Retiring 14.5\%，Core Bound 58.2\%，瓶颈主要在依赖等待而非内存。两路版本 CPI 最低（0.46），四路版本 CPI 为 0.54；四路的 CPI 略高于两路，可能是因为 4 条累加链的循环体更大，分支预测和指令缓存的微小开销使每周期退休效率略有下降，但四路版本的总迭代次数更少，实际耗时仍更短。四路版本 Retiring 升至 27.9\%，Core Bound 降至 47.7\%；同时其 Memory Bound 为 27.9\%，其中 L1/L2/L3/DRAM Bound 分别为 1.9\%/1.9\%/24.1\%/6.3\%，说明大部分代价已不再是长链串行累加。两两归约则 Memory Bound 高达 60.4\%（Store Bound 7.4\%），验证了 \texttt{scratch} 缓冲区全量拷贝与逐轮写回的高开销。
 
 \begin{table}[H]
   \centering\scriptsize
@@ -520,7 +521,7 @@ jne    <loop>
   \label{tab:vtune_mem_sum}
 \end{table}
 
-表 \ref{tab:vtune_mem_sum} 可以看出，链式累加的主要问题并不是 DRAM，而是单条依赖链导致的核心等待；而两两归约由于额外的 scratch 写回，把压力明显推高到了更低效的 cache/内存层级。相比之下，超标量版本虽然仍有一定 L3/DRAM 开销，但总体上把更多周期用于有效退休指令，因此整体吞吐更高。两两归约缩短关键路径的思想更适合多线程或分布式场景；而在单核超标量处理器上，寄存器内的独立累加链远快于对 scratch 数组的反复读写，因此理论上的依赖深度优势会被访存代价抵消。
+表 \ref{tab:vtune_mem_sum} 可以看出，链式累加的主要问题并不是 DRAM，而是单条依赖链导致的核心等待；而两两归约由于额外的 \texttt{scratch} 写回，把压力明显推高到了更低效的 cache/内存层级。若允许覆写输入，采用原地 stride 归约确实可以消除额外缓冲区与初始全量拷贝，但其层层跨步读取、写回的访存模式在单核上仍不占优。相比之下，超标量版本虽然仍有一定 L3/DRAM 开销，但总体上把更多周期用于有效退休指令，因此整体吞吐更高。两两归约缩短关键路径的思想更适合多线程或分布式场景；而在单核超标量处理器上，寄存器内的独立累加链远快于树状归约的多轮访存，因此理论上的依赖深度优势会被访存代价抵消。
 
 \subsection{补充：编译器优化级别对比}
 在保持 \texttt{-march=native} 和关闭向量化不变的前提下，本文额外对比了 \texttt{-O0} 与 \texttt{-O3} 的性能差异，共 118 组结果，原始数据见仓库 \texttt{results/opt\_levels} 目录。代表性结果（均为 \texttt{-O0} $\to$ \texttt{-O3}）：矩阵 \texttt{naive} 在 $n=2048$ 时由 72.81\,ms 降至 67.96\,ms（1.07 倍），\texttt{row\_major} 由 8.47\,ms 降至 3.45\,ms（2.45 倍）；求和 \texttt{naive} 在 $n=2^{20}$ 时由 2.87\,ms 降至 0.82\,ms（3.48 倍），\texttt{superscalar4} 由 0.90\,ms 降至 0.40\,ms（2.22 倍）。
@@ -533,10 +534,10 @@ jne    <loop>
 \begin{enumerate}
   \item 矩阵问题里，访存顺序是最关键的因素。行优先在 $n=2048$ 时达到 20.09 倍加速，加上 4 路展开后达到 22.41 倍；VTune 中行优先的 CPI 从 3.29 降到 0.34，DRAM Bound 从 79.3\% 降到 17.7\%，LLC miss 也从 29.7M 降到 13.8M（u4）。
   \item 求和问题里，多条独立累加链确实能缓解串行依赖。四路版本最高达到 3.81 倍加速，汇编中可以看到 4 条独立 \texttt{vaddsd} 指令链；VTune 中 CPI 从 0.83 降到 0.54，Core Bound 从 58.2\% 降到 47.7\%。超过 L3 后，瓶颈逐渐转为带宽，加速比也回落到 $\sim$1.5 倍。
-  \item 两两归约并不一定更快。虽然它缩短了归约深度，但 scratch 缓冲区带来的额外读写使 Memory Bound 达到 60.4\%，大规模时反而慢于链式累加。
+  \item 两两归约并不一定更快。当前实现中，\texttt{scratch} 缓冲区带来的全量拷贝与额外读写使 Memory Bound 达到 60.4\%，大规模时反而慢于链式累加；即便改成原地 stride 归约来降低空间复杂度，单核下其不连续访存模式通常仍难胜过寄存器内的多路独立累加。
   \item 从计时结果、汇编和 VTune 指标可以相互印证：矩阵优化的核心是改善 cache 局部性，求和优化的核心是缩短依赖链；循环展开只有在访存已经连续化之后才更容易带来收益。
 \end{enumerate}
 
-综合来看，本次实验体现了软硬协同的基本思路：当瓶颈在访存（Memory Bound）时，算法层面的 cache 局部性优化是第一优先级，编译器和微架构层面的优化空间有限；当访存已不再是瓶颈、瓶颈转为算力（Core Bound）时，减少数据依赖、提高指令级并行度（ILP）才能进一步释放超标量处理器的吞吐能力。两类优化并非相互替代，而是分别对应不同层级的性能瓶颈，需要结合 profiling 工具定位后有针对性地施加。
+综合来看，本次实验体现了软硬协同的基本思路：当瓶颈在访存（Memory Bound）时，应优先做 cache 局部性优化，编译器和微架构层面的额外收益有限；当瓶颈转为算力（Core Bound）时，则应通过降低依赖、提高指令级并行度（ILP）进一步释放超标量吞吐。两类优化并非替代关系，而是对应不同层级的性能瓶颈，应结合 profiling 结果有针对性地选择。
 
 \end{document}
