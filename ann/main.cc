@@ -10,8 +10,8 @@
 #include <sys/time.h>
 #include <omp.h>
 #include "hnswlib/hnswlib/hnswlib.h"
-#include "flat_scan_simd.h"
 // 可以自行添加需要的头文件
+#include "sq_scan_simd.h"
 
 using namespace hnswlib;
 
@@ -72,7 +72,9 @@ int main(int argc, char *argv[])
     auto base = LoadData<float>(data_path + "DEEP100K.base.100k.fbin", base_number, vecdim);
     // 只测试前2000条查询
     test_number = 2000;
-
+    SQIndex sq_index;
+    sq_index.build(base, base_number, vecdim);
+    const size_t rerank_p = 1000;
     const size_t k = 10;
 
     std::vector<SearchResult> results;
@@ -94,7 +96,7 @@ int main(int argc, char *argv[])
 
         // 该文件已有代码中你只能修改该函数的调用方式
         // 可以任意修改函数名，函数参数或者改为调用成员函数，但是不能修改函数返回值。
-        auto res = flat_search(base, test_query + i*vecdim, base_number, vecdim, k);
+        auto res = sq_search(base, test_query + i*vecdim, base_number, vecdim, k, sq_index, rerank_p);
 
         struct timeval newVal;
         ret = gettimeofday(&newVal, NULL);
