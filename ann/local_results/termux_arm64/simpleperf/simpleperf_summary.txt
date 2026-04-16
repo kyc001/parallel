@@ -1,0 +1,20 @@
+===== simpleperf result files =====
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/local_results/termux_arm64/simpleperf/compile.log
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/local_results/termux_arm64/simpleperf/simpleperf_env.txt
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/local_results/termux_arm64/simpleperf/simpleperf_record.log
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/local_results/termux_arm64/simpleperf/simpleperf_report.txt
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/local_results/termux_arm64/simpleperf/simpleperf_stat.txt
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/local_results/termux_arm64/simpleperf/simpleperf_stat_software.txt
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/local_results/termux_arm64/simpleperf/simpleperf_summary.txt
+
+===== stat output =====
+===== simpleperf stat =====
+simpleperf E environment.cpp:282] failed to write -1 to /proc/sys/kernel/perf_event_paranoid: Permission denied
+
+===== record output =====
+===== simpleperf record =====
+simpleperf E environment.cpp:282] failed to write -1 to /proc/sys/kernel/perf_event_paranoid: Permission denied
+
+===== report output =====
+simpleperf record did not produce /data/data/com.termux/files/home/workspace/parallel_repo/ann/local_results/termux_arm64/simpleperf/bench_simpleperf.data.
+See simpleperf_record.log for the exact error.

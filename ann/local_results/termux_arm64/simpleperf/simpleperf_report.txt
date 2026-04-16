@@ -1,0 +1,2 @@
+simpleperf record did not produce /data/data/com.termux/files/home/workspace/parallel_repo/ann/local_results/termux_arm64/simpleperf/bench_simpleperf.data.
+See simpleperf_record.log for the exact error.

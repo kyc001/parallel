@@ -1,0 +1,17 @@
+===== simpleperf environment =====
+Thu Apr 16 15:41:41 UTC 2026
+
+simpleperf path:
+/system/bin/simpleperf
+
+simpleperf version:
+
+user:
+uid=0(root) gid=0(root) groups=0(root),3003(aid_inet),9997(aid_everybody),20219(aid_u0_a219_cache),50219(aid_all_a219)
+
+kernel:
+Linux localhost 6.17.0-PRoot-Distro #1 SMP PREEMPT_DYNAMIC Fri, 10 Oct 2025 00:00:00 +0000 aarch64 aarch64 aarch64 GNU/Linux
+
+perf_event_paranoid:
+-1
+

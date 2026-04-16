@@ -14,6 +14,8 @@ Contents include:
 - `optlevel_perf.txt`: scalar vs SIMD microbenchmark results.
 - `analyze_objdump.txt`: binary-level disassembly.
 - `all_analysis_output.txt`: combined terminal output from the analysis script.
+- `simpleperf/`: runtime profiling outputs from `simpleperf`, when the Android
+  kernel permits PMU/perf access.
 
 Regenerate with:
 

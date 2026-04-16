@@ -8,3 +8,5 @@ ann/*.txt
 ann/*.bak
 ann/analyze
 ann/bench_O*
+ann/local_results/*/simpleperf/*.data
+ann/local_results/*/simpleperf/compile.log

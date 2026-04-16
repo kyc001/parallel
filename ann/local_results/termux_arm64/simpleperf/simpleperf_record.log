@@ -1,0 +1,2 @@
+===== simpleperf record =====
+simpleperf E environment.cpp:282] failed to write -1 to /proc/sys/kernel/perf_event_paranoid: Permission denied
