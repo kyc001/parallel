@@ -1,0 +1,14 @@
+===== Auto-vectorization of serial code =====
+--- O2 level ---
+Did compiler auto-vectorize ip_distance_serial at O2?
+0
+NEON instructions in serial function at O2:
+
+--- O3 level ---
+Did compiler auto-vectorize ip_distance_serial at O3?
+
+--- Instruction count comparison (O2) ---
+ip_distance_serial instruction count:
+23
+ip_distance_simd instruction count:
+117

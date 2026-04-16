@@ -12,45 +12,30 @@
 ## 📁 项目结构
 
 ```
-
 ann/
-
-├── [main.cc](http://main.cc)                # 主程序（数据加载、查询测试、recall/latency 计算）
-
+├── main.cc                # 主程序（数据加载、查询测试、recall/latency 计算）
 ├── flat_scan.h            # 原始串行 flat search（baseline）
-
 ├── flat_scan_simd.h       # Flat-SIMD：NEON 加速 IP 距离（4路展开）
-
 ├── sq_scan_simd.h         # SQ-SIMD：uint8 标量量化 + 两阶段检索
-
 ├── pq_scan_simd.h         # PQ-SIMD：乘积量化 + ADC 查表 + 两阶段检索
-
 ├── hnswlib/               # hnswlib 库（从 GitHub clone）
-
 ├── files/                 # 数据文件目录（已在 .gitignore 中排除）
-
 │   ├── DEEP100K.base.100k.fbin      # 37MB - base 向量
-
 │   ├── DEEP100K.query.fbin           # 3.7MB - 查询向量
-
-│   └── [DEEP100K.gt.query.100k.top](http://DEEP100K.gt.query.100k.top)100.bin  # 7.7MB - groundtruth
-
-├── [analyze.cc](http://analyze.cc)             # 汇编分析用的独立测试文件
-
-├── bench_[optlevel.cc](http://optlevel.cc)      # 不同优化等级性能对比测试
-
-├── asm_analysis.txt       # 关键函数汇编代码
-
-├── neon_stats.txt         # NEON 指令统计
-
-├── vec_report.txt         # 编译器自动向量化报告
-
-├── autovec_analysis.txt   # 自动向量化分析
-
-├── optlevel_perf.txt      # 不同优化等级性能数据
-
-└── .gitignore             # 排除 files/ 和编译产物
-
+│   └── DEEP100K.gt.query.100k.top100.bin  # groundtruth
+├── analysis/              # 可复现的汇编分析源码和脚本
+│   ├── analyze.cc
+│   ├── bench_optlevel.cc
+│   └── run_asm_analysis.sh
+└── local_results/
+    └── termux_arm64/      # 本机 Termux/ARM64 生成的实验与汇编结果
+        ├── asm_analysis.txt
+        ├── neon_stats.txt
+        ├── vec_report.txt
+        ├── autovec_analysis.txt
+        ├── optlevel_perf.txt
+        ├── analyze_O*.s
+        └── bin/           # 本机二进制产物，已在 .gitignore 中排除
 ```
 
 ## 🚀 快速开始
@@ -64,11 +49,9 @@ ann/
 ### 编译运行
 
 ```
-
-g++ [main.cc](http://main.cc) -o main -O2 -fopenmp -lpthread -std=c++11
+g++ main.cc -o main -O2 -fopenmp -lpthread -std=c++11
 
 ./main
-
 ```
 
 ### 切换不同算法版本
@@ -84,19 +67,21 @@ g++ [main.cc](http://main.cc) -o main -O2 -fopenmp -lpthread -std=c++11
 
 SQ/PQ 版本需要在查询循环前构建索引：
 ```
-
 // SQ
-
 SQIndex sq_index;
-
-sq_[index.build](http://index.build)(base, base_number, vecdim);
+sq_index.build(base, base_number, vecdim);
 
 // PQ
-
 PQIndex pq_index;
+pq_index.build(base, base_number, vecdim, 8, 256, 20); // M=8, ksub=256, niter=20
+```
 
-pq_[index.build](http://index.build)(base, base_number, vecdim, 8, 256, 20); // M=8, ksub=256, niter=20
+### 汇编分析
 
+汇编分析相关源码放在 `analysis/`，本机生成结果放在 `local_results/termux_arm64/`，避免服务器运行时覆盖本地实验数据。
+
+```
+bash analysis/run_asm_analysis.sh
 ```
 
 ## 📊 实验结果

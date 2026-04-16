@@ -1,0 +1,116 @@
+=== Auto-vectorization report (O2) ===
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:14:23: missed: couldn't vectorize loop
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:14:23: missed: may need non-SLP handling
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:12:7: note: vectorized 0 loops in function.
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:17:19: note: ***** Analysis failed with vector mode V4SF
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:17:19: note: ***** Skipping vector mode V16QI, which would repeat the analysis for V4SF
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:39:18: missed: couldn't vectorize loop
+/usr/lib/gcc/aarch64-linux-gnu/15/include/arm_neon.h:16335:42: missed: statement clobbers memory: _33 = __builtin_aarch64_float_mlav4sf (sum0_81, _53, _52);
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:33:19: missed: couldn't vectorize loop
+/usr/lib/gcc/aarch64-linux-gnu/15/include/arm_neon.h:16335:42: missed: statement clobbers memory: _36 = __builtin_aarch64_float_mlav4sf (sum0_79, _34, _35);
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:27:7: note: vectorized 0 loops in function.
+/usr/lib/gcc/aarch64-linux-gnu/15/include/arm_neon.h:16335:42: missed: statement clobbers memory: _36 = __builtin_aarch64_float_mlav4sf (sum0_79, _34, _35);
+/usr/lib/gcc/aarch64-linux-gnu/15/include/arm_neon.h:16335:42: missed: statement clobbers memory: _45 = __builtin_aarch64_float_mlav4sf (sum1_83, _43, _44);
+/usr/lib/gcc/aarch64-linux-gnu/15/include/arm_neon.h:16335:42: missed: statement clobbers memory: _48 = __builtin_aarch64_float_mlav4sf (sum2_85, _46, _47);
+/usr/lib/gcc/aarch64-linux-gnu/15/include/arm_neon.h:16335:42: missed: statement clobbers memory: _40 = __builtin_aarch64_float_mlav4sf (sum3_87, _49, _50);
+/usr/lib/gcc/aarch64-linux-gnu/15/include/arm_neon.h:16335:42: missed: statement clobbers memory: _33 = __builtin_aarch64_float_mlav4sf (sum0_81, _53, _52);
+/usr/lib/gcc/aarch64-linux-gnu/15/include/arm_neon.h:17416:38: missed: statement clobbers memory: _60 = __builtin_aarch64_faddpv2sf (_59, _59);
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:42:39: note: ***** Analysis failed with vector mode VOID
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:48:23: missed: couldn't vectorize loop
+/usr/lib/gcc/aarch64-linux-gnu/15/include/arm_neon.h:12362:40: missed: not vectorized: no vectype for stmt: _12 = MEM <__Uint8x16_t> [(unsigned char * {ref-all})_2];
+ scalar_type: __Uint8x16_t
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:46:10: note: vectorized 0 loops in function.
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:57:26: note: ***** Analysis failed with vector mode VOID
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:63:23: missed: couldn't vectorize loop
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:63:23: missed: may need non-SLP handling
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:61:7: note: vectorized 0 loops in function.
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:64:28: note: ***** Analysis failed with vector mode V16QI
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:64:28: note: ***** The result for vector mode V16QI would be the same
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:64:28: note: ***** Re-trying analysis with vector mode V8QI
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:64:28: note: ***** Analysis failed with vector mode V8QI
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:64:28: note: ***** The result for vector mode V4HI would be the same
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:64:28: note: ***** Re-trying analysis with vector mode V2SI
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:64:28: note: ***** Analysis failed with vector mode V2SI
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:71:23: missed: couldn't vectorize loop
+/usr/lib/gcc/aarch64-linux-gnu/15/include/arm_neon.h:16335:42: missed: statement clobbers memory: _12 = __builtin_aarch64_float_mlav4sf (sum_26, _15, _9);
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:69:7: note: vectorized 0 loops in function.
+/usr/lib/gcc/aarch64-linux-gnu/15/include/arm_neon.h:16335:42: missed: statement clobbers memory: _12 = __builtin_aarch64_float_mlav4sf (sum_26, _15, _9);
+/usr/lib/gcc/aarch64-linux-gnu/15/include/arm_neon.h:17416:38: missed: statement clobbers memory: _19 = __builtin_aarch64_faddpv2sf (prephitmp_36, prephitmp_36);
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:74:34: note: ***** Analysis failed with vector mode VOID
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:71:23: missed: couldn't vectorize loop
+/usr/lib/gcc/aarch64-linux-gnu/15/include/arm_neon.h:16335:42: missed: statement clobbers memory: _25 = __builtin_aarch64_float_mlav4sf (sum_53, _21, _23);
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:14:23: optimized: loop vectorized using 16 byte vectors
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:81:5: note: vectorized 1 loops in function.
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:87:10: missed: not vectorized: volatile type: sink ={v} _43;
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:88:28: missed: statement clobbers memory: _1 = ip_distance_simd (&a, &b, 96);
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:88:10: missed: not vectorized: volatile type: sink ={v} _1;
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:89:32: missed: statement clobbers memory: _2 = sq_l2_distance_simd (&ua, &ub, 96);
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:89:11: missed: not vectorized: volatile type: usink ={v} _2;
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:90:24: missed: statement clobbers memory: _3 = adc_distance (&lut, &code, 8);
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:90:10: missed: not vectorized: volatile type: sink ={v} _3;
+/usr/lib/gcc/aarch64-linux-gnu/15/include/arm_neon.h:16335:42: missed: statement clobbers memory: _25 = __builtin_aarch64_float_mlav4sf (sum_53, _21, _23);
+/usr/lib/gcc/aarch64-linux-gnu/15/include/arm_neon.h:17416:38: missed: statement clobbers memory: _30 = __builtin_aarch64_faddpv2sf (_29, _29);
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:91:10: missed: not vectorized: volatile type: sink ={v} _31;
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:81:5: note: ***** Analysis failed with vector mode VOID
+
+=== Auto-vectorization report (O3) ===
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:14:23: optimized: loop vectorized using 16 byte vectors
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:12:7: note: vectorized 1 loops in function.
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:17:19: note: ***** Analysis failed with vector mode V4SF
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:17:19: note: ***** Skipping vector mode V16QI, which would repeat the analysis for V4SF
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:39:18: missed: couldn't vectorize loop
+/usr/lib/gcc/aarch64-linux-gnu/15/include/arm_neon.h:16335:42: missed: statement clobbers memory: _33 = __builtin_aarch64_float_mlav4sf (sum0_81, _53, _52);
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:33:19: missed: couldn't vectorize loop
+/usr/lib/gcc/aarch64-linux-gnu/15/include/arm_neon.h:16335:42: missed: statement clobbers memory: _36 = __builtin_aarch64_float_mlav4sf (sum0_79, _34, _35);
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:27:7: note: vectorized 0 loops in function.
+/usr/lib/gcc/aarch64-linux-gnu/15/include/arm_neon.h:16335:42: missed: statement clobbers memory: _36 = __builtin_aarch64_float_mlav4sf (sum0_79, _34, _35);
+/usr/lib/gcc/aarch64-linux-gnu/15/include/arm_neon.h:16335:42: missed: statement clobbers memory: _45 = __builtin_aarch64_float_mlav4sf (sum1_83, _43, _44);
+/usr/lib/gcc/aarch64-linux-gnu/15/include/arm_neon.h:16335:42: missed: statement clobbers memory: _48 = __builtin_aarch64_float_mlav4sf (sum2_85, _46, _47);
+/usr/lib/gcc/aarch64-linux-gnu/15/include/arm_neon.h:16335:42: missed: statement clobbers memory: _40 = __builtin_aarch64_float_mlav4sf (sum3_87, _49, _50);
+/usr/lib/gcc/aarch64-linux-gnu/15/include/arm_neon.h:16335:42: missed: statement clobbers memory: _77 = __builtin_aarch64_float_mlav4sf (sum0_80, _98, _96);
+/usr/lib/gcc/aarch64-linux-gnu/15/include/arm_neon.h:16335:42: missed: statement clobbers memory: _27 = __builtin_aarch64_float_mlav4sf (_77, _31, _29);
+/usr/lib/gcc/aarch64-linux-gnu/15/include/arm_neon.h:16335:42: missed: statement clobbers memory: _33 = __builtin_aarch64_float_mlav4sf (_27, _53, _52);
+/usr/lib/gcc/aarch64-linux-gnu/15/include/arm_neon.h:17416:38: missed: statement clobbers memory: _60 = __builtin_aarch64_faddpv2sf (_59, _59);
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:42:39: note: ***** Analysis failed with vector mode VOID
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:48:23: missed: couldn't vectorize loop
+/usr/lib/gcc/aarch64-linux-gnu/15/include/arm_neon.h:12362:40: missed: not vectorized: no vectype for stmt: _12 = MEM <__Uint8x16_t> [(unsigned char * {ref-all})_2];
+ scalar_type: __Uint8x16_t
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:46:10: note: vectorized 0 loops in function.
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:57:26: note: ***** Analysis failed with vector mode VOID
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:63:23: missed: couldn't vectorize loop
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:63:23: missed: may need non-SLP handling
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:61:7: note: vectorized 0 loops in function.
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:64:28: note: ***** Analysis failed with vector mode V16QI
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:64:28: note: ***** The result for vector mode V16QI would be the same
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:64:28: note: ***** Re-trying analysis with vector mode V8QI
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:64:28: note: ***** Analysis failed with vector mode V8QI
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:64:28: note: ***** The result for vector mode V4HI would be the same
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:64:28: note: ***** Re-trying analysis with vector mode V2SI
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:64:28: note: ***** Analysis failed with vector mode V2SI
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:71:23: missed: couldn't vectorize loop
+/usr/lib/gcc/aarch64-linux-gnu/15/include/arm_neon.h:16335:42: missed: statement clobbers memory: _12 = __builtin_aarch64_float_mlav4sf (sum_26, _15, _9);
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:69:7: note: vectorized 0 loops in function.
+/usr/lib/gcc/aarch64-linux-gnu/15/include/arm_neon.h:16335:42: missed: statement clobbers memory: _12 = __builtin_aarch64_float_mlav4sf (sum_26, _15, _9);
+/usr/lib/gcc/aarch64-linux-gnu/15/include/arm_neon.h:17416:38: missed: statement clobbers memory: _19 = __builtin_aarch64_faddpv2sf (prephitmp_39, prephitmp_39);
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:74:34: note: ***** Analysis failed with vector mode VOID
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:71:23: missed: couldn't vectorize loop
+/usr/lib/gcc/aarch64-linux-gnu/15/include/arm_neon.h:16335:42: missed: statement clobbers memory: _23 = __builtin_aarch64_float_mlav4sf (sum_86, _19, _21);
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:63:23: missed: couldn't vectorize loop
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:63:23: missed: may need non-SLP handling
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:48:23: missed: couldn't vectorize loop
+/usr/lib/gcc/aarch64-linux-gnu/15/include/arm_neon.h:12362:40: missed: not vectorized: no vectype for stmt: _48 = MEM <__Uint8x16_t> [(unsigned char * {ref-all})_47];
+ scalar_type: __Uint8x16_t
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:14:23: optimized: loop vectorized using 16 byte vectors
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:81:5: note: vectorized 1 loops in function.
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:87:10: missed: not vectorized: volatile type: sink ={v} _72;
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:88:28: missed: statement clobbers memory: _1 = ip_distance_simd (&a, &b, 96);
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:88:10: missed: not vectorized: volatile type: sink ={v} _1;
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:89:11: missed: not vectorized: volatile type: usink ={v} _60;
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:90:10: missed: not vectorized: volatile type: sink ={v} _44;
+/usr/lib/gcc/aarch64-linux-gnu/15/include/arm_neon.h:16335:42: missed: statement clobbers memory: _138 = __builtin_aarch64_float_mlav4sf ({ 0.0, 0.0, 0.0, 0.0 }, _67, _71);
+/usr/lib/gcc/aarch64-linux-gnu/15/include/arm_neon.h:16335:42: missed: statement clobbers memory: _117 = __builtin_aarch64_float_mlav4sf (_138, _147, _119);
+/usr/lib/gcc/aarch64-linux-gnu/15/include/arm_neon.h:16335:42: missed: statement clobbers memory: _23 = __builtin_aarch64_float_mlav4sf (_117, _19, _21);
+/usr/lib/gcc/aarch64-linux-gnu/15/include/arm_neon.h:17416:38: missed: statement clobbers memory: _28 = __builtin_aarch64_faddpv2sf (_27, _27);
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:91:10: missed: not vectorized: volatile type: sink ={v} _29;
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:81:5: note: ***** Analysis failed with vector mode V16QI
+/data/data/com.termux/files/home/workspace/parallel_repo/ann/analysis/analyze.cc:81:5: note: ***** Skipping vector mode V16QI, which would repeat the analysis for V16QI

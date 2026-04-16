@@ -1,3 +1,10 @@
 ann/files/
 ann/main
 *.o
+ann/local_results/*/bin/
+ann/*.s
+ann/*.asm
+ann/*.txt
+ann/*.bak
+ann/analyze
+ann/bench_O*

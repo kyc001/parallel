@@ -1,0 +1,49 @@
+===== NEON Instruction Statistics =====
+
+--- O0 ---
+Total lines:
+673 /data/data/com.termux/files/home/workspace/parallel_repo/ann/local_results/termux_arm64/analyze_O0.s
+NEON float ops (fmla/fmul/fadd/fsub):
+23
+NEON load/store (ld1/st1/ldr q/str q):
+116
+NEON integer ops (umull/uabd/uadalp/addv):
+6
+Scalar float ops (fmul s|fadd s|fsub s):
+6
+
+--- O1 ---
+Total lines:
+299 /data/data/com.termux/files/home/workspace/parallel_repo/ann/local_results/termux_arm64/analyze_O1.s
+NEON float ops (fmla/fmul/fadd/fsub):
+25
+NEON load/store (ld1/st1/ldr q/str q):
+6
+NEON integer ops (umull/uabd/uadalp/addv):
+6
+Scalar float ops (fmul s|fadd s|fsub s):
+6
+
+--- O2 ---
+Total lines:
+329 /data/data/com.termux/files/home/workspace/parallel_repo/ann/local_results/termux_arm64/analyze_O2.s
+NEON float ops (fmla/fmul/fadd/fsub):
+34
+NEON load/store (ld1/st1/ldr q/str q):
+10
+NEON integer ops (umull/uabd/uadalp/addv):
+6
+Scalar float ops (fmul s|fadd s|fsub s):
+9
+
+--- O3 ---
+Total lines:
+451 /data/data/com.termux/files/home/workspace/parallel_repo/ann/local_results/termux_arm64/analyze_O3.s
+NEON float ops (fmla/fmul/fadd/fsub):
+56
+NEON load/store (ld1/st1/ldr q/str q):
+28
+NEON integer ops (umull/uabd/uadalp/addv):
+36
+Scalar float ops (fmul s|fadd s|fsub s):
+22

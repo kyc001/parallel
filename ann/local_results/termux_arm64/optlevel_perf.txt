@@ -1,0 +1,21 @@
+===== Performance at different optimization levels =====
+
+--- O0 ---
+Serial: 465620 us for 1000000 calls (465.62 ns/call)
+SIMD:   262075 us for 1000000 calls (262.07 ns/call)
+Speedup: 1.78x
+
+--- O1 ---
+Serial: 127023 us for 1000000 calls (127.02 ns/call)
+SIMD:   33674 us for 1000000 calls (33.67 ns/call)
+Speedup: 3.77x
+
+--- O2 ---
+Serial: 85906 us for 1000000 calls (85.91 ns/call)
+SIMD:   25016 us for 1000000 calls (25.02 ns/call)
+Speedup: 3.43x
+
+--- O3 ---
+Serial: 84795 us for 1000000 calls (84.80 ns/call)
+SIMD:   25816 us for 1000000 calls (25.82 ns/call)
+Speedup: 3.28x
