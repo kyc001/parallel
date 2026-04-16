@@ -9,6 +9,7 @@
 #include <sstream>
 #include <sys/time.h>
 #include <omp.h>
+#include <algorithm>
 #include "hnswlib/hnswlib/hnswlib.h"
 // 可以自行添加需要的头文件
 #include "sq_scan_simd.h"
@@ -74,11 +75,10 @@ int main(int argc, char *argv[])
     test_number = 2000;
     SQIndex sq_index;
     sq_index.build(base, base_number, vecdim);
-    const size_t rerank_p = 1000;
     const size_t k = 10;
-
-    std::vector<SearchResult> results;
-    results.resize(test_number);
+    const std::vector<size_t> rerank_ps = {
+        100, 200, 500, 1000, 2000, 5000, 10000, 50000, 100000
+    };
 
     // 如果你需要保存索引，可以在这里添加你需要的函数，你可以将下面的注释删除来查看pbs是否将build.index返回到你的files目录中
     // 要保存的目录必须是files/*
@@ -88,47 +88,54 @@ int main(int argc, char *argv[])
     // build_index(base, base_number, vecdim);
 
 
-    // 查询测试代码
-    for(int i = 0; i < test_number; ++i) {
-        const unsigned long Converter = 1000 * 1000;
-        struct timeval val;
-        int ret = gettimeofday(&val, NULL);
+    // 查询测试代码：对多个 rerank_p 分别完整测试 2000 条 query
+    std::cout << std::fixed << std::setprecision(5);
+    for (size_t p_idx = 0; p_idx < rerank_ps.size(); ++p_idx) {
+        const size_t rerank_p = std::min(rerank_ps[p_idx], base_number);
+        std::vector<SearchResult> results(test_number);
 
-        // 该文件已有代码中你只能修改该函数的调用方式
-        // 可以任意修改函数名，函数参数或者改为调用成员函数，但是不能修改函数返回值。
-        auto res = sq_search(base, test_query + i*vecdim, base_number, vecdim, k, sq_index, rerank_p);
+        for(int i = 0; i < test_number; ++i) {
+            const unsigned long Converter = 1000 * 1000;
+            struct timeval val;
+            int ret = gettimeofday(&val, NULL);
 
-        struct timeval newVal;
-        ret = gettimeofday(&newVal, NULL);
-        int64_t diff = (newVal.tv_sec * Converter + newVal.tv_usec) - (val.tv_sec * Converter + val.tv_usec);
+            // 该文件已有代码中你只能修改该函数的调用方式
+            // 可以任意修改函数名，函数参数或者改为调用成员函数，但是不能修改函数返回值。
+            auto res = sq_search(base, test_query + i*vecdim, base_number, vecdim, k, sq_index, rerank_p);
 
-        std::set<uint32_t> gtset;
-        for(int j = 0; j < k; ++j){
-            int t = test_gt[j + i*test_gt_d];
-            gtset.insert(t);
-        }
+            struct timeval newVal;
+            ret = gettimeofday(&newVal, NULL);
+            int64_t diff = (newVal.tv_sec * Converter + newVal.tv_usec) - (val.tv_sec * Converter + val.tv_usec);
 
-        size_t acc = 0;
-        while (res.size()) {
-            int x = res.top().second;
-            if(gtset.find(x) != gtset.end()){
-                ++acc;
+            std::set<uint32_t> gtset;
+            for(int j = 0; j < k; ++j){
+                int t = test_gt[j + i*test_gt_d];
+                gtset.insert(t);
             }
-            res.pop();
+
+            size_t acc = 0;
+            while (res.size()) {
+                int x = res.top().second;
+                if(gtset.find(x) != gtset.end()){
+                    ++acc;
+                }
+                res.pop();
+            }
+            float recall = (float)acc/k;
+
+            results[i] = {recall, diff};
         }
-        float recall = (float)acc/k;
 
-        results[i] = {recall, diff};
+        double avg_recall = 0.0, avg_latency = 0.0;
+        for(int i = 0; i < test_number; ++i) {
+            avg_recall += results[i].recall;
+            avg_latency += results[i].latency;
+        }
+
+        std::cout << "p=" << rerank_p
+                  << ", recall=" << avg_recall / test_number
+                  << ", latency=" << std::setprecision(2) << avg_latency / test_number
+                  << std::setprecision(5) << "\n";
     }
-
-    float avg_recall = 0, avg_latency = 0;
-    for(int i = 0; i < test_number; ++i) {
-        avg_recall += results[i].recall;
-        avg_latency += results[i].latency;
-    }
-
-    // 浮点误差可能导致一些精确算法平均recall不是1
-    std::cout << "average recall: "<<avg_recall / test_number<<"\n";
-    std::cout << "average latency (us): "<<avg_latency / test_number<<"\n";
     return 0;
 }
