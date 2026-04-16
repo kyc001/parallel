@@ -10,7 +10,7 @@
 #include <sys/time.h>
 #include <omp.h>
 #include "hnswlib/hnswlib/hnswlib.h"
-#include "flat_scan.h"
+#include "flat_scan_simd.h"
 // 可以自行添加需要的头文件
 
 using namespace hnswlib;
