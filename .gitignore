@@ -1,13 +1,93 @@
+# Local editor/tool state
+.claude/
+.idea/
+.vscode/
+
+# OS and filesystem noise
+.DS_Store
+Thumbs.db
+Desktop.ini
+*Zone.Identifier
+
+# Temporary files
+tmp/
+*.tmp
+*.bak
+*.swp
+*.swo
+*~
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# C/C++ build outputs
+build/
+out/
+bin/
+cmake-build-*/
+CMakeFiles/
+CMakeCache.txt
+compile_commands.json
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.dll
+*.dylib
+*.exe
+*.pdb
+*.ilk
+*.exp
+a.out
+
+# Profiling and coverage artifacts
+gmon.out
+perf.data
+perf.data.old
+*.gcda
+*.gcno
+*.gcov
+*.profraw
+*.profdata
+
+# LaTeX generated files
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.lof
+*.lot
+*.nav
+*.run.xml
+*.snm
+*.synctex.gz
+*.toc
+*.xdv
+**/report/*.out
+**/main.out
+
+# Lab result noise: keep checked-in summaries, ignore raw profiler projects/logs
+hw2/results/run.log
+hw2/results/vtune_cli/*/
+
+# ANN local build/analysis artifacts
 ann/files/
 ann/main
-*.o
+ann/analyze
+ann/bench_O*
+ann/benchmarks/bench_experiments
 ann/local_results/*/bin/
+ann/local_results/*/simpleperf/*.data
+ann/local_results/*/simpleperf/compile.log
 ann/*.s
 ann/*.asm
 ann/*.txt
 ann/*.bak
-ann/analyze
-ann/bench_O*
-ann/benchmarks/bench_experiments
-ann/local_results/*/simpleperf/*.data
-ann/local_results/*/simpleperf/compile.log
