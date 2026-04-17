@@ -1,5 +1,10 @@
 # Kunpeng Server Results
 
-Reserved for benchmark outputs collected on the ARM Kunpeng server.
+This directory contains the primary benchmark data collected on the Huawei Kunpeng 920 ARM AArch64 server.
 
-Use the reusable scripts in `../../benchmarks/` and write CSV/PNG/log files into this directory to avoid mixing results from different platforms.
+- `baseline_flat.csv`: serial Flat and Flat-SIMD core comparison.
+- `sq_simd.csv`: SQ-SIMD p sweep parsed from `result_sqsimd.txt`.
+- `pq_simd.csv`: PQ-SIMD p sweep parsed from `result_pqsimd.txt`.
+- `RESULTS.md`: human-readable summary with core comparison, p sweeps, and findings.
+
+The raw root-level `result_*.txt` files were folded into these structured outputs and removed from the project root.

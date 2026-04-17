@@ -1,177 +1,80 @@
-# ANNS SIMD 实验（Lab2）
+# ANN-SIMD: Parallel Computing Lab 2
 
-并行程序设计 Lab2 — SIMD 编程实验，选题 **ANN（近似最近邻搜索）**。
+并行程序设计 Lab2 的 SIMD 选题（ANN 近似最近邻搜索）。在 ARM NEON 平台上实现并对比四种检索算法，使用 DEEP100K 数据集测试。
 
-## 📋 项目概述
+## 算法与加速比（鲲鹏 920 实测）
 
-- **平台**：ARM（鲲鹏 920 服务器 / 平板 Termux），使用 **NEON** 指令集
-- **数据集**：DEEP100K（96 维，100K 条 float32 向量，IP 内积距离）
-- **评分**：基础要求上限 90%（13.5 分），进阶加分 10%（1.5 分）
-- **报告**：≤ 15 页，含算法设计、伪代码、实验数据与分析、Git 链接
+| 版本 | Recall | Latency (μs) | 加速比 |
+|---|---:|---:|---:|
+| 串行 Flat (Baseline) | 0.99995 | 16120.74 | 1.00x |
+| Flat-SIMD | 0.99995 | 5821.16 | 2.77x |
+| SQ-SIMD (p=100) | 0.99995 | 2422.68 | 6.65x |
+| PQ-SIMD (p=100) | 0.70930 | 1224.20 | 13.17x |
 
-## 📁 项目结构
+详细 p 值曲线见 `bench_results/kunpeng_server/`。
 
-```
+## 目录结构
+
+```text
 ann/
-├── main.cc                # 主程序（数据加载、查询测试、recall/latency 计算）
-├── flat_scan.h            # 原始串行 flat search（baseline）
-├── flat_scan_simd.h       # Flat-SIMD：NEON 加速 IP 距离（4路展开）
-├── sq_scan_simd.h         # SQ-SIMD：uint8 标量量化 + 两阶段检索
-├── pq_scan_simd.h         # PQ-SIMD：乘积量化 + ADC 查表 + 两阶段检索
-├── hnswlib/               # hnswlib 库（从 GitHub clone）
-├── files/                 # 数据文件目录（已在 .gitignore 中排除）
-│   ├── DEEP100K.base.100k.fbin      # 37MB - base 向量
-│   ├── DEEP100K.query.fbin           # 3.7MB - 查询向量
-│   └── DEEP100K.gt.query.100k.top100.bin  # groundtruth
-├── analysis/              # 可复现的汇编分析源码和脚本
-│   ├── analyze.cc
-│   ├── bench_optlevel.cc
-│   └── run_asm_analysis.sh
-└── local_results/
-    └── termux_arm64/      # 本机 Termux/ARM64 生成的实验与汇编结果
-        ├── asm_analysis.txt
-        ├── neon_stats.txt
-        ├── vec_report.txt
-        ├── autovec_analysis.txt
-        ├── optlevel_perf.txt
-        ├── analyze_O*.s
-        └── bin/           # 本机二进制产物，已在 .gitignore 中排除
+├── main.cc / main_baseline.cc / main_flatsimd.cc / main_sqsimd.cc / main_pqsimd.cc
+│   四份轮换版本，所有版本的 data_path 都是 "/anndata/"
+├── flat_scan.h           # 原始串行 IP 距离
+├── flat_scan_simd.h      # Flat-SIMD (NEON 4 路展开 + 4 累加器)
+├── sq_scan_simd.h        # SQ-SIMD (uint8 量化 + 两阶段检索)
+├── pq_scan_simd.h        # PQ-SIMD (乘积量化 M=8 + ADC 查表)
+├── analysis/             # 汇编分析与性能剖析脚本
+├── benchmarks/           # E1 对齐 / E2 prefetch / E3 规模实验
+├── bench_results/
+│   ├── android_termux_proot_ubuntu/   # 平板（已弃用，保留历史数据）
+│   └── kunpeng_server/                # 主数据来源
+├── local_results/termux_arm64/        # 平板汇编分析历史产物
+├── hnswlib/              # HNSW 库
+├── run_all.sh            # 依次跑 4 版本的脚本
+├── qsub.sh / test.sh     # 服务器提交脚本
+└── README.md
 ```
 
-## 🚀 快速开始
+## 提交测试（鲲鹏 920）
 
-### 环境要求
-
-- ARM AArch64 平台（支持 NEON asimd）
-- g++（支持 C++11）
-- 数据文件放在 `files/` 目录下
-
-### 编译运行
-
-```
-g++ main.cc -o main -O2 -fopenmp -lpthread -std=c++11
-
-./main
+```bash
+bash test.sh 1 1              # 参数：选题序号=1 (ANN)，节点数=1
 ```
 
-### 切换不同算法版本
+四版本轮换：
 
-修改 `main.cc` 中的 `#include` 和查询调用：
-
-| 版本 | include 文件 | 查询函数 | 额外参数 |
-|---|---|---|---|
-| 串行 Baseline | `flat_scan.h` | `flat_search(base, query, N, d, k)` | 无 |
-| Flat-SIMD | `flat_scan_simd.h` | `flat_search(base, query, N, d, k)` | 无 |
-| SQ-SIMD | `sq_scan_simd.h` | `sq_search(base, query, N, d, k, sq_index, p)` | 需构建 SQIndex |
-| PQ-SIMD | `pq_scan_simd.h` | `pq_search(base, query, N, d, k, pq_index, p)` | 需构建 PQIndex |
-
-SQ/PQ 版本需要在查询循环前构建索引：
-```
-// SQ
-SQIndex sq_index;
-sq_index.build(base, base_number, vecdim);
-
-// PQ
-PQIndex pq_index;
-pq_index.build(base, base_number, vecdim, 8, 256, 20); // M=8, ksub=256, niter=20
+```bash
+cp main_baseline.cc main.cc && bash test.sh 1 1
+cp main_flatsimd.cc main.cc && bash test.sh 1 1
+cp main_sqsimd.cc main.cc && bash test.sh 1 1
+cp main_pqsimd.cc main.cc && bash test.sh 1 1
 ```
 
-### 汇编分析
+或直接：
 
-汇编分析相关源码放在 `analysis/`，本机生成结果放在 `local_results/termux_arm64/`，避免服务器运行时覆盖本地实验数据。
-
-```
-bash analysis/run_asm_analysis.sh
+```bash
+bash run_all.sh
 ```
 
-## 📊 实验结果
+## 核心优化要点
 
-### 核心对比
+- Flat-SIMD：NEON `vmlaq_f32` + 4 路循环展开 + 4 独立累加器，消除流水线气泡。
+- SQ-SIMD：float32 到 uint8 量化，粗排用 `vabdq_u8` + `vmull_u8` + `vpadalq_u16`，精排用 float32 IP。
+- PQ-SIMD：M=8 乘积量化（48x 内存压缩），ADC 查表累加。
 
-| 版本 | Recall@10 | Latency (μs) | 加速比 |
-|---|---|---|---|
-| 串行 Flat | 0.99995 | 8282.96 | 1.00x |
-| Flat-SIMD | 0.99995 | 2596.54 | **3.19x** |
-| SQ-SIMD (p=1000) | 0.99995 | 1875.51 | **4.42x** |
-| SQ-SIMD (p=100) | 0.99995 | 1087.87 | **7.61x** |
-| PQ-SIMD (p=1000) | 0.98355 | 1520.52 | **5.45x** |
+## 开发环境
 
-### SQ-SIMD Latency-Recall Tradeoff
+- 日常开发：Windows（i9-13900H，AVX2，仅用于代码编辑 / git）。
+- 主测试：鲲鹏 920 服务器（通过 ssh -J 跳板机提交）。
+- 历史测试：Android 平板 Termux + PRoot Ubuntu（已弃用）。
+- 待启用：x86 3090 服务器（AVX-512 + perf + VTune 进阶实验）。
 
-| p | Recall | Latency (μs) |
-|---|---|---|
-| 100 | 0.99995 | 1087.87 |
-| 200 | 0.99995 | 1387.96 |
-| 500 | 0.99995 | 1856.89 |
-| 1000 | 0.99995 | 2399.20 |
-| 2000 | 0.99995 | 3449.92 |
-| 5000 | 0.99995 | 5649.49 |
-| 10000 | 0.99995 | 10293.17 |
+## 数据集
 
-### PQ-SIMD Latency-Recall Tradeoff (M=8)
+DEEP100K（96 维 float32，100K 向量，IP 距离）。
+服务器固定路径 `/anndata/`，本地不保存数据文件。
 
-| p | Recall | Latency (μs) |
-|---|---|---|
-| 100 | 0.70930 | 842.05 |
-| 200 | 0.83835 | 924.83 |
-| 500 | 0.94740 | 1178.43 |
-| 1000 | 0.98355 | 1520.52 |
-| 2000 | 0.99550 | 2488.09 |
-| 5000 | 0.99980 | 4180.43 |
-| 10000 | 0.99995 | 7268.55 |
+## 致谢
 
-### 汇编分析：不同优化等级性能
-
-| 优化等级 | Serial (ns/call) | SIMD (ns/call) | 加速比 |
-|---|---|---|---|
-| -O0 | 468.62 | 269.90 | 1.74x |
-| -O1 | 120.81 | 31.65 | 3.82x |
-| -O2 | 90.85 | 29.53 | 3.08x |
-| -O3 | 96.92 | 26.19 | 3.70x |
-
-## 🖥️ 开发环境
-
-### 本地开发环境（平板 Termux）
-
-- **设备**：荣耀平板 9（ARM 8核）
-- **系统**：Termux + PRoot-Distro
-- **CPU 特性**：asimd, asimddp（支持 NEON + Dot Product）
-- **工作目录**：`/data/data/com.termux/files/home/workspace/parallel_repo/ann/`
-- **注意**：`main.cc` 中数据路径为 `./files/`
-
-### 远程运行环境
-
-- 远程服务器地址、账号、跳板机、项目路径和数据路径不写入仓库。
-- 在服务器或其他平台运行时，请按课程平台说明或私有文档配置数据路径。
-
-## ⚠️ 提交注意事项
-
-1. 只能通过 `bash test.sh 1 1` 提交，禁止直接运行程序
-2. 新增文件均为 `.h` 格式（header-only）
-3. 提交前按目标平台配置 `main.cc` 中的数据路径
-4. 禁止修改 `test.sh`、禁止将 `test_gt` 作为答案输出
-5. 本地验证正确性后再提交，避免死循环导致服务器崩溃
-
-## 🔧 Git 使用
-
-```
-
-# 提交更改
-
-git add -A
-
-git commit -m "your message"
-
-git push origin master
-
-
-```
-
-## 📝 关键技术笔记
-
-- 96 维是 4 的倍数，NEON `float32x4_t` 无需处理尾部
-- 平板支持 `asimddp`（dot product），可用 `vdotq_u32` 加速 uint8 距离计算
-- `-O2` 下编译器不会自动向量化串行 IP 距离；`-O3` 会但效果不如手写 SIMD
-- PQ 的 `adc_distance` 因间接索引（gather）无法 SIMD 化，保持标量执行
-- SQ 量化精度极高，所有 p 值下 recall 保持 0.99995
-- PQ 量化误差较大，小 p 值 recall 下降，但粗排速度远快于 SQ
+- `hnswlib/` 来自 nmslib/hnswlib。
+- DEEP100K 数据集来自 Babenko & Lempitsky (CVPR 2016)。

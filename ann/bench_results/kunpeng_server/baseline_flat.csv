@@ -1,0 +1,3 @@
+version,recall,latency_us
+baseline_serial_flat,0.99995,16120.74
+flat_simd,0.99995,5821.16
