@@ -1,0 +1,31 @@
+load data ./files/DEEP100K.query.fbin
+dimension: 96  number:10000  size_per_element:4
+load data ./files/DEEP100K.gt.query.100k.top100.bin
+dimension: 100  number:10000  size_per_element:4
+load data ./files/DEEP100K.base.100k.fbin
+dimension: 96  number:100000  size_per_element:4
+[E2] pf=0 run 1 total_us=6468599
+[E2] pf=0 run 2 total_us=6219560
+[E2] pf=0 run 3 total_us=6134565
+[E2] pf=0 run 4 total_us=6263316
+[E2] pf=0 run 5 total_us=6207659
+[E2] pf=4 run 1 total_us=6130809
+[E2] pf=4 run 2 total_us=6203144
+[E2] pf=4 run 3 total_us=6220804
+[E2] pf=4 run 4 total_us=6244325
+[E2] pf=4 run 5 total_us=6266152
+[E2] pf=8 run 1 total_us=6265678
+[E2] pf=8 run 2 total_us=6752636
+[E2] pf=8 run 3 total_us=7648373
+[E2] pf=8 run 4 total_us=7312144
+[E2] pf=8 run 5 total_us=6383157
+[E2] pf=16 run 1 total_us=6193734
+[E2] pf=16 run 2 total_us=6247882
+[E2] pf=16 run 3 total_us=6485157
+[E2] pf=16 run 4 total_us=6711191
+[E2] pf=16 run 5 total_us=6968253
+[E2] pf=32 run 1 total_us=6477509
+[E2] pf=32 run 2 total_us=6612416
+[E2] pf=32 run 3 total_us=6605051
+[E2] pf=32 run 4 total_us=6456625
+[E2] pf=32 run 5 total_us=6291647

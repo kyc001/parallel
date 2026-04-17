@@ -1,0 +1,130 @@
+load data ./files/DEEP100K.query.fbin
+dimension: 96  number:10000  size_per_element:4
+load data ./files/DEEP100K.gt.query.100k.top100.bin
+dimension: 100  number:10000  size_per_element:4
+load data ./files/DEEP100K.base.100k.fbin
+dimension: 96  number:100000  size_per_element:4
+[E3] N=10000 building SQ/PQ indexes
+[PQ] Building index: M=8, dsub=12, ksub=256, niter=20
+[PQ] Training sub-segment 1/8...
+[PQ] Training sub-segment 2/8...
+[PQ] Training sub-segment 3/8...
+[PQ] Training sub-segment 4/8...
+[PQ] Training sub-segment 5/8...
+[PQ] Training sub-segment 6/8...
+[PQ] Training sub-segment 7/8...
+[PQ] Training sub-segment 8/8...
+[PQ] Index built.
+[E3] N=10000 method=serial_flat run 1 avg_us=702.712 recall=0.1034
+[E3] N=10000 method=serial_flat run 2 avg_us=760.489 recall=0.1034
+[E3] N=10000 method=serial_flat run 3 avg_us=816.514 recall=0.1034
+[E3] N=10000 method=serial_flat run 4 avg_us=818.971 recall=0.1034
+[E3] N=10000 method=serial_flat run 5 avg_us=831.453 recall=0.1034
+[E3] N=10000 method=flat_simd run 1 avg_us=267.389 recall=0.1034
+[E3] N=10000 method=flat_simd run 2 avg_us=261.671 recall=0.1034
+[E3] N=10000 method=flat_simd run 3 avg_us=266.913 recall=0.1034
+[E3] N=10000 method=flat_simd run 4 avg_us=262.379 recall=0.1034
+[E3] N=10000 method=flat_simd run 5 avg_us=259.127 recall=0.1034
+[E3] N=10000 method=sq_simd_p100 run 1 avg_us=182.838 recall=0.1034
+[E3] N=10000 method=sq_simd_p100 run 2 avg_us=183.508 recall=0.1034
+[E3] N=10000 method=sq_simd_p100 run 3 avg_us=184.579 recall=0.1034
+[E3] N=10000 method=sq_simd_p100 run 4 avg_us=188.697 recall=0.1034
+[E3] N=10000 method=sq_simd_p100 run 5 avg_us=186.87 recall=0.1034
+[E3] N=10000 method=pq_simd_p1000 run 1 avg_us=649.362 recall=0.1034
+[E3] N=10000 method=pq_simd_p1000 run 2 avg_us=658.226 recall=0.1034
+[E3] N=10000 method=pq_simd_p1000 run 3 avg_us=651.981 recall=0.1034
+[E3] N=10000 method=pq_simd_p1000 run 4 avg_us=649.408 recall=0.1034
+[E3] N=10000 method=pq_simd_p1000 run 5 avg_us=646.862 recall=0.1034
+[E3] N=25000 building SQ/PQ indexes
+[PQ] Building index: M=8, dsub=12, ksub=256, niter=20
+[PQ] Training sub-segment 1/8...
+[PQ] Training sub-segment 2/8...
+[PQ] Training sub-segment 3/8...
+[PQ] Training sub-segment 4/8...
+[PQ] Training sub-segment 5/8...
+[PQ] Training sub-segment 6/8...
+[PQ] Training sub-segment 7/8...
+[PQ] Training sub-segment 8/8...
+[PQ] Index built.
+[E3] N=25000 method=serial_flat run 1 avg_us=2023.19 recall=0.2517
+[E3] N=25000 method=serial_flat run 2 avg_us=2079.25 recall=0.2517
+[E3] N=25000 method=serial_flat run 3 avg_us=2056.11 recall=0.2517
+[E3] N=25000 method=serial_flat run 4 avg_us=2080.63 recall=0.2517
+[E3] N=25000 method=serial_flat run 5 avg_us=1972.51 recall=0.2517
+[E3] N=25000 method=flat_simd run 1 avg_us=703.989 recall=0.2517
+[E3] N=25000 method=flat_simd run 2 avg_us=723.464 recall=0.2517
+[E3] N=25000 method=flat_simd run 3 avg_us=715.308 recall=0.2517
+[E3] N=25000 method=flat_simd run 4 avg_us=746.164 recall=0.2517
+[E3] N=25000 method=flat_simd run 5 avg_us=728.73 recall=0.2517
+[E3] N=25000 method=sq_simd_p100 run 1 avg_us=326.589 recall=0.2517
+[E3] N=25000 method=sq_simd_p100 run 2 avg_us=328.503 recall=0.2517
+[E3] N=25000 method=sq_simd_p100 run 3 avg_us=333.314 recall=0.2517
+[E3] N=25000 method=sq_simd_p100 run 4 avg_us=322.695 recall=0.2517
+[E3] N=25000 method=sq_simd_p100 run 5 avg_us=319.695 recall=0.2517
+[E3] N=25000 method=pq_simd_p1000 run 1 avg_us=798.155 recall=0.2517
+[E3] N=25000 method=pq_simd_p1000 run 2 avg_us=788.158 recall=0.2517
+[E3] N=25000 method=pq_simd_p1000 run 3 avg_us=797.803 recall=0.2517
+[E3] N=25000 method=pq_simd_p1000 run 4 avg_us=804.199 recall=0.2517
+[E3] N=25000 method=pq_simd_p1000 run 5 avg_us=790.438 recall=0.2517
+[E3] N=50000 building SQ/PQ indexes
+[PQ] Building index: M=8, dsub=12, ksub=256, niter=20
+[PQ] Training sub-segment 1/8...
+[PQ] Training sub-segment 2/8...
+[PQ] Training sub-segment 3/8...
+[PQ] Training sub-segment 4/8...
+[PQ] Training sub-segment 5/8...
+[PQ] Training sub-segment 6/8...
+[PQ] Training sub-segment 7/8...
+[PQ] Training sub-segment 8/8...
+[PQ] Index built.
+[E3] N=50000 method=serial_flat run 1 avg_us=3594.95 recall=0.4955
+[E3] N=50000 method=serial_flat run 2 avg_us=4096.53 recall=0.4955
+[E3] N=50000 method=serial_flat run 3 avg_us=4094.13 recall=0.4955
+[E3] N=50000 method=serial_flat run 4 avg_us=3661.73 recall=0.4955
+[E3] N=50000 method=serial_flat run 5 avg_us=3792.49 recall=0.4955
+[E3] N=50000 method=flat_simd run 1 avg_us=1484.62 recall=0.4955
+[E3] N=50000 method=flat_simd run 2 avg_us=1500.34 recall=0.4955
+[E3] N=50000 method=flat_simd run 3 avg_us=1520.24 recall=0.4955
+[E3] N=50000 method=flat_simd run 4 avg_us=1479.76 recall=0.4955
+[E3] N=50000 method=flat_simd run 5 avg_us=1593.45 recall=0.4955
+[E3] N=50000 method=sq_simd_p100 run 1 avg_us=568.56 recall=0.4955
+[E3] N=50000 method=sq_simd_p100 run 2 avg_us=619.218 recall=0.4955
+[E3] N=50000 method=sq_simd_p100 run 3 avg_us=658.908 recall=0.4955
+[E3] N=50000 method=sq_simd_p100 run 4 avg_us=663.092 recall=0.4955
+[E3] N=50000 method=sq_simd_p100 run 5 avg_us=661.833 recall=0.4955
+[E3] N=50000 method=pq_simd_p1000 run 1 avg_us=1181.25 recall=0.4936
+[E3] N=50000 method=pq_simd_p1000 run 2 avg_us=1226.96 recall=0.4936
+[E3] N=50000 method=pq_simd_p1000 run 3 avg_us=1033.54 recall=0.4936
+[E3] N=50000 method=pq_simd_p1000 run 4 avg_us=1135.33 recall=0.4936
+[E3] N=50000 method=pq_simd_p1000 run 5 avg_us=1167.92 recall=0.4936
+[E3] N=100000 building SQ/PQ indexes
+[PQ] Building index: M=8, dsub=12, ksub=256, niter=20
+[PQ] Training sub-segment 1/8...
+[PQ] Training sub-segment 2/8...
+[PQ] Training sub-segment 3/8...
+[PQ] Training sub-segment 4/8...
+[PQ] Training sub-segment 5/8...
+[PQ] Training sub-segment 6/8...
+[PQ] Training sub-segment 7/8...
+[PQ] Training sub-segment 8/8...
+[PQ] Index built.
+[E3] N=100000 method=serial_flat run 1 avg_us=7843.85 recall=0.99995
+[E3] N=100000 method=serial_flat run 2 avg_us=7873.43 recall=0.99995
+[E3] N=100000 method=serial_flat run 3 avg_us=7859 recall=0.99995
+[E3] N=100000 method=serial_flat run 4 avg_us=7833.87 recall=0.99995
+[E3] N=100000 method=serial_flat run 5 avg_us=8115.79 recall=0.99995
+[E3] N=100000 method=flat_simd run 1 avg_us=2839.61 recall=0.99995
+[E3] N=100000 method=flat_simd run 2 avg_us=2844.71 recall=0.99995
+[E3] N=100000 method=flat_simd run 3 avg_us=2819.03 recall=0.99995
+[E3] N=100000 method=flat_simd run 4 avg_us=2809.8 recall=0.99995
+[E3] N=100000 method=flat_simd run 5 avg_us=2873.74 recall=0.99995
+[E3] N=100000 method=sq_simd_p100 run 1 avg_us=1257.02 recall=0.99995
+[E3] N=100000 method=sq_simd_p100 run 2 avg_us=1262.28 recall=0.99995
+[E3] N=100000 method=sq_simd_p100 run 3 avg_us=1262.69 recall=0.99995
+[E3] N=100000 method=sq_simd_p100 run 4 avg_us=1245.99 recall=0.99995
+[E3] N=100000 method=sq_simd_p100 run 5 avg_us=1232.96 recall=0.99995
+[E3] N=100000 method=pq_simd_p1000 run 1 avg_us=1708.4 recall=0.98355
+[E3] N=100000 method=pq_simd_p1000 run 2 avg_us=1716.2 recall=0.98355
+[E3] N=100000 method=pq_simd_p1000 run 3 avg_us=1726.6 recall=0.98355
+[E3] N=100000 method=pq_simd_p1000 run 4 avg_us=1725.4 recall=0.98355
+[E3] N=100000 method=pq_simd_p1000 run 5 avg_us=1717.04 recall=0.98355

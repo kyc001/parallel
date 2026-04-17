@@ -1,0 +1,4 @@
+alignment,latency_us,speedup_vs_64B
+64B,6238505.00,1.00000
+16B_new,6143142.00,1.01552
+offset_1B,6668860.00,0.93547
