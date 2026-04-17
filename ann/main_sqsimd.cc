@@ -11,7 +11,7 @@
 #include <omp.h>
 #include <algorithm>
 #include "hnswlib/hnswlib/hnswlib.h"
-#include "pq_scan_simd.h"
+#include "sq_scan_simd.h"
 
 using namespace hnswlib;
 
@@ -50,8 +50,8 @@ int main(int argc, char *argv[])
     auto base = LoadData<float>(data_path + "DEEP100K.base.100k.fbin", base_number, vecdim);
 
     test_number = 2000;
-    PQIndex pq_index;
-    pq_index.build(base, base_number, vecdim, 8, 256, 20);
+    SQIndex sq_index;
+    sq_index.build(base, base_number, vecdim);
     const size_t k = 10;
     const std::vector<size_t> rerank_ps = {
         100, 200, 500, 1000, 2000, 5000, 10000, 50000, 100000
@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
             struct timeval val;
             gettimeofday(&val, NULL);
 
-            auto res = pq_search(base, test_query + i*vecdim, base_number, vecdim, k, pq_index, rerank_p);
+            auto res = sq_search(base, test_query + i*vecdim, base_number, vecdim, k, sq_index, rerank_p);
 
             struct timeval newVal;
             gettimeofday(&newVal, NULL);
@@ -92,7 +92,7 @@ int main(int argc, char *argv[])
             avg_latency += results[i].latency;
         }
         // ⬇️ 每个 p 都保留原版输出两行，再加一行自定义标签
-        std::cout << "pq_simd, p=" << rerank_p << "\n";
+        std::cout << "sq_simd, p=" << rerank_p << "\n";
         std::cout << "average recall: " << avg_recall / test_number << "\n";
         std::cout << "average latency (us): " << avg_latency / test_number << "\n";
     }
