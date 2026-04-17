@@ -1,0 +1,13 @@
+# flat runs on Windows i9-13900H
+# run 1
+flat_avx2
+average recall: 0.99995
+average latency (us): 4608.46550
+# run 2
+flat_avx2
+average recall: 0.99995
+average latency (us): 3661.50950
+# run 3
+flat_avx2
+average recall: 0.99995
+average latency (us): 4798.44550

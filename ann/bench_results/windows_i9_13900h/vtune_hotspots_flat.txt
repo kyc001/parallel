@@ -1,0 +1,7 @@
+Function            CPU Time  CPU Time:Effective Time  CPU Time:Spin Time  CPU Time:Overhead Time  Module             Function (Full)                       Source File  Start Address
+------------------  --------  -----------------------  ------------------  ----------------------  -----------------  ------------------------------------  -----------  -------------
+func@0x140001b60      6.938s                   6.938s                  0s                      0s  main_win_avx2.exe  func@0x140001b60                      [Unknown]    0x140001b60
+malloc                0.033s                   0.033s                  0s                      0s  msvcrt.dll         malloc                                [Unknown]    0x18001d640
+func@0x140001700      0.024s                   0.024s                  0s                      0s  main_win_avx2.exe  func@0x140001700                      [Unknown]    0x140001700
+std::istream::read    0.012s                   0.012s                  0s                      0s  libstdc++-6.dll    std::istream::read(char*, long long)  [Unknown]    0x3be9feeb0
+func@0x3be986b60      0.000s                   0.000s                  0s                      0s  libstdc++-6.dll    func@0x3be986b60                      [Unknown]    0x3be986b60

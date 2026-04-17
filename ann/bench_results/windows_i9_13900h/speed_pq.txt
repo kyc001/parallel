@@ -1,0 +1,13 @@
+# pq runs on Windows i9-13900H
+# run 1
+pq_avx2, p=1000
+average recall: 0.98330
+average latency (us): 2799.46450
+# run 2
+pq_avx2, p=1000
+average recall: 0.98330
+average latency (us): 1761.77600
+# run 3
+pq_avx2, p=1000
+average recall: 0.98330
+average latency (us): 2882.79650

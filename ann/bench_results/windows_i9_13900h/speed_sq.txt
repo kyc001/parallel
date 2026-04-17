@@ -1,0 +1,13 @@
+# sq runs on Windows i9-13900H
+# run 1
+sq_avx2, p=100
+average recall: 0.99995
+average latency (us): 838.38300
+# run 2
+sq_avx2, p=100
+average recall: 0.99995
+average latency (us): 812.45150
+# run 3
+sq_avx2, p=100
+average recall: 0.99995
+average latency (us): 752.00500

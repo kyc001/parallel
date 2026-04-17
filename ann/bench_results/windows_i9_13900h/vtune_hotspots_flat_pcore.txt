@@ -1,0 +1,4 @@
+Function          CPU Time  CPU Time:Effective Time  CPU Time:Spin Time  CPU Time:Overhead Time  Module             Function (Full)   Source File  Start Address
+----------------  --------  -----------------------  ------------------  ----------------------  -----------------  ----------------  -----------  -------------
+func@0x140001b60    2.828s                   2.828s                  0s                      0s  main_win_avx2.exe  func@0x140001b60  [Unknown]    0x140001b60
+func@0x140001480    0.015s                   0.015s                  0s                      0s  main_win_avx2.exe  func@0x140001480  [Unknown]    0x140001480

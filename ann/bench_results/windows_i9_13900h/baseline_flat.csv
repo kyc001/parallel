@@ -1,0 +1,3 @@
+version,recall,latency_us,speedup_vs_baseline
+baseline_serial_flat,0.99995,4571.62,1.00
+flat_avx2,0.99995,1756.11,2.60

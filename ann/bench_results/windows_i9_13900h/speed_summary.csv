@@ -1,0 +1,5 @@
+version,recall,latency_us,speedup_vs_baseline
+baseline,0.99995,6559.04,1.00x
+flat,0.99995,4608.47,1.42x
+sq,0.99995,812.45,8.07x
+pq,0.98330,2799.46,2.34x

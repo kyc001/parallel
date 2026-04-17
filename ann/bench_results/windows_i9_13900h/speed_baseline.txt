@@ -1,0 +1,13 @@
+# baseline runs on Windows i9-13900H
+# run 1
+baseline_serial_flat
+average recall: 0.99995
+average latency (us): 10906.90200
+# run 2
+baseline_serial_flat
+average recall: 0.99995
+average latency (us): 6559.04250
+# run 3
+baseline_serial_flat
+average recall: 0.99995
+average latency (us): 6202.83850

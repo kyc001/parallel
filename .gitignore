@@ -92,4 +92,7 @@ ann/*.s
 ann/*.asm
 ann/*.txt
 ann/*.bak
-
+ann/main_win_avx2.exe
+ann/*.exe
+ann/vtune_*/
+ann/bench_results/windows_i9_13900h/*.raw

@@ -13,6 +13,8 @@
 
 详细 p 值曲线见 `bench_results/kunpeng_server/`。
 
+- Windows i9-13900H AVX2: [RESULTS.md](bench_results/windows_i9_13900h/RESULTS.md)
+
 ## 目录结构
 
 ```text
