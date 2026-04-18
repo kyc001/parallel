@@ -85,6 +85,9 @@ ann/main
 ann/analyze
 ann/bench_O*
 ann/benchmarks/bench_experiments
+ann/HANDOVER_LOCAL.md
+ann/tmp_export_ctx/
+ann/local_results/manual_vs_autovec/
 ann/local_results/*/bin/
 ann/local_results/*/simpleperf/*.data
 ann/local_results/*/simpleperf/compile.log
@@ -96,3 +99,4 @@ ann/main_win_avx2.exe
 ann/*.exe
 ann/vtune_*/
 ann/bench_results/windows_i9_13900h/*.raw
+ann/ad8e8e47-1e93-4c11-aa76-d3e872569d64_ExportBlock-9d5cf685-4331-453b-9e93-db73208f5478.zip

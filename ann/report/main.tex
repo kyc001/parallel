@@ -1,334 +1,401 @@
-\documentclass[a4paper]{article}
+\documentclass[a4paper,11pt,UTF8]{ctexart}
 
-\input{style/ch_xelatex.tex}
-\input{style/scala.tex}
-
-%代码段设置
-\lstset{numbers=left,
-basicstyle=\tiny,
-numberstyle=\tiny,
-keywordstyle=\color{blue!70},
-commentstyle=\color{red!50!green!50!blue!50},
-frame=single, rulesepcolor=\color{red!20!green!20!blue!20},
-escapeinside=``
-}
-
-\graphicspath{ {images/} }
-\usepackage{ctex}
-\usepackage{graphicx}
-\usepackage{color,framed}%文本框
-\usepackage{listings}
-\usepackage{caption}
+\usepackage{fontspec}
+\usepackage[a4paper,left=2.2cm,right=2.2cm,top=2.4cm,bottom=2.4cm]{geometry}
+\usepackage{amsmath}
 \usepackage{amssymb}
-\usepackage{enumerate}
-\usepackage{xcolor}
-\usepackage{bm} 
-\usepackage{lastpage}%获得总页数
-\usepackage{fancyhdr}
-\usepackage{tabularx}  
-\usepackage{geometry}
-\usepackage{minted}
-\usepackage{graphics}
-\usepackage{subfigure}
-\usepackage{float}
-\usepackage{pdfpages}
-\usepackage{pgfplots}
-\pgfplotsset{width=10cm,compat=1.9}
-\usepackage{multirow}
-\usepackage{footnote}
 \usepackage{booktabs}
-
-%-----------------------伪代码------------------
-\usepackage{algorithm}  
-\usepackage{algorithmicx}  
-\usepackage{algpseudocode}  
-\floatname{algorithm}{Algorithm}  
-\renewcommand{\algorithmicrequire}{\textbf{Input:}}  
-\renewcommand{\algorithmicensure}{\textbf{Output:}} 
-\usepackage{lipsum}  
-\makeatletter
-\newenvironment{breakablealgorithm}
-  {% \begin{breakablealgorithm}
-  \begin{center}
-     \refstepcounter{algorithm}% New algorithm
-     \hrule height.8pt depth0pt \kern2pt% \@fs@pre for \@fs@ruled
-     \renewcommand{\caption}[2][\relax]{% Make a new \caption
-      {\raggedright\textbf{\ALG@name~\thealgorithm} ##2\par}%
-      \ifx\relax##1\relax % #1 is \relax
-         \addcontentsline{loa}{algorithm}{\protect\numberline{\thealgorithm}##2}%
-      \else % #1 is not \relax
-         \addcontentsline{loa}{algorithm}{\protect\numberline{\thealgorithm}##1}%
-      \fi
-      \kern2pt\hrule\kern2pt
-     }
-  }{% \end{breakablealgorithm}
-     \kern2pt\hrule\relax% \@fs@post for \@fs@ruled
-  \end{center}
-  }
-\makeatother
-%------------------------代码-------------------
-\usepackage{xcolor} 
-\usepackage{listings} 
-\lstset{ 
-breaklines,%自动换行
-basicstyle=\small,
-escapeinside=``,
-keywordstyle=\color{ blue!70} \bfseries,
-commentstyle=\color{red!50!green!50!blue!50},% 
-stringstyle=\ttfamily,% 
-extendedchars=false,% 
-linewidth=\textwidth,% 
-numbers=left,% 
-numberstyle=\tiny \color{blue!50},% 
-frame=trbl% 
-rulesepcolor= \color{ red!20!green!20!blue!20} 
-}
-
-%-------------------------页面边距--------------
-\geometry{a4paper,left=2.3cm,right=2.3cm,top=2.7cm,bottom=2.7cm}
-%-------------------------页眉页脚--------------
+\usepackage{caption}
+\usepackage{enumitem}
+\usepackage{float}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{lastpage}
+\usepackage{listings}
 \usepackage{fancyhdr}
-\pagestyle{fancy}
-\lhead{\kaishu \leftmark}
-% \chead{}
-\rhead{\kaishu 并行程序设计实验报告}%加粗\bfseries 
-\lfoot{}
-\cfoot{\thepage}
-\rfoot{}
-\renewcommand{\headrulewidth}{0.1pt}  
-\renewcommand{\footrulewidth}{0pt}%去掉横线
-\newcommand{\HRule}{\rule{\linewidth}{0.5mm}}%标题横线
-\newcommand{\HRulegrossa}{\rule{\linewidth}{1.2mm}}
-\setlength{\textfloatsep}{10mm}%设置图片的前后间距
-%--------------------文档内容--------------------
+\usepackage{xcolor}
+\usepackage{multirow}
+\usepackage{longtable}
+\usepackage{array}
 
-\begin{document}
-\renewcommand{\contentsname}{目\ 录}
-\renewcommand{\appendixname}{附录}
-\renewcommand{\appendixpagename}{附录}
-\renewcommand{\refname}{参考文献} 
+\graphicspath{{./}{fig/}{../bench_results/windows_i9_13900h/plots/}{../bench_results/android_termux_proot_ubuntu/}}
+\hypersetup{colorlinks=true,linkcolor=black,urlcolor=black}
+\linespread{1.06}
+\renewcommand{\today}{\number\year 年 \number\month 月 \number\day 日}
+\renewcommand{\contentsname}{目录}
 \renewcommand{\figurename}{图}
 \renewcommand{\tablename}{表}
-\renewcommand{\today}{\number\year 年 \number\month 月 \number\day 日}
+\captionsetup{font=small,labelsep=quad}
+\setlist{nosep,leftmargin=1.5em}
+\setlength{\textfloatsep}{7pt}
+\setlength{\intextsep}{6pt}
+\setlength{\abovecaptionskip}{4pt}
+\setlength{\belowcaptionskip}{2pt}
+\setlength{\parindent}{2em}
+\setlength{\parskip}{1pt}
+\setlength{\abovedisplayskip}{5pt}
+\setlength{\belowdisplayskip}{5pt}
+\newcommand{\HRule}{\rule{\linewidth}{0.45mm}}
 
-%-------------------------封面----------------
-\begin{titlepage}
-    \begin{center}
-    \includegraphics[width=0.8\textwidth]{NKU.png}\\[1cm]
-    \vspace{20mm}
-		\textbf{\huge\textbf{\kaishu{计算机学院}}}\\[0.5cm]
-		\textbf{\huge{\kaishu{并行程序设计期末报告}}}\\[2.3cm]
-		\textbf{\Huge\textbf{\kaishu{并行加速的xxx算法}}}
+\lstset{
+  basicstyle=\ttfamily\scriptsize,
+  keywordstyle=\color{blue!70!black},
+  commentstyle=\color{green!40!black},
+  numbers=left,
+  numberstyle=\tiny,
+  frame=single,
+  breaklines=true,
+  aboveskip=5pt,
+  belowskip=5pt
+}
 
-		\vspace{\fill}
-    
-    % \textbf{\Large \textbf{并行程序设计期末实验报告}}\\[0.8cm]
-    % \HRule \\[0.9cm]
-    % \HRule \\[2.0cm]
-    \centering
-    \textsc{\LARGE \kaishu{姓名\ :\ 王小红\ 陈小明}}\\[0.5cm]
-    \textsc{\LARGE \kaishu{学号\ :\ 20xxxxxxx}}\\[0.5cm]
-    \textsc{\LARGE \kaishu{专业\ :\ 计算机科学与技术}}\\[0.5cm]
-    
-    \vfill
-    {\Large \today}
-    \end{center}
-\end{titlepage}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\kaishu \leftmark}
+\rhead{\kaishu 并行程序设计实验报告}
+\cfoot{\thepage\ of \pageref{LastPage}}
+\setlength{\headheight}{14pt}
+\renewcommand{\headrulewidth}{0.1pt}
 
-\renewcommand {\thefigure}{\thesection{}.\arabic{figure}}%图片按章标号
-\renewcommand{\figurename}{图}
-\renewcommand{\contentsname}{目录}  
-\cfoot{\thepage\ of \pageref{LastPage}}%当前页 of 总页数
+\begin{document}
 
+\begin{center}
+  \includegraphics[width=0.42\textwidth]{NKU.png}\\[0.45cm]
+  {\large\kaishu 计算机学院\quad 并行程序设计实验报告}\\[0.3cm]
+  \HRule\\[0.4cm]
+  {\LARGE\kaishu Lab2 SIMD 编程：ANN 近似最近邻搜索\par}
+  \vspace{0.18cm}
+  {\large\kaishu AVX2 / NEON 向量化、量化检索与 FastScan 扩展\par}
+  \vspace{0.28cm}
+  \HRule\\[0.35cm]
+  {\normalsize 柯云超\quad 2413575\quad 计算机科学与技术\quad \today}
+\end{center}
+\vspace{0.2cm}
 
-% 生成目录
-\clearpage
-\tableofcontents
-\newpage
+\renewcommand{\thefigure}{\thesection{}.\arabic{figure}}
+\renewcommand{\thetable}{\thesection{}.\arabic{table}}
+\pagestyle{fancy}
 
-%--------------------------Title--------------------------------
-\section{第一层标题}
-\subsection{第二层标题}
-第二层标题比第一层标题小。asdgasgasdkljgasjd
-asdgasdgasdg
+\section*{摘要}
+\addcontentsline{toc}{section}{摘要}
+\markboth{摘要}{}
 
-asdgadga
-\subsubsection{第三层标题}
-第三层标题比第二层标题小。
+本文围绕 ANN（Approximate Nearest Neighbor）选题完成 SIMD 编程实验，在 ARM NEON 与 x86 AVX2 平台上实现并比较了四类检索方法：串行 Flat、Flat-SIMD、SQ-SIMD、PQ-SIMD，并在 Windows i9-13900H 上进一步实现了基于 4-bit PQ 的 FastScan 扩展。针对 SIMD 编程实验的基础要求，本文不仅给出向量化算法设计与实现，还结合已有实验数据讨论了内存对齐、软件预取、问题规模变化、自动向量化与手写 SIMD、以及 VTune / 汇编层面的性能原因。实验使用 DEEP100K 数据集（$N=100000$，$d=96$，IP 距离），统一以前 2000 个查询、$k=10$ 进行评测。
 
-%-------------------------Codes----------------------------------
-\section{代码}
-\subsection{伪代码}
-伪代码
-\begin{breakablealgorithm} 
-  \caption{初始化obj文件信息——对应MeshSimplify类中readfile函数,Face类calMatrix函数} 
-  \begin{algorithmic}[1] %每行显示行号  
-      \Require obj文件,顶点、边、面列表
-      \Ensure 是否读取成功
-      \Function {calMatrix}{$Face$}  
-              \State $normal \gets e1×e2$  
-              \State $normal \gets normal/normal.length$
-              \State $temp[] \gets {normal.x, normal.y, normal.z, normal· Face.v1}$
-              \State $Matrix[i][j]=temp[i] * temp[j]$ 
-              \State \Return{$Matrix$}  
-      \EndFunction
-      \State 根据obj的v和f区分点面信息,读取并加入列表
-      \State $scale \gets $记录点坐标中距离原点最远的分量,以便后续OpenGL进行显示
-      \State $ori \gets $记录中心点,便于OpenGL显示在中心位置,避免有的obj偏移原点较多
-      \State 根据三角面片信息,计算一个面的三条边
-      \State 计算每个面的矩阵$\gets calMatrix$
-      \State 将每个面的矩阵加到各点,由点维护\\
-      \Return True
-  \end{algorithmic}  
-\end{breakablealgorithm}
+结果表明：在 Windows i9-13900H 上，Flat-AVX2 将串行基线从 4571.62 $\mu$s 降至 1756.11 $\mu$s；SQ-AVX2 在 $p=100$ 时以无损 recall 达到 427.01 $\mu$s，取得 10.71$\times$ 加速；PQ-AVX2 在 $p=1000$ 时达到 761.99 $\mu$s、Recall@10 为 0.98330。手写 AVX2 相对标量禁向量化版本达到 8.97$\times$ 加速，相对自动向量化版本仍有 6.98$\times$ 优势。VTune 表明 Flat-AVX2 已进入明显的带宽受限区间，而 SQ/PQ 更偏向计算与 cache 平衡。进一步地，FastScan 在 Windows P-core 绑核实验中于 $p=40\sim1000$ 区间保持约 527--542 $\mu$s 的近似常数时延，在 $p=5000$ 时以 0.99875 的 Recall@10 将时延降至 674.16 $\mu$s，比标准 PQ 快 4.51$\times$，比 Flat-AVX2 快 2.60$\times$。这些结果说明，ANN 场景中的 SIMD 优化应与量化压缩、数据布局和微体系结构特性联合设计，而不仅仅依赖单一的向量指令替换。
 
-\subsection{代码}
-代码样式1
-\begin{minted}[mathescape,
-               linenos,
-               numbersep=5pt,
-               gobble=2,
-               frame=lines,
-               framesep=2mm,
-               highlightcolor=green!40]{c}
+\noindent\textbf{关键词：} ANN，SIMD，AVX2，NEON，标量量化，乘积量化，FastScan，自动向量化
 
-    int main() {
-        cout << "Hello World!" << endl;
-        return 0;
-    }
-\end{minted}
+\section{问题描述与实验目标}
 
-代码样式2
-\begin{lstlisting}[title=逐列访问平凡算法,frame=trbl,language={C++}]
-  void ord()   
-  {
-      double head,tail,freq,head1,tail1,timess=0; // timers
-      init(N);
-      QueryPerformanceFrequency((LARGE_INTEGER *)&freq );
-      QueryPerformanceCounter((LARGE_INTEGER *)&head);
-      for (int i=0; i<NN; i++)
-          for (int j=0; j<NN; j++)
-              col_sum[i] += (b[j][i]*a[j]);
-      QueryPerformanceCounter ((LARGE_INTEGER *)& tail) ;
-      cout << "\nordCol:" <<(tail-head)*1000.0 / freq<< "ms" << endl;
-  }
-\end{lstlisting}
+本次 SIMD 编程实验选择 ANN 近似最近邻搜索任务。给定基向量集合
+\[
+\mathcal{B}=\{x_0,x_1,\dots,x_{N-1}\},\quad x_i\in \mathbb{R}^{96},
+\]
+以及查询向量 $q$，实验目标是在 IP（Inner Product）度量下寻找 top-$k$ 最相近的基向量。串行 Flat 的距离定义为
+\[
+d_{\mathrm{IP}}(x,q)=1-\sum_{j=0}^{d-1}x_jq_j.
+\]
 
-\section{图和表格}
-\subsection{图}
-如图\ref{fig:1}所示
-\begin{figure}[H]
-    \centering
-    \includegraphics[scale=0.3]{NKU.png}
-    \caption{Caption}
-    \label{fig:1}
-\end{figure}
-
-如图\ref{fig:diff}所示。
-如图\ref{fig:diff1}所示。
-\begin{figure}[htbp]
-\centering
-\subfigure[SSE的执行时间和准确率.]{
-\begin{minipage}[t]{0.33\linewidth}
-\centering
-\includegraphics[width=2in]{fig/sse算法运行时间与diff.png}
-\label{fig:diff1}
-\end{minipage}%
-}%
-\subfigure[AVX的执行时间和准确率.]{
-\begin{minipage}[t]{0.33\linewidth}
-\centering
-\includegraphics[width=2in]{fig/avx算法运行时间与diff.png}
-\end{minipage}%
-}%
-\subfigure[OpenMP的执行时间和准确率.]{
-\begin{minipage}[t]{0.33\linewidth}
-\centering
-\includegraphics[width=2in]{fig/omp_diff.png}
-\end{minipage}%
-}%
-\centering
-\caption{不同并行优化算法的执行时间与准确率对比}
-\label{fig:diff}
-\end{figure}
-
-
-表，如表\ref{table:t1}所示。
-\begin{table}[!htbp]
-  \centering
-  \begin{tabular}{ccccccccccc}
-  \toprule  
-  N/n$\backslash$Algo& naive-conv& naive-pool& omp-conv& omp-pool\\
-  \midrule
-  64/2& 0.0167& 0.01255& 0.04142& 0.03799\\
-  64/4& 0.03599&0.0394& 0.0458& 0.0421\\
-  \bottomrule
-  \end{tabular}
-  \caption{性能测试结果(4线程)(单位:ms)}
-  \label{table:t1}
-\end{table}
-
-带单元格表格，如表\ref{table:t2}所示。
-\begin{table}[!htbp]
-  \centering
-  \begin{tabular}{|c|c|c|c|c|c|c|}
-  \hline
-  \multicolumn{2}{|c|}{ \multirow{2}*{$Cost$} }& \multicolumn{5}{c|}{To}\\
-  \cline{3-7}
-  \multicolumn{2}{|c|}{}&$A$&$B$&$C$&$D$&$E$\\
-  \hline
-  \multirow{3}*{From}&$B$&7&0&1&3&8\\
-  \cline{2-7}
-  &$C$&8&1&0&2&7\\
-  \cline{2-7}
-  &$D$&8&3&2&0&5\\
-  \hline
-  \end{tabular}
-  \caption{结点C距离向量表(无毒性逆转)}
-  \label{table:t2}
-\end{table}
-
-推荐你们使用这个网站，将数据填进去，设置好格式之后就可以自动生成表格的latex代码。
-
-\href{https://www.tablesgenerator.com/}{TableGenerator}
-
-\section{其他会用到}
-\subsection{枚举}
-带标号枚举
+直接全扫描的理论复杂度为 $O(Nd)$。当 $N=100000$、$d=96$ 时，单次查询需要完成大量浮点乘加和连续内存访问，既适合使用 SIMD 指令做数据级并行，也适合引入量化与两阶段检索降低代价。因此，本文将大问题拆成以下子问题：
 \begin{enumerate}
-  \item 1
-  \item 2
+  \item 对最基础的 Flat 全扫描进行手写 SIMD 并行化；
+  \item 基于标量量化（SQ）和乘积量化（PQ）构造``粗排 + 精排''两阶段检索；
+  \item 对比不同编程策略，包括内存对齐、软件预取和自动向量化；
+  \item 在 x86 与 ARM 平台上比较 SIMD 并行化效果；
+  \item 使用 VTune、编译器向量化报告和汇编输出来分析性能差异的根本原因；
+  \item 在基础方法之外，引入 4-bit PQ FastScan 作为进一步的结构化优化。
 \end{enumerate}
 
-不带标号枚举
+Git 项目链接为：\url{https://github.com/kyc001/parallel/tree/master/ann}。
+
+\section{实验平台、数据集与测量方法}
+
+\subsection{平台与软件环境}
+
+本文主要使用三个平台的数据：Windows i9-13900H（AVX2，主开发与 VTune 平台）、鲲鹏 920 服务器（NEON，正式 ARM 提交平台）以及历史平板 Termux 数据（NEON，保留用于对齐 / 预取 / 规模实验与横向对照）。实验环境如表 \ref{tab:env} 所示。
+
+\begin{table}[H]
+  \centering\small
+  \begin{tabular}{p{2.8cm}p{2.5cm}p{2.8cm}p{4.9cm}}
+    \toprule
+    平台 & ISA / SIMD & 编译器与工具 & 主要用途 \\
+    \midrule
+    Windows 11, i9-13900H & x86\_64, AVX2 + FMA & MSYS2 MinGW-w64 g++ 14.2.0, VTune 2025 & AVX2 实现、P-core 绑核速度测试、VTune 与汇编分析 \\
+    鲲鹏 920 服务器 & AArch64, NEON & 课程服务器环境，\texttt{bash test.sh 1 1} 提交 & ARM 正式实验数据采集 \\
+    Android 平板 Termux 历史环境 & AArch64, NEON asimd/asimddp & Termux + PRoot Ubuntu & 对齐、prefetch、规模实验与历史交叉验证 \\
+    \bottomrule
+  \end{tabular}
+  \caption{实验平台与用途}
+  \label{tab:env}
+\end{table}
+
+\subsection{数据集与评测指标}
+
+实验使用 DEEP100K 数据集：100K 条 96 维 float32 基向量、10K 条查询向量，以及对应 top-100 ground truth。所有正式速度实验统一取前 2000 个查询，$k=10$。性能评价采用平均单查询时延（$\mu$s）与 Recall@10。Recall@10 定义为返回的 top-10 中命中 ground truth top-10 的比例。
+
+\subsection{测量方式}
+
+Windows 平台的主要 AVX2 实验均在单线程下运行；FastScan 结果额外采用 PowerShell 设置处理器亲和性到 P-core 进行校正。鲲鹏结果使用课程要求的 \texttt{test.sh} 提交方式得到。对于自动向量化对比实验，本文单独构造了 96 维点积微基准并重复调用 200 万次，以纳秒级平均耗时评估标量、自动向量化与手写 SIMD 三种版本。
+
+\section{算法设计与实现}
+
+\subsection{串行 Flat 与 Flat-SIMD}
+
+串行 Flat 的核心是对每个基向量执行一次 96 维点积，复杂度为 $O(Nd)$。其优点是完全精确、实现直接，但访存量大且单次查询需要遍历全部 100K 向量，容易进入带宽受限状态。
+
+Flat-SIMD 的思路是在点积阶段直接使用向量寄存器并行处理多个 float。本文在 AVX2 路径中一次处理 8 个 float，并采用 4 个独立累加器减少流水线依赖；在 NEON 路径中一次处理 4 个 float，同样使用 4 路展开。以 AVX2 为例，核心结构可概括为：
+\begin{lstlisting}[language=C++,caption=Flat-AVX2 的四累加器点积结构（示意）]
+for (; i + 32 <= d; i += 32) {
+    sum0 = _mm256_fmadd_ps(load(x + i),      load(y + i),      sum0);
+    sum1 = _mm256_fmadd_ps(load(x + i + 8),  load(y + i + 8),  sum1);
+    sum2 = _mm256_fmadd_ps(load(x + i + 16), load(y + i + 16), sum2);
+    sum3 = _mm256_fmadd_ps(load(x + i + 24), load(y + i + 24), sum3);
+}
+\end{lstlisting}
+这种写法的理论复杂度不变，仍是 $O(Nd)$，但常数显著降低。
+
+\subsection{SQ-SIMD：标量量化 + 两阶段检索}
+
+SQ（Scalar Quantization）对每一维分别统计最小值和最大值，并将 float32 量化到 uint8：
+\[
+\hat{x}_j = \mathrm{clip}\left(\mathrm{round}\left((x_j-v_{\min,j})\cdot \frac{255}{v_{\max,j}-v_{\min,j}}\right)\right).
+\]
+
+检索阶段分两步完成：
+\begin{enumerate}
+  \item 粗排：将查询同样量化成 uint8，使用 SIMD 计算 96 维 uint8 L2 平方距离，保留 top-$p$ 候选；
+  \item 精排：仅对 top-$p$ 候选重新计算精确 float32 IP 距离，返回 top-$k$。
+\end{enumerate}
+
+因此 SQ 的复杂度可写为
+\[
+T_{\mathrm{SQ}} = O(Nd_{\mathrm{u8}}) + O(pd_{\mathrm{f32}}),
+\]
+其中第一项由粗排主导，第二项由 rerank 主导。由于本实验数据集中 SQ 的量化误差很小，其粗排顺序与原始 IP 顺序高度一致，因此小 $p$ 下即可保持极高 recall。
+
+\subsection{PQ-SIMD：乘积量化 + ADC 检索}
+
+PQ（Product Quantization）将 96 维向量分为 $M=8$ 个子段，每段维度 $d_{\text{sub}}=12$。对每个子段分别做 $k$-means 聚类（本实验取 $k=256$），编码时每个子段只保存 1 个字节的聚类中心编号，故每个向量仅需 8 字节。查询时先构建查找表（LUT），再使用 ADC（Asymmetric Distance Computation）估计距离：
+\[
+\tilde{d}(x,q) = 1 - \sum_{m=1}^{M} \mathrm{LUT}_m[\mathrm{code}_m(x)].
+\]
+
+PQ 的粗排复杂度约为 $O(NM)$，比 SQ 的 $O(Nd)$ 更低；但由于量化更激进，小 $p$ 时 recall 会明显下降。PQ 的优势在于：粗排极快、内存压缩率高、适合在更大规模数据上扩展。
+
+\subsection{FastScan 扩展：4-bit PQ 与查表打包}
+
+为了进一步降低 PQ 的粗排常数项，本文在 Windows AVX2 上实现了 FastScan 扩展，并额外补写了可在 AArch64 NEON 上编译的版本。该方法采用 $M=16$、$K_s=16$ 的 4-bit PQ，将每两个子段的 code 打包进一个字节，并把 LUT 量化到 0--15 的小整数。粗排阶段不再使用 float LUT，而是使用字节查表与饱和累加：
 \begin{itemize}
-  \item 1
-  \item 2
+  \item AVX2 路径使用 \texttt{\_mm256\_shuffle\_epi8}；
+  \item NEON 路径使用 \texttt{vqtbl1q\_u8}。
 \end{itemize}
 
-\subsection{公式}
+这样做的直接收益有两点：其一，LUT 从标准 PQ 的 $M\times 256 \times 4$ Byte 缩小为 $M\times 16$ Byte；其二，批量扫描时可显著提升 cache 友好性和查表吞吐。FastScan 的总复杂度仍可写成
+\[
+T_{\mathrm{FS}} = O(NM) + O(pd),
+\]
+但其中粗排部分的常数显著小于标准 PQ。
 
-多行公式
-\begin{align}
-  a+b = a + b \\
-  \frac{a+b}{a-b}
-\end{align}
-\begin{equation}
-    a+b = a + b \\
-  \frac{a+b}{a-b}
-\end{equation}
+\begin{table}[H]
+  \centering\small
+  \begin{tabular}{lccc}
+    \toprule
+    方法 & 每向量存储 & 粗排主要代价 & 备注 \\
+    \midrule
+    Flat / Flat-SIMD & 384 B & $O(Nd)$ float32 点积 & 精确检索 \\
+    SQ-SIMD & 96 B & $O(Nd)$ uint8 L2 & 4$\times$ 压缩，recall 很稳 \\
+    PQ-SIMD ($M=8$) & 8 B & $O(NM)$ ADC 查表 & 48$\times$ 压缩 \\
+    FastScan ($M=16$, 4-bit) & 8 B & $O(NM)$ 小 LUT 查表 + 打包累加 & LUT 更小，粗排常数更低 \\
+    \bottomrule
+  \end{tabular}
+  \caption{几种方法的复杂度与存储开销比较}
+  \label{tab:method_memory}
+\end{table}
 
-单行公式：$$\sum^N_{i=1}$$
-行内公式：$\sum^N_{i=1}$
+\section{实验结果与分析}
 
-推荐你们使用\textit{Mathpix Snip}。是一个公式识别软件，可以自动生成公式对应的latex代码。
+\subsection{核心方法对比：Windows AVX2 与鲲鹏 NEON}
 
-\subsection{链接}
-参考文献\cite{quinn1994parallel}\cite{golub2014scientific}\cite{joseph2022parallel}
-\textbf{超链接}  \href{http://youtube.com/}{YouTube}
+表 \ref{tab:core_compare} 汇总了当前最具有代表性的两组核心对比结果：Windows i9-13900H AVX2 与鲲鹏 920 NEON。为了保证 recall 与延迟的平衡，SQ 取 $p=100$，PQ 取 $p=1000$。
+
+\begin{table}[H]
+  \centering\small
+  \begin{tabular}{lrrrrr}
+    \toprule
+    方法 & Recall@10 & i9 AVX2 ($\mu$s) & 鲲鹏 NEON ($\mu$s) & i9 相对基线 & 鲲鹏相对基线 \\
+    \midrule
+    Baseline Flat & 0.99995 & 4571.62 & 16120.74 & 1.00$\times$ & 1.00$\times$ \\
+    Flat-SIMD & 0.99995 & 1756.11 & 5821.16 & 2.60$\times$ & 2.77$\times$ \\
+    SQ-SIMD ($p=100$) & 0.99995 & 427.01 & 2422.68 & 10.71$\times$ & 6.65$\times$ \\
+    PQ-SIMD ($p=1000$) & 0.98330 / 0.98355 & 761.99 & 1984.35 & 6.00$\times$ & 8.12$\times$ \\
+    \bottomrule
+  \end{tabular}
+  \caption{核心方法在 i9 AVX2 与鲲鹏 NEON 上的对比}
+  \label{tab:core_compare}
+\end{table}
+
+可以看到，Flat-SIMD 的提升主要来自向量化后的点积吞吐提高，但由于仍需全量扫描 100K 向量，其收益最终受制于内存带宽。相比之下，SQ 与 PQ 通过两阶段检索降低了精确距离计算次数，因此时延下降更明显。SQ 在本数据集上的一大特点是 recall 非常稳定；PQ 的小 $p$ 区间 recall 会下降，但当 $p$ 提升到 1000 以上后可恢复到较高准确率。
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.78\textwidth]{core_methods_bar.png}
+  \caption{三平台核心方法对比图（已有实验结果整理）}
+  \label{fig:core_bar}
+\end{figure}
+
+\subsection{SQ / PQ 的时延-召回率权衡}
+
+Windows i9 AVX2 的完整调优结果表明，SQ 与 PQ 呈现出两种不同的 tradeoff 曲线。SQ 在整个 $p$ 扫描区间里 recall 基本不变，而延迟近似随 $p$ 线性上升；PQ 则体现出更典型的``小 $p$ 更快但 recall 下降''特征。图 \ref{fig:tradeoff_i9} 给出 i9 上的对比图。
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.78\textwidth]{sq_vs_pq_i9.png}
+  \caption{i9-13900H 上 SQ-AVX2 与 PQ-AVX2 的时延-召回率权衡}
+  \label{fig:tradeoff_i9}
+\end{figure}
+
+从数值上看：
+\begin{itemize}
+  \item SQ-AVX2 在 $p=100$ 时仅 427.01 $\mu$s，Recall@10 仍为 0.99995；
+  \item PQ-AVX2 在 $p=100$ 时更快（398.53 $\mu$s），但 Recall@10 仅为 0.70860；
+  \item PQ-AVX2 在 $p=1000$ 时达到 761.99 $\mu$s、Recall@10 为 0.98330，是更均衡的 PQ 配置；
+  \item 当 $p$ 非常大时，两阶段方法的 rerank 成本逐渐吞噬收益，速度优势减弱。
+\end{itemize}
+
+\subsection{对齐、软件预取与问题规模}
+
+为了覆盖实验指导书中要求的``基本算法 / 编程策略对性能的影响''，本文保留并整理了 ARM 历史环境中 Flat-SIMD 的 E1/E2/E3 实验结果。
+
+\paragraph{对齐与非对齐。}
+E1 使用 64B 对齐、默认 \texttt{new[]} 和 1 字节偏移三种方式分配 Flat-SIMD 的基向量内存。结果表明，AArch64 NEON 对非对齐访问具有硬件容忍性，但强行制造 1B 偏移会带来约 6.45\% 的性能损失，如表 \ref{tab:align_prefetch} 所示。这说明``能跑''不等于``无代价''，对齐仍然影响 cache line split 和访存效率。
+
+\paragraph{软件预取。}
+E2 在 Flat-SIMD 流式扫描上尝试多种预取距离。结果显示该 workload 上显式软件预取并未带来收益，反而在所有 tested distance 下均略慢于无预取基线。这表明当前访问模式已经足够顺序，硬件预取器能够较好地覆盖需求，额外预取指令只会增加额外负担。
+
+\begin{table}[H]
+  \centering\small
+  \begin{tabular}{lrr}
+    \toprule
+    实验项 & 中位总时延（2000 queries, $\mu$s） & 相对基线 \\
+    \midrule
+    E1: 64B 对齐 & 6238505 & 1.0000$\times$ \\
+    E1: 默认 \texttt{new[]} & 6143142 & 1.0155$\times$ \\
+    E1: 1B 偏移非对齐 & 6668860 & 0.9355$\times$ \\
+    \midrule
+    E2: 无预取 & 6219560 & 1.0000$\times$ \\
+    E2: 预取距离 4 & 6220804 & 0.9998$\times$ \\
+    E2: 预取距离 8 & 6752636 & 0.9211$\times$ \\
+    E2: 预取距离 16 & 6485157 & 0.9591$\times$ \\
+    E2: 预取距离 32 & 6477509 & 0.9602$\times$ \\
+    \bottomrule
+  \end{tabular}
+  \caption{ARM 历史环境中的对齐 / 预取实验结果}
+  \label{tab:align_prefetch}
+\end{table}
+
+\paragraph{问题规模。}
+E3 表明 Serial Flat 与 Flat-SIMD 的时延近似随 $N$ 线性增长，符合全扫描的 $O(Nd)$ 复杂度；而 SQ / PQ 的优势只有在基向量规模足够大时才更明显。需要注意的是，E3 在 $N<100000$ 时复用了完整 100K 的 ground truth，因此 recall 数值天然偏低，不能与完整数据规模下的 recall 直接比较；这部分结果主要用于观察规模趋势而非做准确率结论。
+
+\subsection{手写 SIMD 与自动向量化对比}
+
+根据实验指导书的进阶要求，本文额外构造了单独的 96 维点积微基准，对比三种实现：禁用自动向量化的标量版本、允许编译器自动向量化的版本，以及手写 AVX2 版本。表 \ref{tab:autovec} 给出结果。
+
+\begin{table}[H]
+  \centering\small
+  \begin{tabular}{lrr}
+    \toprule
+    版本 & 单次调用耗时（ns） & 相对标量加速比 \\
+    \midrule
+    标量禁向量化 & 27.9491 & 1.00$\times$ \\
+    自动向量化 & 21.7258 & 1.29$\times$ \\
+    手写 AVX2 & 3.11465 & 8.97$\times$ \\
+    \bottomrule
+  \end{tabular}
+  \caption{Windows i9-13900H 上手写 SIMD 与自动向量化对比}
+  \label{tab:autovec}
+\end{table}
+
+编译器向量化报告显示，自动向量化版本的确完成了 256-bit 向量化，日志中出现了``loop vectorized using 32 byte vectors''。然而，实测加速仅为 1.29$\times$。与之相比，手写 AVX2 版本相对自动向量化仍快 6.98$\times$。其根本原因不在于``有没有向量化''，而在于向量化后的代码形态是否充分利用微体系结构：手写版本通过多累加器、显式 FMA 和更规整的依赖链组织，显著提升了流水线利用率，而自动向量化版本虽然产生了 AVX2 指令，却未达到同样的调度质量。
+
+\subsection{VTune 与汇编层面的性能剖析}
+
+Windows i9-13900H 上的 VTune 结果进一步解释了三类方法的瓶颈差异。表 \ref{tab:vtune} 汇总最关键的 Top-Down 指标。
+
+\begin{table}[H]
+  \centering\small
+  \begin{tabular}{lcccccc}
+    \toprule
+    版本 & CPI & Retiring & Front-End & Back-End & Memory Bound & 关键特征 \\
+    \midrule
+    Flat-AVX2（P-core） & 0.904 & 19.5\% & 1.5\% & 71.4\% & 56.3\% & 256-bit FP uOps 33.8\% \\
+    SQ-AVX2 ($p=100$) & 0.307 & 47.5\% & 5.9\% & 23.0\% & 8.7\% & 256-bit Int SIMD 28.6\% \\
+    PQ-AVX2 ($p=1000$) & 0.270 & 68.5\% & 8.0\% & 16.7\% & 0.6\% & 3+ ports utilized 85.9\% \\
+    \bottomrule
+  \end{tabular}
+  \caption{Windows i9-13900H 上的 VTune 微体系结构结果}
+  \label{tab:vtune}
+\end{table}
+
+这组数据给出三个重要结论：
+\begin{enumerate}
+  \item Flat-AVX2 已经显著带宽受限。P-core 绑核后平均频率升至 5.086 GHz，但 Memory Bandwidth 仍占到 91.9\% 时钟，DRAM 峰值带宽约 42.1 GB/s。这意味着继续优化浮点乘加本身的收益有限，系统瓶颈已经主要转移到数据搬运。
+  \item SQ-AVX2 是三者中最均衡的配置。它充分使用 256-bit 整数 SIMD 粗排，又把 rerank 控制在较小的 $p$，因此能在几乎无损 recall 的前提下取得最优的单线程速度。
+  \item PQ-AVX2 查询阶段本身很高效，Retiring 比例最高，但端到端程序时间还包含建索引的 $k$-means 训练开销。若仅看查询阶段，ADC 查表的吞吐是非常强的。
+\end{enumerate}
+
+此外，编译器输出与 VTune 还暴露出一个很有意思的点：Flat 和 SQ 中都能观察到一定程度的 Machine Clears，推测与 \texttt{priority\_queue} 维护 top-$k$ 时的分支和 store-load 依赖有关。这说明在 ANN 这种非纯数值内核里，SIMD 之外的数据结构与控制流也会成为实际瓶颈。
+
+\subsection{FastScan 扩展实验：Windows 已完成，Kunpeng 待补测}
+
+FastScan 是本文在基础要求之外新增的一项结构化优化。Windows i9-13900H P-core 绑核实验结果如表 \ref{tab:fastscan} 所示。
+
+\begin{table}[H]
+  \centering\small
+  \begin{tabular}{rrrr}
+    \toprule
+    $p$ & Recall@10 & FastScan ($\mu$s) & 相对标准 PQ 加速 \\
+    \midrule
+    40 & 0.51400 & 536.447 & -- \\
+    100 & 0.70075 & 529.995 & -- \\
+    500 & 0.93205 & 526.872 & 1.59$\times$ \\
+    1000 & 0.97535 & 541.689 & 1.41$\times$ \\
+    2000 & 0.99265 & 571.850 & 2.87$\times$ \\
+    5000 & 0.99875 & 674.161 & 4.51$\times$ \\
+    \bottomrule
+  \end{tabular}
+  \caption{Windows i9-13900H 上 PQ-FastScan 的正式结果（P-core 绑核）}
+  \label{tab:fastscan}
+\end{table}
+
+FastScan 曲线最有价值的地方在于：从 $p=40$ 到 $p=1000$，Recall@10 从 0.514 提升到 0.975，而时延仍基本稳定在 527--542 $\mu$s。也就是说，其粗排主要成本与 $p$ 无关，$p$ 的增长只在较大范围内逐渐反映为 rerank 成本上升。与标准 PQ 对比，FastScan 在小 $p$ 区间由于固定开销较高不一定占优，但一旦 $p$ 进入中大区间就迅速反超；在 $p=5000$ 时，FastScan 以 0.99875 的 Recall@10 将标准 PQ 的 3042.08 $\mu$s 压缩到 674.16 $\mu$s。相较 Flat-AVX2 的 1756.11 $\mu$s，FastScan 在近乎满 recall 下仍可取得 2.60$\times$ 加速。
+
+目前本文已在本地补写了 NEON 版本的 FastScan 头文件与可直接配合 \texttt{test.sh} 提交的包装脚本，鲲鹏平台的正式结果将在后续补测后并入表格。
+
+\section{综合讨论}
+
+将上述结果合并起来，可以得到四点更一般的认识：
+\begin{enumerate}
+  \item \textbf{Flat-SIMD 的收益会被带宽上限限制。} 当算法仍需全量扫描原始 float32 数据时，SIMD 虽能降低计算常数，却无法消除对主存带宽的依赖。
+  \item \textbf{量化方法的收益不仅来自 SIMD，更来自算法结构变化。} SQ 与 PQ 之所以比 Flat 快很多，关键不只是 SIMD 化了单次距离计算，还在于把大部分候选提前在压缩空间中筛掉了。
+  \item \textbf{SQ 与 PQ 对应不同应用目标。} SQ 在本数据集上几乎无损 recall，适合高准确率优先的场景；PQ 更像可调的 tradeoff 旋钮，适合在准确率与速度之间动态取舍。
+  \item \textbf{手写 SIMD 与数据布局联合优化仍然必要。} 自动向量化只能给出基础收益，而 FastScan 这类需要重构编码布局和 LUT 结构的优化，必须由程序员显式设计。
+\end{enumerate}
+
+\section{结论与后续工作}
+
+本文完成了 ANN 选题在 SIMD 编程实验中的主要基础要求，并在多个方向上做了进阶扩展。基础部分方面，本文在 ARM NEON 与 x86 AVX2 上实现并测量了 Flat-SIMD、SQ-SIMD 与 PQ-SIMD，整理了完整的时延-召回率曲线；同时使用对齐 / 预取 / 规模实验、VTune 与汇编分析解释了性能差异。进阶部分方面，本文完成了手写 SIMD 与自动向量化对比实验、跨平台对比分析，并新增实现了 FastScan 扩展。当前结果表明，SQ-AVX2 ($p=100$) 是整体上最稳健的配置，而 FastScan 在中高 recall 区间展示出最强的延迟优势。
+
+下一步工作有两项：第一，在鲲鹏 920 上提交 FastScan 封装脚本，补齐 ARM FastScan 的正式结果；第二，视课程时间与平台权限情况，继续尝试更细粒度的 top-$k$ 维护优化，以减少 heap 分支与 Machine Clears 对端到端时延的影响。
+
+\appendix
+\section{AI 辅助开发说明}
+
+本次实验使用生成式 AI 辅助了以下工作：梳理 SIMD 实验要求、讨论 SQ / PQ / FastScan 的实现思路、补写 Windows AVX2 与 AArch64 NEON 的封装代码、整理自动向量化与汇编分析的实验入口、以及协助撰写实验报告初稿。完整对话记录将作为附录材料单独提交。需要强调的是，具体算法选择、参数设计、代码落地、结果验证与性能分析均由本人结合本地与服务器实验结果独立完成。
 
 \newpage
+\nocite{*}
 \bibliographystyle{plain}
-\bibliography{reference.bib} 
+\bibliography{reference.bib}
 
 \end{document}
