@@ -1,112 +1,143 @@
-#include <algorithm>
-#include <cstdint>
-#include <fstream>
-#include <iomanip>
-#include <iostream>
-#include <set>
-#include <string>
-#include <sys/time.h>
 #include <vector>
+#include <cstring>
+#include <string>
+#include <iostream>
+#include <fstream>
+#include <set>
+#include <cstdlib>
+#include <queue>
+#include <sys/time.h>
 
 #include "pq_fastscan_simd.h"
 
-template <typename T>
-T* LoadData(const std::string& data_path, size_t& n, size_t& d) {
-    std::ifstream fin(data_path.c_str(), std::ios::in | std::ios::binary);
-    if (!fin) {
-        std::cerr << "failed to open " << data_path << "\n";
-        std::exit(1);
-    }
-    fin.read(reinterpret_cast<char*>(&n), 4);
-    fin.read(reinterpret_cast<char*>(&d), 4);
+template<typename T>
+T *LoadData(std::string data_path, size_t& n, size_t& d)
+{
+    std::ifstream fin;
+    fin.open(data_path.c_str(), std::ios::in | std::ios::binary);
+    fin.read((char*)&n, 4);
+    fin.read((char*)&d, 4);
     T* data = new T[n * d];
-    const int sz = static_cast<int>(sizeof(T));
+    int sz = sizeof(T);
     for (size_t i = 0; i < n; ++i) {
-        fin.read(reinterpret_cast<char*>(data) + i * d * sz, d * sz);
+        fin.read(((char*)data + i * d * sz), d * sz);
     }
     fin.close();
+
     std::cerr << "load data " << data_path << "\n";
     std::cerr << "dimension: " << d << "  number:" << n
               << "  size_per_element:" << sizeof(T) << "\n";
+
     return data;
 }
 
-struct SearchResult {
+struct SearchResult
+{
     float recall;
-    int64_t latency;
+    int64_t latency; // us
 };
 
-static inline int64_t now_us() {
-    const unsigned long converter = 1000 * 1000;
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    return tv.tv_sec * converter + tv.tv_usec;
+static int get_fastscan_rerank_p(size_t base_number)
+{
+    const int default_p = 1000;
+    const char* env_p = std::getenv("FASTSCAN_RERANK_P");
+    if (env_p == NULL || env_p[0] == '\0') {
+        return (int)std::min(base_number, (size_t)default_p);
+    }
+
+    char* endptr = NULL;
+    long parsed = std::strtol(env_p, &endptr, 10);
+    if (endptr == env_p || parsed <= 0) {
+        return (int)std::min(base_number, (size_t)default_p);
+    }
+    if ((size_t)parsed > base_number) {
+        return (int)base_number;
+    }
+    return (int)parsed;
 }
 
-int main(int argc, char** argv) {
-    size_t test_number = 0;
-    size_t base_number = 0;
-    size_t test_gt_d = 0;
-    size_t vecdim = 0;
+static inline std::priority_queue<std::pair<float, uint32_t> >
+fastscan_search_submit(ann_fs::FastScanIndex& fastscan_index,
+                       float* base,
+                       float* query,
+                       size_t base_number,
+                       size_t vecdim,
+                       size_t k,
+                       int rerank_p)
+{
+    (void)base_number;
+    (void)vecdim;
+    return ann_fs::fastscan_search(fastscan_index, base, query, k, rerank_p);
+}
 
-    const std::string data_path = "/anndata/";
-    float* test_query = LoadData<float>(data_path + "DEEP100K.query.fbin", test_number, vecdim);
-    int* test_gt = LoadData<int>(data_path + "DEEP100K.gt.query.100k.top100.bin", test_number, test_gt_d);
-    float* base = LoadData<float>(data_path + "DEEP100K.base.100k.fbin", base_number, vecdim);
+int main(int argc, char *argv[])
+{
+    size_t test_number = 0, base_number = 0;
+    size_t test_gt_d = 0, vecdim = 0;
 
-    test_number = std::min(static_cast<size_t>(2000), test_number);
+    std::string data_path = "/anndata/";
+    auto test_query = LoadData<float>(data_path + "DEEP100K.query.fbin", test_number, vecdim);
+    auto test_gt = LoadData<int>(data_path + "DEEP100K.gt.query.100k.top100.bin", test_number, test_gt_d);
+    auto base = LoadData<float>(data_path + "DEEP100K.base.100k.fbin", base_number, vecdim);
+
+    test_number = std::min((size_t)2000, test_number);
     const size_t k = 10;
-    const std::vector<size_t> rerank_ps = {
-        40, 100, 500, 1000, 2000, 5000
-    };
+    const int rerank_p = get_fastscan_rerank_p(base_number);
 
-    ann_fs::FastScanIndex idx;
-    std::cerr << "[FastScan] training ...\n";
-    ann_fs::train_fastscan(idx, base, static_cast<int>(base_number), static_cast<int>(vecdim));
-    ann_fs::encode_fastscan(idx, base);
-    std::cerr << "[FastScan] trained, codes_packed bytes = "
-              << idx.codes_packed.size() << "\n";
+    std::vector<SearchResult> results;
+    results.resize(test_number);
 
-    std::cout << std::fixed << std::setprecision(5);
-    for (size_t p_idx = 0; p_idx < rerank_ps.size(); ++p_idx) {
-        const size_t rerank_p = std::min(rerank_ps[p_idx], base_number);
-        std::vector<SearchResult> results(test_number);
+    ann_fs::FastScanIndex fastscan_index;
+    ann_fs::train_fastscan(fastscan_index, base, (int)base_number, (int)vecdim);
+    ann_fs::encode_fastscan(fastscan_index, base);
 
-        for (size_t i = 0; i < test_number; ++i) {
-            const int64_t t0 = now_us();
-            std::priority_queue<std::pair<float, uint32_t> > res =
-                ann_fs::fastscan_search(idx, base, test_query + i * vecdim, k,
-                                        static_cast<int>(rerank_p));
-            const int64_t t1 = now_us();
+    for (size_t i = 0; i < test_number; ++i) {
+        const unsigned long Converter = 1000 * 1000;
+        struct timeval val;
+        gettimeofday(&val, NULL);
 
-            std::set<uint32_t> gtset;
-            for (size_t j = 0; j < k; ++j) {
-                gtset.insert(static_cast<uint32_t>(test_gt[j + i * test_gt_d]));
-            }
+        auto res = fastscan_search_submit(
+            fastscan_index,
+            base,
+            test_query + i * vecdim,
+            base_number,
+            vecdim,
+            k,
+            rerank_p);
 
-            size_t hit = 0;
-            while (!res.empty()) {
-                const uint32_t x = res.top().second;
-                if (gtset.find(x) != gtset.end()) {
-                    ++hit;
-                }
-                res.pop();
-            }
-            results[i].recall = static_cast<float>(hit) / static_cast<float>(k);
-            results[i].latency = t1 - t0;
+        struct timeval newVal;
+        gettimeofday(&newVal, NULL);
+        int64_t diff = (newVal.tv_sec * Converter + newVal.tv_usec) -
+                       (val.tv_sec * Converter + val.tv_usec);
+
+        std::set<uint32_t> gtset;
+        for (size_t j = 0; j < k; ++j) {
+            int t = test_gt[j + i * test_gt_d];
+            gtset.insert((uint32_t)t);
         }
 
-        double avg_recall = 0.0;
-        double avg_latency = 0.0;
-        for (size_t i = 0; i < test_number; ++i) {
-            avg_recall += results[i].recall;
-            avg_latency += static_cast<double>(results[i].latency);
+        size_t acc = 0;
+        while (res.size()) {
+            int x = (int)res.top().second;
+            if (gtset.find((uint32_t)x) != gtset.end()) {
+                ++acc;
+            }
+            res.pop();
         }
+        float recall = (float)acc / (float)k;
 
-        std::cout << "fastscan_simd, p=" << rerank_p << "\n";
-        std::cout << "average recall: " << avg_recall / static_cast<double>(test_number) << "\n";
-        std::cout << "average latency (us): " << avg_latency / static_cast<double>(test_number) << "\n";
+        results[i] = {recall, diff};
     }
+
+    float avg_recall = 0, avg_latency = 0;
+    for (size_t i = 0; i < test_number; ++i) {
+        avg_recall += results[i].recall;
+        avg_latency += (float)results[i].latency;
+    }
+
+    std::cout << "fastscan_simd, p=" << rerank_p << "\n";
+    std::cout << "average recall: " << avg_recall / test_number << "\n";
+    std::cout << "average latency (us): " << avg_latency / test_number << "\n";
 
     delete[] test_query;
     delete[] test_gt;
