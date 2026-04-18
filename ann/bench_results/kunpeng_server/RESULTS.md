@@ -41,8 +41,20 @@ Data: DEEP100K (96-dim, N=100K, 2000 queries, k=10).
 | 50000 | 0.99995 | 23857.74 |
 | 100000 | 0.99995 | 42163.42 |
 
+## FastScan p Sweep
+
+Wrapper: `FASTSCAN_RERANK_P=<p> bash run_fastscan_test.sh 1 1`
+
+| p | Recall@10 | Latency (μs) | Speedup vs PQ |
+|---:|---:|---:|---:|
+| 500 | 0.932005 | 1239.10 | 1.26x |
+| 1000 | 0.975253 | 1339.75 | 1.48x |
+| 5000 | 0.998700 | 1925.50 | 2.34x |
+
 ## Key Findings
 
 - Kunpeng baseline is about 1.95x slower than the tablet baseline (16120 μs vs 8282 μs).
 - SIMD acceleration is more pronounced on Kunpeng: PQ-SIMD at p=100 reaches 13.17x speedup.
 - Recall is identical across ARM platforms for matching p values, validating deterministic numerical behavior.
+- FastScan also transfers well to Kunpeng: at p=1000 it reduces latency from 1984.35 μs to 1339.75 μs with recall 0.975253.
+- At high recall, FastScan gains widen further: p=5000 reaches 0.998700 recall at 1925.50 μs, about 2.34x faster than standard PQ-SIMD.

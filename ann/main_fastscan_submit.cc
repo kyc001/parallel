@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <vector>
 #include <cstring>
 #include <string>
@@ -9,6 +10,10 @@
 #include <sys/time.h>
 
 #include "pq_fastscan_simd.h"
+
+#ifndef FASTSCAN_DEFAULT_RERANK_P
+#define FASTSCAN_DEFAULT_RERANK_P 1000
+#endif
 
 template<typename T>
 T *LoadData(std::string data_path, size_t& n, size_t& d)
@@ -39,21 +44,14 @@ struct SearchResult
 
 static int get_fastscan_rerank_p(size_t base_number)
 {
-    const int default_p = 1000;
-    const char* env_p = std::getenv("FASTSCAN_RERANK_P");
-    if (env_p == NULL || env_p[0] == '\0') {
-        return (int)std::min(base_number, (size_t)default_p);
+    int rerank_p = FASTSCAN_DEFAULT_RERANK_P;
+    if (rerank_p <= 0) {
+        rerank_p = 1000;
     }
-
-    char* endptr = NULL;
-    long parsed = std::strtol(env_p, &endptr, 10);
-    if (endptr == env_p || parsed <= 0) {
-        return (int)std::min(base_number, (size_t)default_p);
-    }
-    if ((size_t)parsed > base_number) {
+    if ((size_t)rerank_p > base_number) {
         return (int)base_number;
     }
-    return (int)parsed;
+    return rerank_p;
 }
 
 static inline std::priority_queue<std::pair<float, uint32_t> >
