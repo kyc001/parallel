@@ -1,1 +1,1 @@
-mode=fastscan p=100 recall=0.70075 latency_us=535.689
+mode=fastscan p=100 recall=0.70075 latency_us=526.565

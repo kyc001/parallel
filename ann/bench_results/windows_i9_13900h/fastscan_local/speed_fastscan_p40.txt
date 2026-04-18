@@ -1,0 +1,1 @@
+mode=fastscan_avx2 p=40 recall=0.51265 latency_us=514.59155
