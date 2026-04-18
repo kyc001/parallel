@@ -10,6 +10,8 @@
 #include <queue>
 #include <vector>
 
+#include "pq_blocked_neon.h"
+
 namespace ann_fs {
 
 constexpr int kFastScanNeonBlockSize = 16;
@@ -49,10 +51,12 @@ struct FastScanIndex {
     int M = 16;
     int Ks = 16;
     int dsub = 6;
+    int padded_Ks = 0;
     int N = 0;
     int d = 96;
     int nblk = 0;
     std::vector<std::vector<float>> centroids;
+    std::vector<std::vector<float>> centroids_soa;
     std::vector<uint8_t> codes_packed;
 };
 
@@ -60,7 +64,10 @@ static inline void train_fastscan(FastScanIndex& idx, const float* base, int N, 
     idx.N = N;
     idx.d = d;
     idx.nblk = (N + kFastScanNeonBlockSize - 1) / kFastScanNeonBlockSize;
+    idx.padded_Ks = ann_pq_blocked_neon::padded_ksub(idx.Ks);
     idx.centroids.assign(idx.M, std::vector<float>(static_cast<size_t>(idx.Ks) * idx.dsub, 0.0f));
+    idx.centroids_soa.assign(
+        idx.M, std::vector<float>(static_cast<size_t>(idx.padded_Ks) * idx.dsub, 0.0f));
 
     const int niter = 12;
     std::vector<int> assign(static_cast<size_t>(N), 0);
@@ -71,25 +78,15 @@ static inline void train_fastscan(FastScanIndex& idx, const float* base, int N, 
                         base + static_cast<size_t>(k) * d + static_cast<size_t>(m) * idx.dsub,
                         static_cast<size_t>(idx.dsub) * sizeof(float));
         }
+        ann_pq_blocked_neon::build_soa_from_aos(
+            idx.centroids[m].data(), idx.Ks, idx.dsub, idx.padded_Ks,
+            idx.centroids_soa[m].data());
 
         for (int it = 0; it < niter; ++it) {
             for (int i = 0; i < N; ++i) {
                 const float* x = base + static_cast<size_t>(i) * d + static_cast<size_t>(m) * idx.dsub;
-                float best = 1e30f;
-                int best_k = 0;
-                for (int k = 0; k < idx.Ks; ++k) {
-                    const float* c = &idx.centroids[m][static_cast<size_t>(k) * idx.dsub];
-                    float dist = 0.0f;
-                    for (int j = 0; j < idx.dsub; ++j) {
-                        const float diff = x[j] - c[j];
-                        dist += diff * diff;
-                    }
-                    if (dist < best) {
-                        best = dist;
-                        best_k = k;
-                    }
-                }
-                assign[static_cast<size_t>(i)] = best_k;
+                assign[static_cast<size_t>(i)] = ann_pq_blocked_neon::argmin_l2_blocked(
+                    x, idx.centroids_soa[m].data(), idx.Ks, idx.dsub, idx.padded_Ks, 16);
             }
 
             std::vector<float> sum(static_cast<size_t>(idx.Ks) * idx.dsub, 0.0f);
@@ -113,6 +110,9 @@ static inline void train_fastscan(FastScanIndex& idx, const float* base, int N, 
                         sum[static_cast<size_t>(k) * idx.dsub + j] * inv;
                 }
             }
+            ann_pq_blocked_neon::build_soa_from_aos(
+                idx.centroids[m].data(), idx.Ks, idx.dsub, idx.padded_Ks,
+                idx.centroids_soa[m].data());
         }
     }
 }
@@ -126,21 +126,9 @@ static inline void encode_fastscan(FastScanIndex& idx, const float* base) {
     for (int m = 0; m < idx.M; ++m) {
         for (int i = 0; i < N; ++i) {
             const float* x = base + static_cast<size_t>(i) * d + static_cast<size_t>(m) * idx.dsub;
-            float best = 1e30f;
-            int best_k = 0;
-            for (int k = 0; k < idx.Ks; ++k) {
-                const float* c = &idx.centroids[m][static_cast<size_t>(k) * idx.dsub];
-                float dist = 0.0f;
-                for (int j = 0; j < idx.dsub; ++j) {
-                    const float diff = x[j] - c[j];
-                    dist += diff * diff;
-                }
-                if (dist < best) {
-                    best = dist;
-                    best_k = k;
-                }
-            }
-            raw[static_cast<size_t>(m) * N + i] = static_cast<uint8_t>(best_k);
+            raw[static_cast<size_t>(m) * N + i] = static_cast<uint8_t>(
+                ann_pq_blocked_neon::argmin_l2_blocked(
+                    x, idx.centroids_soa[m].data(), idx.Ks, idx.dsub, idx.padded_Ks, 16));
         }
     }
 

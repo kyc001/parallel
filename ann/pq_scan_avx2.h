@@ -12,6 +12,8 @@
 #include <queue>
 #include <vector>
 
+#include "pq_blocked_avx2.h"
+
 #ifndef ANN_AVX2_COMMON_HELPERS
 #define ANN_AVX2_COMMON_HELPERS
 namespace ann_avx2 {
@@ -132,9 +134,11 @@ struct PQIndex {
     int M;
     int dsub;
     int ksub;
+    int padded_ksub;
     size_t n, d;
 
     std::vector<float> centroids;
+    std::vector<float> centroids_soa;
     std::vector<uint8_t> codes;
 
     void build(const float* base, size_t n_, size_t d_,
@@ -144,8 +148,10 @@ struct PQIndex {
         M = M_;
         ksub = ksub_;
         dsub = static_cast<int>(d / M);
+        padded_ksub = ann_pq_blocked_avx2::padded_ksub(ksub);
 
         centroids.resize(static_cast<size_t>(M) * ksub * dsub);
+        centroids_soa.resize(static_cast<size_t>(M) * padded_ksub * dsub);
         codes.resize(n * M);
 
         std::cerr << "[PQ] Building index: M=" << M
@@ -173,25 +179,18 @@ struct PQIndex {
                             sub_data.data() + idx * dsub,
                             static_cast<size_t>(dsub) * sizeof(float));
             }
+            float* cent_soa = centroids_soa.data() +
+                              static_cast<size_t>(m) * padded_ksub * dsub;
+            ann_pq_blocked_avx2::build_soa_from_aos(
+                cent, ksub, dsub, padded_ksub, cent_soa);
 
             std::vector<int> assign(n);
 
             for (int iter = 0; iter < niter; ++iter) {
                 for (size_t i = 0; i < n; ++i) {
                     const float* vec = sub_data.data() + i * dsub;
-                    float best_dist = FLT_MAX;
-                    int best_c = 0;
-
-                    for (int c = 0; c < ksub; ++c) {
-                        float dist = ann_avx2::l2_dist_sub_avx2(
-                            vec, cent + c * dsub, dsub);
-                        if (dist < best_dist) {
-                            best_dist = dist;
-                            best_c = c;
-                        }
-                    }
-
-                    assign[i] = best_c;
+                    assign[i] = ann_pq_blocked_avx2::argmin_l2_blocked(
+                        vec, cent_soa, ksub, dsub, padded_ksub, 32);
                 }
 
                 std::vector<float> new_cent(
@@ -215,6 +214,8 @@ struct PQIndex {
                         }
                     }
                 }
+                ann_pq_blocked_avx2::build_soa_from_aos(
+                    cent, ksub, dsub, padded_ksub, cent_soa);
             }
 
             for (size_t i = 0; i < n; ++i) {
@@ -228,10 +229,10 @@ struct PQIndex {
     void build_lut(const float* query, float* lut) const {
         for (int m = 0; m < M; ++m) {
             const float* q_sub = query + m * dsub;
-            const float* cent = centroids.data() + m * ksub * dsub;
+            const float* cent = centroids.data() + static_cast<size_t>(m) * ksub * dsub;
             for (int c = 0; c < ksub; ++c) {
                 lut[m * 256 + c] = ann_avx2::dot_sub_avx2(
-                    q_sub, cent + c * dsub, dsub);
+                    q_sub, cent + static_cast<size_t>(c) * dsub, dsub);
             }
         }
     }

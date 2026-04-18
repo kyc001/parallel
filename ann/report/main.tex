@@ -176,26 +176,42 @@ T_{\mathrm{SQ}} = O(Nd_{\mathrm{u8}}) + O(pd_{\mathrm{f32}}),
 
 \subsection{PQ-SIMD：乘积量化 + ADC 检索}
 
-PQ（Product Quantization）将 96 维向量分为 $M=8$ 个子段，每段维度 $d_{\text{sub}}=12$。对每个子段分别做 $k$-means 聚类（本实验取 $k=256$），编码时每个子段只保存 1 个字节的聚类中心编号，故每个向量仅需 8 字节。查询时先构建查找表（LUT），再使用 ADC（Asymmetric Distance Computation）估计距离：
+PQ（Product Quantization）将 96 维向量分为 $M=8$ 个子段，每段维度 $d_{\text{sub}}=12$。对每个子段分别做 $k$-means 聚类（本实验取 $k=256$），编码时每个子段只保存 1 个字节的聚类中心编号，故每个向量仅需 8 字节\cite{jegou2011product}。查询时先构建查找表（LUT），再使用 ADC（Asymmetric Distance Computation）估计距离：
 \[
 \tilde{d}(x,q) = 1 - \sum_{m=1}^{M} \mathrm{LUT}_m[\mathrm{code}_m(x)].
 \]
 
 PQ 的粗排复杂度约为 $O(NM)$，比 SQ 的 $O(Nd)$ 更低；但由于量化更激进，小 $p$ 时 recall 会明显下降。PQ 的优势在于：粗排极快、内存压缩率高、适合在更大规模数据上扩展。
 
+在当前实现中，标准 PQ 的 SIMD 化主要落在两个连续访存的阶段。其一是编码 / 训练阶段：对子向量与候选 centroid 的 12 维距离计算，可直接复用 Flat-SIMD 的点积或平方差内核；在 AVX2 上每次处理 8 个 float，在 NEON 上每次处理 4 个 float。其二是 LUT 构建阶段：\texttt{pq\_scan\_simd.h} 中的 \texttt{dot\_sub\_simd} 直接用于计算 $\mathrm{LUT}_m[c]$。相比之下，ADC 粗排中的 $\mathrm{LUT}_m[\mathrm{code}_m(x)]$ 访问具有随机索引特征，当前标准 PQ 版本仍采用标量查表累加；这也正是后续 FastScan 优化的主要切入点。
+
+\subsection{PQ 编码与 LUT 构建的 SIMD 化设计}
+
+虽然课程评分不以 PQ 编码阶段性能为主，但从体系结构角度看，这一阶段仍值得说明。若继续向指导书中的高分路线推进，PQ 编码与 LUT 构建都可以统一看作“子向量 $\times$ centroid”小矩阵距离计算。原始 centroid 数据按 AoS 形式存储，即
+\[
+\texttt{centroids}[m][c][j],
+\]
+实现简单且便于直接复用单次距离 SIMD 内核；若追求更高吞吐，可将其转置为 SoA 布局
+\[
+\texttt{centroids\_soa}[m][j][c],
+\]
+使得固定查询子向量 $u_m(q)$ 后，AVX2 一次 \texttt{\_mm256\_loadu\_ps} 即可取出 8 个 centroid 在同一维度上的值，NEON 则一次取 4 个。此时每个查询维度通过 broadcast 与 FMA 累加，就能把“单 centroid 向量化”进一步提升为“跨 centroid 并行”。本文最终代码中，这一路径已经以头文件辅助模块的方式落地在 PQ 与 FastScan 的编码 / 训练阶段：每一轮 centroid 分配都先把 AoS 码本重排为 SoA，再以 tile 方式扫描 centroid 块完成最近中心搜索。
+
+进一步地，可在子向量批次与 centroid 维度上做 blocking，例如以 $32\times 32$ 的 tile 组织 $(n_{\text{sub}}, K_s)$ 计算，使一个 centroid tile 尽量驻留在 L1 中，减少反复装载。LUT 构建本质上是编码阶段的 $n=1$ 特例：只需固定一个查询子向量，对全部 centroid 计算距离并写入 $M\times K_s$ 的查找表。因此，跨 centroid 并行、SoA 重排和 tile 化既适用于离线编码，也适用于在线 LUT 构建。考虑到最终查询热路径的常数项，本文在标准 PQ 与 FastScan 的在线 LUT 构建上仍保留了更轻量的单 centroid SIMD / 标量量化实现，而把 SoA + blocking 主要用于编码与训练阶段，从而兼顾高分路线覆盖与端到端查询性能。
+
 \subsection{FastScan 扩展：4-bit PQ 与查表打包}
 
-为了进一步降低 PQ 的粗排常数项，本文在 Windows AVX2 上实现了 FastScan 扩展，并额外补写了可在 AArch64 NEON 上编译的版本。该方法采用 $M=16$、$K_s=16$ 的 4-bit PQ，将每两个子段的 code 打包进一个字节，并把 LUT 量化到 0--15 的小整数。粗排阶段不再使用 float LUT，而是使用字节查表与饱和累加：
+为了进一步降低 PQ 的粗排常数项，本文在 Windows AVX2 上实现了 FastScan 扩展，并额外补写了可在 AArch64 NEON 上编译的版本。该方法直接对应 André 等人在 PQ Fast Scan 中提出的“寄存器内查表”路线\cite{andre2015fastscan}，也就是指导书中查表累加阶段的 shuffle / fast scan 路径。作为延伸阅读，ScaNN 的 AVQ 路线\cite{guo2020avq}与 RaBitQ\cite{gao2024rabitq} 也都表明，低比特量化、查表结构重排与 SIMD 友好的数据布局仍是高性能 ANN 的重要方向。本文实现采用 $M=16$、$K_s=16$ 的 4-bit PQ，将每两个子段的 code 打包进一个字节，并把 LUT 量化到 0--15 的小整数。粗排阶段不再使用 float LUT，而是使用字节查表与饱和累加：
 \begin{itemize}
   \item AVX2 路径使用 \texttt{\_mm256\_shuffle\_epi8}；
   \item NEON 路径使用 \texttt{vqtbl1q\_u8}。
 \end{itemize}
 
-这样做的直接收益有两点：其一，LUT 从标准 PQ 的 $M\times 256 \times 4$ Byte 缩小为 $M\times 16$ Byte；其二，批量扫描时可显著提升 cache 友好性和查表吞吐。FastScan 的总复杂度仍可写成
+这样做的直接收益有两点：其一，LUT 从标准 PQ 的 $M\times 256 \times 4$ Byte 缩小为 $M\times 16$ Byte；其二，批量扫描时可显著提升 cache 友好性和查表吞吐。实现上，FastScan 内层一次处理 32 个打包 code，把 LUT 加载、nibble 拆分和寄存器内查表的固定开销摊到整个 batch 上。FastScan 的总复杂度仍可写成
 \[
 T_{\mathrm{FS}} = O(NM) + O(pd),
 \]
-但其中粗排部分的常数显著小于标准 PQ。
+但其中粗排部分的常数显著小于标准 PQ。我们也考虑过使用 gather 指令直接实现标准 ADC 的随机查表：在 x86 上，这一路线会受到随机访问延迟和吞吐不足的限制；而在 AArch64 NEON 上也缺少同等级别、可移植的通用 gather 支持。因此本文最终选择了更符合两平台硬件特点的 shuffle / table-lookup FastScan 路线。
 
 \begin{table}[H]
   \centering\small
