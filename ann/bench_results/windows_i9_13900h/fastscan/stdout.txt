@@ -1,0 +1,11 @@
+loaded ./files/DEEP100K.base.100k.fbin  n=100000 d=96
+loaded ./files/DEEP100K.query.fbin  n=10000 d=96
+loaded ./files/DEEP100K.gt.query.100k.top100.bin  n=10000 d=100
+[FastScan] training ...
+[FastScan] trained, codes_packed bytes = 800000
+p=40  recall=0.514  latency=536.489 us
+p=100  recall=0.70075  latency=535.689 us
+p=500  recall=0.93205  latency=535.701 us
+p=1000  recall=0.97535  latency=537.298 us
+p=2000  recall=0.99265  latency=574.602 us
+p=5000  recall=0.99875  latency=684.497 us
