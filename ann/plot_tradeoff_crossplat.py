@@ -105,6 +105,7 @@ PQ_DATA = {
 # i9 reference lines for chart 3
 FLAT_I9 = 1756.11
 BASELINE_I9 = 4571.62
+FASTSCAN_I9 = 541.69
 
 
 # =============================================================
@@ -255,6 +256,9 @@ ax.text(FLAT_I9, 0.78, f"flat\n{FLAT_I9:.0f}μs", ha="center", color="gray", fon
 
 ax.axvline(BASELINE_I9, color="gray", linestyle="--", alpha=0.6)
 ax.text(BASELINE_I9, 0.78, f"baseline\n{BASELINE_I9:.0f}μs", ha="center", color="gray", fontsize=9)
+
+ax.axvline(FASTSCAN_I9, color="#d62728", linestyle="--", alpha=0.65)
+ax.text(FASTSCAN_I9, 0.90, f"fastscan\n{FASTSCAN_I9:.0f}μs", ha="center", color="#d62728", fontsize=9)
 
 ax.set_xscale("log")
 ax.set_xlabel("Latency (μs, log scale)")

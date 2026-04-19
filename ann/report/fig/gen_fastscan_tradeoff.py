@@ -41,7 +41,7 @@ ax.set_xlabel('Recall@10')
 ax.set_ylabel('Latency (us)')
 ax.set_title('Windows i9-13900H AVX2 (P-core bound)')
 ax.set_xlim(0.5, 1.005)
-ax.grid(True, alpha=0.3)
+ax.grid(True, which='both', alpha=0.3)
 ax.legend(loc='upper left', fontsize=9)
 
 ax = axes[1]
@@ -56,7 +56,7 @@ ax.set_xlabel('Recall@10')
 ax.set_ylabel('Latency (us)')
 ax.set_title('Kunpeng 920 NEON (test.sh submit)')
 ax.set_xlim(0.6, 1.005)
-ax.grid(True, alpha=0.3)
+ax.grid(True, which='both', alpha=0.3)
 ax.legend(loc='upper left', fontsize=9)
 
 plt.tight_layout()
