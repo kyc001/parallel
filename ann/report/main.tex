@@ -406,13 +406,6 @@ T_{\mathrm{FS}} = O(NM) + O(pd),
 可以看到，Flat-SIMD 的提升主要来自向量化后的点积吞吐提高，但由于仍需全量扫描 100K 向量，其收益最终受制于内存带宽。相比之下，SQ 与 PQ 通过两阶段检索降低了精确距离计算次数，因此时延下降更明显。SQ 在本数据集上的一大特点是 recall 非常稳定；PQ 的小 $p$ 区间 recall 会下降，但当 $p$ 提升到 1000 以上后可恢复到较高准确率。
 进一步引入 FastScan 后，两平台在 $p=1000$ 这一中高 recall 配置上都出现了额外收益：Windows 侧从 761.99 $\mu$s 降到 541.69 $\mu$s，鲲鹏侧从 1984.35 $\mu$s 降到 1339.75 $\mu$s，说明查表压缩与编码打包对 AVX2 和 NEON 都是有效的结构化优化。
 
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.78\textwidth]{core_methods_bar.png}
-  \caption{三平台核心方法对比图（已有实验结果整理）}
-  \label{fig:core_bar}
-\end{figure}
-
 \subsection{SQ / PQ 的时延-召回率权衡}
 
 Windows i9 AVX2 的完整调优结果表明，SQ 与 PQ 呈现出两种不同的 tradeoff 曲线。SQ 在整个 $p$ 扫描区间里 recall 基本不变，而延迟近似随 $p$ 线性上升；PQ 则体现出更典型的``小 $p$ 更快但 recall 下降''特征。图 \ref{fig:tradeoff_i9} 给出 i9 上的对比图。
@@ -432,20 +425,14 @@ Windows i9 AVX2 的完整调优结果表明，SQ 与 PQ 呈现出两种不同的
   \item 当 $p$ 非常大时，两阶段方法的 rerank 成本逐渐吞噬收益，速度优势减弱。
 \end{itemize}
 
-为了进一步覆盖进阶要求中``不同平台对比''维度，本文将 SQ 与 PQ 的完整 $p$ 扫描在三个平台（Windows i9 AVX2、鲲鹏 920 NEON、Android 平板 NEON）上叠加对比，分别见图 \ref{fig:sq_3plat} 与图 \ref{fig:pq_3plat}。两张图共同说明：SQ/PQ 的曲线形状在三平台上几乎一致（量化算法自身的 tradeoff 与平台无关），而纵轴上的时延差距则来自 SIMD 宽度 + 频率 + 带宽组合，这一点将在 \ref{sec:arch} 节集中分析。
+为了进一步覆盖进阶要求中``不同平台对比''维度，本文将 SQ 与 PQ 的完整 $p$ 扫描在三个平台（Windows i9 AVX2、鲲鹏 920 NEON、Android 平板 NEON）上叠加对比，分别见图 \ref{fig:sq_3plat}。两图共同说明：SQ/PQ 的曲线形状在三平台上几乎一致（量化算法自身的 tradeoff 与平台无关），而纵轴上的时延差距则来自 SIMD 宽度 + 频率 + 带宽组合，这一点将在 \ref{sec:arch} 节集中分析。
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.82\textwidth]{sq_tradeoff_3platforms.png}
-  \caption{SQ 在三个平台上的时延-召回率权衡（曲线形状一致，纵轴差距由架构决定）}
+  \includegraphics[width=0.49\textwidth]{sq_tradeoff_3platforms.png}\hfill
+  \includegraphics[width=0.49\textwidth]{pq_tradeoff_3platforms.png}
+  \caption{三平台 tradeoff：左 = SQ，右 = PQ。曲线形状跨平台一致；纵轴差距来自 SIMD 宽度 + 频率 + 带宽}
   \label{fig:sq_3plat}
-\end{figure}
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.82\textwidth]{pq_tradeoff_3platforms.png}
-  \caption{PQ 在三个平台上的时延-召回率权衡}
-  \label{fig:pq_3plat}
 \end{figure}
 
 \subsection{对齐、软件预取与问题规模}
@@ -643,32 +630,9 @@ $3.51\times$ 的加速来源可通过表格拆解：(a) SoA 重排使一次 \tex
 
 结论：在 AVX2 上，\texttt{gather} 指令的实测吞吐\emph{反而比标量查表慢 3.9$\times$}——这与 Intel 优化手册关于 gather 延迟随索引散度线性恶化的说明一致，随机索引 gather 的吞吐远低于固定步长加载。相比之下，FastScan 风格的 \texttt{shuffle\_epi8} 寄存器内查表与 scalar 持平（13.40 vs 13.55 ns/row），但 FastScan 还叠加了 4-bit LUT（尺寸 $M\times 16$ B 而非 $M\times 1024$ B）、编码打包和 batch 扫描三项结构化红利——这些在实际 FastScan 实现里进一步将端到端延迟下降到标准 PQ 的 $0.7\times$（表 \ref{tab:fastscan}）。\textbf{因此选择 shuffle 而非 gather 是有实测依据的设计决策，而非口头断言}。
 
-\subsection{鲲鹏 PQ-SIMD 完整 p 曲线与 SoA+blocking 作用域验证}
+\subsection{鲲鹏 PQ-SIMD 查询热路径未恶化的验证（结论）}
 
-为了独立验证第 3.4 节中"SoA + blocking 优化被有意地限定在编码 / 训练阶段、不修改查询热路径"这一设计决策，本文在鲲鹏 920 上对带有 SoA+blocking 改造后的 \texttt{main\_pqsimd.cc} 以 \texttt{bash test.sh 1 1} 方式做了一次完整 $p$ 扫描。结果如表 \ref{tab:pq_kunpeng_sweep} 所示。
-
-\begin{table}[H]
-  \centering\small
-  \begin{tabular}{rrrr}
-    \toprule
-    $p$ & Recall@10 & PQ-SIMD ($\mu$s) & 对比 SoA 前 \\
-    \midrule
-    100 & 0.70940 & 1225.50 & 1224.20（$\approx$ 持平） \\
-    200 & 0.83845 & 1314.01 & -- \\
-    500 & 0.94755 & 1592.37 & -- \\
-    1000 & 0.98370 & 2032.72 & 1984.35（+2.4\%，测量噪声） \\
-    2000 & 0.99550 & 2875.91 & -- \\
-    5000 & 0.99980 & 4892.23 & -- \\
-    10000 & 0.99995 & 8503.56 & -- \\
-    50000 & 0.99995 & 23343.16 & -- \\
-    100000 & 0.99995 & 31854.19 & -- \\
-    \bottomrule
-  \end{tabular}
-  \caption{鲲鹏 920 上 PQ-SIMD（SoA+blocking 版本）的完整 $p$ 曲线}
-  \label{tab:pq_kunpeng_sweep}
-\end{table}
-
-两点结论：其一，查询时延在测量噪声范围内与 SoA 改造前一致（$p=100$ 时 1225.50 vs 1224.20 $\mu$s；$p=1000$ 时 2032.72 vs 1984.35 $\mu$s，单次查询 $\sim$2 ms，标准误差完全能覆盖 50 $\mu$s 级别的差异），这验证了把 SoA+blocking 限定在编码 / 训练阶段的设计没有恶化查询热路径。其二，PQ-SIMD 的 recall 曲线在 $p$ 较大时稳定收敛到 $0.99995$（$p\geq10000$），但此时的时延已经远超 Flat-SIMD 的 $5821.16$ $\mu$s，说明 PQ 的真实价值区间是 $p\in[500,5000]$ 的中高 recall 带，这也正是下节 FastScan 所针对的区间。
+为独立验证 3.4 节中``SoA + blocking 限定在编码 / 训练阶段、不修改查询热路径''这一设计决策，本文在鲲鹏 920 上对带 SoA + blocking 改造后的 \texttt{main\_pqsimd.cc} 做了完整 $p$ 扫描（数据全表见附录 \ref{tab:pq_kunpeng_sweep}）。两点结论：(i) 查询时延在测量噪声范围内与 SoA 改造前一致（$p=1000$ 时 2032.72 vs 1984.35 $\mu$s，差 $<2.5\%$）——验证设计未恶化查询；(ii) 与 4.4 节实测的编码端 $3.51\times$ 加速合并起来，可定性结论为：\emph{SoA + blocking 在保留查询性能的同时显著加速了离线编码}。
 
 \subsection{PQ-FastScan 查表累加优化的实测结果}
 \label{sec:fastscan_results}
@@ -801,6 +765,9 @@ FastScan 在 x86（$p=1000$，$1.41\times$ vs PQ）与 ARM（$p=1000$，$1.48\ti
 
 后续工作主要有两项：第一，继续补齐 FastScan 在更多 $p$ 取值和重复轮次下的结果，以进一步收敛方差并完善 tradeoff 曲线；第二，视课程时间与平台权限情况，继续尝试更细粒度的 top-$k$ 维护优化，以减少 heap 分支与 Machine Clears 对端到端时延的影响。
 
+\label{sec:endbody}
+
+\clearpage
 \appendix
 \section{AI 辅助开发说明}
 
@@ -850,6 +817,29 @@ VTune 在 Flat-AVX2 上采到 Avg CPU Frequency 只有 1.484 GHz、256-bit FP uO
 \section{补充实验数据}
 \label{sec:appendix_data}
 
+\subsection*{B.0 鲲鹏 PQ-SIMD 完整 $p$-sweep（SoA+blocking 版本）}
+
+\begin{table}[H]
+  \centering\small
+  \begin{tabular}{rrrr}
+    \toprule
+    $p$ & Recall@10 & PQ-SIMD ($\mu$s) & 对比 SoA 前 \\
+    \midrule
+    100 & 0.70940 & 1225.50 & 1224.20（$\approx$ 持平） \\
+    200 & 0.83845 & 1314.01 & -- \\
+    500 & 0.94755 & 1592.37 & -- \\
+    1000 & 0.98370 & 2032.72 & 1984.35（+2.4\%，测量噪声） \\
+    2000 & 0.99550 & 2875.91 & -- \\
+    5000 & 0.99980 & 4892.23 & -- \\
+    10000 & 0.99995 & 8503.56 & -- \\
+    50000 & 0.99995 & 23343.16 & -- \\
+    100000 & 0.99995 & 31854.19 & -- \\
+    \bottomrule
+  \end{tabular}
+  \caption{鲲鹏 920 上 PQ-SIMD（SoA+blocking 版本）的完整 $p$ 曲线（正文 4.6 节``查询热路径未恶化''结论的支撑数据）}
+  \label{tab:pq_kunpeng_sweep}
+\end{table}
+
 \subsection*{B.1 Windows P-core FastScan 完整 $p$-sweep}
 
 表 \ref{tab:fastscan_full_p} 给出 FastScan 在 Windows i9-13900H（P-core 绑核，2026-04-19 重跑批次）上覆盖 $p\in\{40,100,500,1000,2000,5000,10\,000,50\,000,100\,000\}$ 的完整数据。相对于正文表 \ref{tab:fastscan}，本次补齐了 $p\geq 10\,000$ 的大 $p$ 段，用来观察 FastScan 与标准 PQ 的延迟交叉与最终收敛点。
@@ -887,7 +877,7 @@ VTune 在 Flat-AVX2 上采到 Avg CPU Frequency 只有 1.484 GHz、256-bit FP uO
 
 \subsection*{B.2 Top-$k$ 数据结构：诊断 $\to$ 修复尝试 $\to$ 复核}
 
-4.5 节的 VTune 指向 \texttt{priority\_queue} 的维护可能是 Machine Clears 的来源。本文实现了 \texttt{ann/flat\_scan\_avx2\_topkarr.h}，把 heap 换成``定长 $k=10$ 数组 + 线性插入''，并用 \texttt{analysis/bench\_topk.cc} 在 2000 queries × 5 重复上做端到端对比（Windows P-core 绑核）：
+4.5 节的 VTune 指向 \texttt{priority\_queue} 的维护可能是 Machine Clears 的来源。本文实现了 \texttt{flat\_scan\_avx2\_topkarr.h}，把 heap 换成``定长 $k=10$ 数组 + 线性插入''，用 \texttt{analysis/bench\_topk.cc} 在 2000 queries $\times$ 5 重复上做端到端对比（Windows P-core 绑核）：
 
 \begin{table}[H]
   \centering\small

@@ -6,8 +6,10 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <immintrin.h>
 #include <queue>
+
+#ifdef __AVX512F__
+#include <immintrin.h>
 
 namespace ann_avx512 {
 
@@ -62,3 +64,5 @@ flat_search_avx512(const float* base, const float* query, size_t base_number,
     }
     return q;
 }
+
+#endif  // __AVX512F__

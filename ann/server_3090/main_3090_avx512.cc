@@ -68,7 +68,12 @@ int main(int argc, char** argv) {
         if (mode == "baseline") {
             res = baseline_flat_search(base.get(), queries.get() + i * qD, bN, qD, k);
         } else if (mode == "flat_avx512") {
+#ifdef __AVX512F__
             res = flat_search_avx512(base.get(), queries.get() + i * qD, bN, qD, k);
+#else
+            std::cerr << "binary not built with -mavx512f; rebuild with AVX-512 flags\n";
+            return 2;
+#endif
         } else {
             std::cerr << "unknown mode\n"; return 2;
         }
