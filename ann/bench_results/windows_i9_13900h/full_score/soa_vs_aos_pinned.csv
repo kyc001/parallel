@@ -1,0 +1,11 @@
+variant,repeat,ms,assign_per_us
+aos,0,129.5793,0.7717
+aos,1,169.6395,0.5895
+aos,2,151.7337,0.6590
+aos,3,146.0285,0.6848
+aos,4,137.1635,0.7291
+soa_blocked,0,39.9530,2.5029
+soa_blocked,1,40.4438,2.4726
+soa_blocked,2,42.7925,2.3369
+soa_blocked,3,44.4050,2.2520
+soa_blocked,4,44.5829,2.2430

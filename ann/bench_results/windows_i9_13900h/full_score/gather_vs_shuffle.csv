@@ -1,0 +1,16 @@
+variant,repeat,total_ms,per_row_ns
+scalar,0,0.9769,9.7690
+scalar,1,0.6440,6.4400
+scalar,2,0.9482,9.4820
+scalar,3,0.7706,7.7060
+scalar,4,0.6321,6.3210
+gather,0,2.5572,25.5720
+gather,1,3.6755,36.7550
+gather,2,3.1806,31.8060
+gather,3,2.5428,25.4280
+gather,4,3.2992,32.9920
+shuffle,0,1.0899,10.8990
+shuffle,1,1.0376,10.3760
+shuffle,2,1.1429,11.4290
+shuffle,3,1.1951,11.9510
+shuffle,4,1.3674,13.6740

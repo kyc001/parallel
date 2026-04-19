@@ -1,0 +1,2 @@
+tag,mode,k,p,N,rep,recall,latency_us
+pq_k100,pq,100,1000,100000,0,0.92512,3894.66900

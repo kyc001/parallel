@@ -1,0 +1,6 @@
+tag,mode,k,p,N,rep,recall,latency_us
+flat_blocked,flat_blocked,10,0,100000,0,0.99995,9390.02250
+flat_blocked,flat_blocked,10,0,100000,1,0.99995,11515.07900
+flat_blocked,flat_blocked,10,0,100000,2,0.99995,12234.95700
+flat_blocked,flat_blocked,10,0,100000,3,0.99995,5510.08400
+flat_blocked,flat_blocked,10,0,100000,4,0.99995,3260.87350

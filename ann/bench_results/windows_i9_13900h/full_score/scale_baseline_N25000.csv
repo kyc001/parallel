@@ -1,0 +1,2 @@
+tag,mode,k,p,N,rep,recall,latency_us
+baseline_N25000,baseline,10,0,25000,0,1.00000,4096.51300

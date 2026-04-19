@@ -1,0 +1,2 @@
+tag,mode,k,p,N,rep,recall,latency_us
+sq_N10000,sq,10,100,10000,0,1.00000,111.08750

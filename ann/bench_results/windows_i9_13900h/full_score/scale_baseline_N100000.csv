@@ -1,0 +1,2 @@
+tag,mode,k,p,N,rep,recall,latency_us
+baseline_N100000,baseline,10,0,100000,0,0.99995,17313.79650

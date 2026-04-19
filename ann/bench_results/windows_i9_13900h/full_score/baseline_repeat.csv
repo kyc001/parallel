@@ -1,0 +1,7 @@
+load ./files/DEEP100K.query.fbin n=10000 d=96
+load ./files/DEEP100K.base.100k.fbin n=100000 d=96
+load ./files/DEEP100K.gt.query.100k.top100.bin n=10000 d=100
+tag,mode,k,p,N,rep,recall,latency_us
+baseline,baseline,10,0,100000,0,0.99995,20784.55750
+baseline,baseline,10,0,100000,1,0.99995,20463.12600
+baseline,baseline,10,0,100000,2,0.99995,4905.44200

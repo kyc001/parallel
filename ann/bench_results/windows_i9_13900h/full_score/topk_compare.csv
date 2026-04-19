@@ -1,0 +1,11 @@
+variant,repeat,total_ms,per_query_us
+priority_queue,0,18742.7336,9371.3668
+priority_queue,1,21475.3596,10737.6798
+priority_queue,2,21566.7865,10783.3932
+priority_queue,3,22762.4307,11381.2154
+priority_queue,4,22075.4100,11037.7050
+fixed_array,0,20665.6108,10332.8054
+fixed_array,1,20020.6205,10010.3103
+fixed_array,2,18778.1194,9389.0597
+fixed_array,3,18497.6940,9248.8470
+fixed_array,4,19427.1498,9713.5749
