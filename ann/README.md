@@ -2,6 +2,16 @@
 
 并行程序设计 Lab2 的 SIMD 选题（ANN 近似最近邻搜索）。在 ARM NEON 平台上实现并对比四种检索算法，使用 DEEP100K 数据集测试。
 
+## 最终提交入口
+
+`main.cc` 已整理为最终提交版：PQ-FastScan（4-bit PQ + 寄存器内查表），默认 `p=1000`，可直接通过实验要求的脚本运行：
+
+```bash
+bash test.sh 1 1
+```
+
+`test.sh` 内部会编译 `main.cc` 并提交作业，因此提交时不需要切换其他入口文件。其余 `main_*.cc` 保留为实验对照版本。
+
 ## 算法与加速比（鲲鹏 920 实测）
 
 | 版本 | Recall | Latency (μs) | 加速比 |
@@ -10,6 +20,7 @@
 | Flat-SIMD | 0.99995 | 5821.16 | 2.77x |
 | SQ-SIMD (p=100) | 0.99995 | 2422.68 | 6.65x |
 | PQ-SIMD (p=100) | 0.70930 | 1224.20 | 13.17x |
+| PQ-FastScan (p=1000) | 0.975253 | 1339.75 | 12.03x |
 
 详细 p 值曲线见 `bench_results/kunpeng_server/`。
 
@@ -19,8 +30,10 @@
 
 ```text
 ann/
-├── main.cc / main_baseline.cc / main_flatsimd.cc / main_sqsimd.cc / main_pqsimd.cc
-│   四份轮换版本，所有版本的 data_path 都是 "/anndata/"
+├── main.cc                 # 最终提交入口：PQ-FastScan, p=1000, data_path="/anndata/"
+├── main_baseline.cc / main_flatsimd.cc / main_sqsimd.cc / main_pqsimd.cc
+│   实验对照版本，所有版本的 data_path 都是 "/anndata/"
+├── main_fastscan_submit.cc # 与 main.cc 同口径的 FastScan 提交备份
 ├── flat_scan.h           # 原始串行 IP 距离
 ├── flat_scan_simd.h      # Flat-SIMD (NEON 4 路展开 + 4 累加器)
 ├── sq_scan_simd.h        # SQ-SIMD (uint8 量化 + 两阶段检索)
@@ -43,19 +56,20 @@ ann/
 bash test.sh 1 1              # 参数：选题序号=1 (ANN)，节点数=1
 ```
 
-四版本轮换：
+最终提交版：
+
+```bash
+bash test.sh 1 1
+```
+
+对照实验如需复跑，可手动切换入口：
 
 ```bash
 cp main_baseline.cc main.cc && bash test.sh 1 1
 cp main_flatsimd.cc main.cc && bash test.sh 1 1
 cp main_sqsimd.cc main.cc && bash test.sh 1 1
 cp main_pqsimd.cc main.cc && bash test.sh 1 1
-```
-
-或直接：
-
-```bash
-bash run_all.sh
+cp main_fastscan_submit.cc main.cc && bash test.sh 1 1
 ```
 
 ## 核心优化要点
