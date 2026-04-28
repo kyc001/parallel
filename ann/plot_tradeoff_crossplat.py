@@ -230,8 +230,8 @@ fig, ax = plt.subplots(figsize=(10, 6))
 sq = SQ_DATA["i9 AVX2"]
 ps_sq = sorted(sq.keys())
 ax.plot(
-    [sq[p][1] for p in ps_sq],
     [sq[p][0] for p in ps_sq],
+    [sq[p][1] for p in ps_sq],
     marker="o",
     color="#d62728",
     label="SQ (i9 AVX2)",
@@ -242,8 +242,8 @@ ax.plot(
 pq = PQ_DATA["i9 AVX2"]
 ps_pq = sorted(pq.keys())
 ax.plot(
-    [pq[p][1] for p in ps_pq],
     [pq[p][0] for p in ps_pq],
+    [pq[p][1] for p in ps_pq],
     marker="s",
     color="#ff7f0e",
     label="PQ (i9 AVX2)",
@@ -251,20 +251,20 @@ ax.plot(
     linewidth=2,
 )
 
-ax.axvline(FLAT_I9, color="gray", linestyle="--", alpha=0.6)
-ax.text(FLAT_I9, 0.78, f"flat\n{FLAT_I9:.0f}μs", ha="center", color="gray", fontsize=9)
+ax.axhline(FLAT_I9, color="gray", linestyle="--", alpha=0.6)
+ax.text(0.71, FLAT_I9 * 1.03, f"flat\n{FLAT_I9:.0f}μs", va="bottom", color="gray", fontsize=9)
 
-ax.axvline(BASELINE_I9, color="gray", linestyle="--", alpha=0.6)
-ax.text(BASELINE_I9, 0.78, f"baseline\n{BASELINE_I9:.0f}μs", ha="center", color="gray", fontsize=9)
+ax.axhline(BASELINE_I9, color="gray", linestyle="--", alpha=0.6)
+ax.text(0.71, BASELINE_I9 * 1.03, f"baseline\n{BASELINE_I9:.0f}μs", va="bottom", color="gray", fontsize=9)
 
-ax.axvline(FASTSCAN_I9, color="#d62728", linestyle="--", alpha=0.65)
-ax.text(FASTSCAN_I9, 0.90, f"fastscan\n{FASTSCAN_I9:.0f}μs", ha="center", color="#d62728", fontsize=9)
+ax.axhline(FASTSCAN_I9, color="#d62728", linestyle="--", alpha=0.65)
+ax.text(0.965, FASTSCAN_I9 * 1.03, f"fastscan\n{FASTSCAN_I9:.0f}μs", ha="right", va="bottom", color="#d62728", fontsize=9)
 
-ax.set_xscale("log")
-ax.set_xlabel("Latency (μs, log scale)")
-ax.set_ylabel("Recall@10")
+ax.set_yscale("log")
+ax.set_xlabel("Recall@10")
+ax.set_ylabel("Latency (μs, log scale)")
 ax.set_title("SQ vs PQ Tradeoff on i9-13900H AVX2")
-ax.legend(loc="lower right")
+ax.legend(loc="upper right")
 ax.grid(True, which="both", alpha=0.3)
 
 plt.tight_layout()
