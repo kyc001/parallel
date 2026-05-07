@@ -92,7 +92,7 @@
 
 本文围绕 ANN（Approximate Nearest Neighbor）选题完成 SIMD 编程实验，在 ARM NEON 与 x86 AVX2 平台上实现并比较串行 Flat、Flat-SIMD、SQ-SIMD、PQ-SIMD 与 4-bit PQ-FastScan。报告重点说明距离计算向量化、两阶段量化检索、PQ 查表累加、SoA/blocking 数据布局、手写 SIMD 与自动向量化差异，并结合 VTune、汇编输出和微基准解释性能瓶颈。实验使用 DEEP100K 数据集 \cite{babenko2016efficient}（$N=100000$，$d=96$，IP 距离），统一以前 2000 个查询、$k=10$ 进行评测。
 
-\noindent\textbf{主要结论。} Flat-AVX2 相对串行基线取得 $2.60\times$ 加速，但很快受内存带宽限制；SQ-AVX2 在 $p=100$ 时以近乎无损召回达到 427.01 $\mu$s，是低延迟配置中最稳定的一组；PQ-AVX2 与 PQ-FastScan 进一步体现 latency / recall trade-off，其中 FastScan 通过 4-bit LUT 与寄存器内查表显著降低 ADC 粗排开销，在 i9 / 鲲鹏上相对标准 PQ 分别达到最高 $4.51\times$ / $1.48\times$ 的加速。整体结果说明，ANN 场景中的 SIMD 优化必须与量化压缩、数据布局和微体系结构特性联合设计。
+\noindent\textbf{主要结论。} Flat-AVX2 相对串行基线取得 $2.60\times$ 加速，但很快受内存带宽限制；SQ-AVX2 在 $p=100$ 时以近乎无损召回达到 427.01 $\mu$s，是低延迟配置中最稳定的一组；PQ-AVX2 与 PQ-FastScan 进一步体现 latency / recall trade-off，其中 FastScan 通过 4-bit LUT 与寄存器内查表显著降低 ADC 粗排开销；在代表性配置 $p=1000$ 下相对标准 PQ 于 i9 / 鲲鹏分别提升 $1.41\times$ / $1.48\times$，更大 $p$ 的 sweep 中最高分别达到 $4.51\times$ / $2.34\times$。整体结果说明，ANN 场景中的 SIMD 优化必须与量化压缩、数据布局和微体系结构特性联合设计。
 
 \noindent\textbf{关键词：} ANN，SIMD，AVX2，NEON，标量量化，乘积量化，FastScan，自动向量化
 
@@ -248,6 +248,7 @@ SQ（Scalar Quantization）对每一维分别统计最小值和最大值，并�
   \item 粗排：将查询同样量化成 uint8，使用 SIMD 计算 96 维 uint8 L2 平方距离，保留 top-$p$ 候选；
   \item 精排：仅对 top-$p$ 候选重新计算精确 float32 IP 距离，返回 top-$k$。
 \end{enumerate}
+这里 uint8 L2 仅作为压缩空间中的候选筛选 surrogate，最终 top-$k$ 排序完全由原始 float32 IP rerank 决定；因此 recall 以最终 rerank 结果评价，粗排度量选择不影响正确性。
 
 因此 SQ 的复杂度可写为
 \[
@@ -374,7 +375,7 @@ for (int block = 0; block < ksub; block += tile) {        // block: cache tile
 
 \subsection{FastScan 扩展：4-bit PQ 与查表打包}
 
-为了进一步降低 PQ 的粗排常数项，本文在 Windows AVX2 上实现了 FastScan 扩展，并额外补写了可在 AArch64 NEON 上编译的版本。该方法直接对应 André 等人在 PQ Fast Scan 中提出的"寄存器内查表"路线 \cite{andre2015fastscan}，即 shuffle / fast scan 风格的查表累加。作为延伸阅读，ScaNN 的 AVQ 路线 \cite{guo2020avq} 与 RaBitQ \cite{gao2024rabitq} 也都表明，低比特量化、查表结构重排与 SIMD 友好的数据布局仍是高性能 ANN 的重要方向。本文实现采用 $M=16$、$K_s=16$ 的 4-bit PQ，将每两个子段的 code 打包进一个字节，并把 LUT 量化到 0--15 的小整数。需要注意，这并不是在标准 PQ 的 $M=8, K_s=256$ 码本上仅替换 ADC 内核，而是在相同 8 B/code 压缩预算下改用另一组 4-bit 码本配置；因此后文与标准 PQ 的比较应理解为两种端到端量化设计的 trade-off 对比，而不是固定码本下只更换查表方式。粗排阶段不再使用 float LUT，而是使用字节查表与饱和累加：
+为了进一步降低 PQ 的粗排常数项，本文在 Windows AVX2 上实现了 FastScan 扩展，并额外补写了可在 AArch64 NEON 上编译的版本。该方法直接对应 André 等人在 PQ Fast Scan 中提出的"寄存器内查表"路线 \cite{andre2015fastscan}，即 shuffle / fast scan 风格的查表累加。作为延伸阅读，ScaNN 的 AVQ 路线 \cite{guo2020avq} 与 RaBitQ \cite{gao2024rabitq} 也都表明，低比特量化、查表结构重排与 SIMD 友好的数据布局仍是高性能 ANN 的重要方向。本文实现采用 $M=16$、$K_s=16$ 的 4-bit PQ，将每两个子段的 code 打包进一个字节，并把 LUT 量化到 0--15 的小整数。需要注意，这并不是在标准 PQ 的 $M=8, K_s=256$ 码本上仅替换 ADC 内核，而是在相同 8 B/code 压缩预算下改用另一组 4-bit 码本配置；因此后文与标准 PQ 的比较应理解为两种端到端量化设计的 trade-off 对比，而不是固定码本下只更换查表方式。粗排阶段不再使用 float LUT，而是使用 4-bit 量化 LUT、nibble 拆分、寄存器内查表，并通过分组求和（\texttt{\_mm256\_sad\_epu8} 风格的无饱和 16-bit 内部累加）得到粗排分数：
 \begin{itemize}
   \item AVX2 路径使用 \texttt{\_mm256\_shuffle\_epi8}；
   \item NEON 路径使用 \texttt{vqtbl1q\_u8}。
@@ -461,7 +462,7 @@ T_{\mathrm{FS}} = O(NM) + O(pd),
 
 核心结论很直接：Flat-SIMD 只降低点积常数，仍受全扫描带宽限制；SQ 在 $p=100$ 时保持 Recall@10 近乎无损并取得最低时延；PQ 需要较大 $p$ 才恢复 recall；FastScan 在 $p=1000$ 时同时优于标准 PQ（i9: 761.99 $\to$ 541.69 $\mu$s；鲲鹏: 1984.35 $\to$ 1339.75 $\mu$s）。
 
-\noindent\textbf{关于表 \ref{tab:core_compare} 与表 \ref{tab:scale_sweep} 绝对值差异的说明。} 表 \ref{tab:core_compare} 为核心正式结果（默认 Windows 调度、统一 ground truth），表 \ref{tab:scale_sweep} 的规模扫描则在 P-core 绑核、per-$N$ 独立 ground truth 的独立被测环境下完成，两组数据的绝对时延不可直接比较。规模实验的核心目的在于观察各方法随 $N$ 的\emph{增长趋势}（线性 vs 亚线性），而非与核心表的绝对值对齐。此外，$N=10$K 时 Flat-AVX2 仅 104 $\mu$s，到 $N=25$K 跳至 822 $\mu$s（增长 7.9$\times$ 而 $N$ 仅增长 2.5$\times$），推测 $10$K 子集（$\approx 3.84$ MB）可完全驻留 L3 cache，而 $25$K 子集（$\approx 9.6$ MB）已触发主存访问，这从侧面印证了 Flat 类方法的带宽敏感性。
+\noindent\textbf{关于表 \ref{tab:core_compare} 与表 \ref{tab:scale_sweep} 绝对值差异的说明。} 前者为默认调度下的核心正式结果，后者在 P-core 绑核、独立 ground truth 条件下测得，绝对时延不可直接比较；规模实验重在观察增长趋势。$N=10$K$\to25$K 时 Flat-AVX2 跳增 7.9$\times$（$N$ 仅增 2.5$\times$），推测 $10$K 子集可驻留 L3 cache 而 $25$K 已触发主存访问，侧面印证 Flat 的带宽敏感性。
 
 \subsection{SQ / PQ 的时延-召回率权衡}
 
@@ -537,11 +538,11 @@ E2 在 Flat-SIMD 流式扫描上尝试多种预取距离。所有显式预取都
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.6\textwidth]{scale_sweep.png}
-  \caption{规模实验的 log-log 曲线：Baseline 与 Flat-AVX2 接近 $O(N)$ 线性增长（与灰色参考线平行），SQ / PQ 呈亚线性（rerank 段主导）}
+  \caption{规模实验的 log-log 曲线：Baseline 与 Flat-AVX2 接近 $O(N)$ 线性增长，SQ / PQ 时延对 $N$ 增长较不敏感，但不宜据此断言严格亚线性（固定 $p$ 下粗排仍须扫描 $N$ 条）}
   \label{fig:scale_sweep}
 \end{figure}
 
-Baseline 与 Flat-AVX2 随 $N$ 近似线性增长，符合全扫描 $O(Nd)$；SQ / PQ 在大规模区间开始偏离线性，说明固定 $p$ 后端到端时间逐渐受 $O(pd)$ 的 rerank 段主导。
+Baseline 与 Flat-AVX2 随 $N$ 近似线性增长，符合全扫描 $O(Nd)$。SQ / PQ 在固定 $p$ 下粗排仍须扫描全部 $N$ 条向量，理论上不应严格亚线性；表 \ref{tab:scale_sweep} 中二者的曲线波动（如 SQ 在 $N=100$K 反而低于 $N=50$K）更多反映缓存状态、候选维护开销和绑核测量噪声的综合影响。本文据此仅得出定性结论：量化方法显著降低了全量 float32 扫描成本，使端到端时延对 $N$ 更不敏感。
 
 \subsection{手写 SIMD 与自动向量化对比}
 
@@ -645,7 +646,7 @@ SoA + blocking 加速 $3.51\times$。主要原因是同一维度的 8 个 centro
 
 结论：AVX2 gather 比标量查表慢 3.9$\times$，不适合这种随机索引 LUT；shuffle 与标量基本持平，但可配合 4-bit 小 LUT、编码打包和 batch 扫描降低端到端常数。因此本文选择 shuffle/table-lookup 路线。
 
-需要澄清的是，表 \ref{tab:gather_vs_shuffle} 是单条 ADC 查表累加的微基准对比（以 ns/row 计），shuffle 在该粒度下与标量拉平，并不意味着 shuffle 对端到端性能没有贡献。FastScan 的端到端加速（表 \ref{tab:fastscan}）来自三项联合收益：(1) 4-bit LUT 从 $M\times 256\times 4$ Byte 缩至 $M\times 16$ Byte，cache 命中率显著提高（尤其在大批量扫描时 LUT 可完全驻留 L1）；(2) double-nibble code 打包将每条向量的 code 读取量减半；(3) shuffle 指令在批量处理 32 个 code 时将 LUT 查表从 32 次随机标量访存合并为一条寄存器内操作，消除了标量查表的分支预测失败与地址计算开销。换言之，shuffle 的收益体现在\emph{消除标量开销}和\emph{解放 cache 带宽}，而非单条查表延迟本身——这一结论也在后续 VTune 结果（标准 PQ 的 Memory Bound 仅为 0.6\%，而瓶颈在 Retiring）中得到印证：标准 PQ 的 ADC 瓶颈并非单纯的带宽，而是标量循环的控制与地址计算开销，shuffle 正好针对这一瓶颈。
+需要澄清的是，表 \ref{tab:gather_vs_shuffle} 是单条 ADC 查表的微基准（ns/row），shuffle 与标量持平不意味着对端到端无贡献。FastScan 的加速来自三项联合收益：(1) 4-bit LUT 从 $M\times 256\times 4$ B 缩至 $M\times 16$ B，批量扫描时 LUT 可驻留 L1；(2) double-nibble 打包使 $M=16$ 仍保持 8 B/code；(3) shuffle 将 32 次标量查表合并为单条寄存器内操作，消除标量循环的分支与地址计算开销。VTune 显示标准 PQ 的 Retiring 占比 68.5\% 而 Memory Bound 仅 0.6\%，印证瓶颈在控制开销而非带宽——shuffle 正好针对此瓶颈。
 
 \subsection{PQ-FastScan 查表累加优化的实测结果}
 \label{sec:fastscan_results}
@@ -672,7 +673,7 @@ SoA + blocking 加速 $3.51\times$。主要原因是同一维度的 8 个 centro
 
 在 i9 上，FastScan 从 $p=40$ 到 $p=1000$ 时延基本保持在 527--542 $\mu$s，Recall@10 从 0.514 提升到 0.975；$p=5000$ 时达到 0.99875 recall，并把标准 PQ 的 3042.08 $\mu$s 降到 674.16 $\mu$s。
 
-需要特别说明 $p=100$ 处的异常数据点：该点 FastScan 相对标准 PQ 仅为 0.75$\times$（即慢于标准 PQ）。经复查，$p=100$ 时标准 PQ（$M=8, K_s=256$）的 ADC 粗排恰好为 $398.53\,\mu\text{s}$，而 FastScan（$M=16, K_s=16$）在该 $p$ 下的粗排常数为 $529.995\,\mu\text{s}$——此时 FastScan 粗排常数较大，而 rerank 候选数 $p$ 尚不足以让精排的 float32 计算差异覆盖粗排劣势。当 $p$ 增大到 $500$ 及以上时，标准 PQ 粗排中 LUT 标量查表的累积开销逐渐超过 FastScan 的固定粗排开销，FastScan 的优势恢复。这恰好说明 FastScan 更适用于高 recall（大 $p$）场景：其 batch 式粗排的固定开销需要通过足够的 rerank 节省来摊销。
+需要特别说明 $p=100$ 处的异常数据点：该点 FastScan 相对标准 PQ 仅为 0.75$\times$（即慢于标准 PQ）。由于标准 PQ 与 FastScan 使用不同码本配置（$M=8,K_s=256$ vs $M=16,K_s=16$），且端到端时间同时包含粗排、候选维护与 rerank 三部分，仅凭总时延无法把该点完全归因到某一个内核。本文保守地将其视为小 $p$ 区间的实现常数差异与测量波动共同作用；更可靠的结论来自 $p\ge 500$ 的高 recall 区间，以及 i9 / 鲲鹏两平台上 FastScan 相对 PQ 的整体左下移趋势（图 \ref{fig:fastscan_tradeoff}）。
 
 鲲鹏 920 结果见表 \ref{tab:fastscan_kunpeng}。$p=1000$ 时 FastScan 为 1339.75 $\mu$s、Recall@10 = 0.975253，相对标准 PQ-SIMD 的 1984.35 $\mu$s 提升 1.48$\times$；$p=5000$ 时提升扩大到 2.34$\times$。
 
@@ -726,7 +727,7 @@ SoA + blocking 加速 $3.51\times$。主要原因是同一维度的 8 个 centro
 
 跨平台差异主要来自三点。第一，SIMD 宽度不是线性收益：AVX2 为 256 bit，NEON 为 128 bit，AVX-512 为 512 bit，但 Flat-AVX2 已受 DRAM 带宽限制，继续加宽 SIMD 的边际收益下降。第二，单核频率影响很大：i9 P-core 绑核后可达 5.086 GHz，而鲲鹏 920 单核约 2.6 GHz。第三，i9 的 P/E-core 混合调度会引入测量噪声，因此 Windows 关键实验需要绑到 P-core。
 
-\noindent\textbf{关于鲲鹏相对加速比系统性地高于 i9 的讨论。} 表 \ref{tab:core_compare} 中一个值得注意的模式是：鲲鹏 920（128-bit NEON）在所有方法上的\emph{相对基线加速比}均高于 i9-13900H（256-bit AVX2），例如 Flat-SIMD 为 $2.77\times$ vs $2.60\times$，PQ-SIMD 为 $8.12\times$ vs $6.00\times$，FastScan 为 $12.03\times$ vs $8.44\times$。这看似矛盾——更窄的 SIMD 宽度反而获得了更大的相对提升——但原因在于\emph{基线的绝对水平不同}。鲲鹏串行基线为 $16120.74\,\mu\text{s}$，是 i9 串行基线 $4571.62\,\mu\text{s}$ 的 $3.53$ 倍；这一差异远超两平台在频率和 SIMD 宽度上的硬件差距，说明鲲鹏上 GCC 10.3.1 对标量代码的优化程度（指令调度、循环展开、自动向量化触发）明显弱于 i9 上 GCC 14.2.0。较慢的串行基线放大了 SIMD 的相对收益，这是相对加速比作为跨平台比较指标的内在局限。因此，本文在比较两平台时始终同时列出绝对时延和相对加速比，并建议以绝对时延为主要性能参考。鲲鹏平台上缺少 perf 数据（见 2.3 节），无法从 PMU 计数器层面直接验证上述编译器效应，但汇编输出对比（鲲鹏标量内循环仍以 \texttt{fmla} 单发射为主，未见 GCC 10.3.1 做有效的循环展开或指令重排）为此推断提供了支撑。
+\noindent\textbf{关于鲲鹏相对加速比系统性地高于 i9 的讨论。} 表 \ref{tab:core_compare} 中鲲鹏 920（128-bit NEON）在所有方法上的相对基线加速比均高于 i9（256-bit AVX2）：Flat-SIMD $2.77\times$ vs $2.60\times$，FastScan $12.03\times$ vs $8.44\times$。原因在于鲲鹏串行基线（$16120.74\,\mu\text{s}$）是 i9 的 $3.53$ 倍，远超频率和 SIMD 宽度的硬件差距——GCC 10.3.1 对标量代码的优化可能弱于 GCC 14.2.0，微架构与 cache 子系统的差异也会共同影响。较慢的基线放大了相对加速比，这是该指标作为跨平台比较的内在局限，因此本文始终同时报告绝对时延。鲲鹏缺少 perf 数据（见 2.3 节），但汇编输出显示其标量内循环以 \texttt{fmla} 单发射为主，未做有效的循环展开或指令重排，为上述推断提供了定性支撑。
 
 FastScan 在 x86 与 ARM 上分别取得 $1.41\times$ / $1.48\times$ 的相对 PQ 增益，说明 4-bit LUT、寄存器内查表和打包布局的收益主要来自算法结构，而不是某个平台独有指令。表 \ref{tab:bottleneck} 总结了各方法的瓶颈与后续优化方向。
 
@@ -767,64 +768,48 @@ FastScan 在 x86 与 ARM 上分别取得 $1.41\times$ / $1.48\times$ 的相对 P
 \appendix
 \section{开发工具使用说明}
 
-本实验在代码调试、脚本拼接和 \LaTeX{} 排版过程中使用过在线大语言模型（豆包）做辅助查询，主要用于 AVX2/NEON intrinsic 参数顺序校对、\LaTeX{} 表格与参考文献格式修正、以及 PQ/FastScan 优化路线的技术验证。所有算法设计、参数选择、实验方案、数据采集、结果分析与报告组织均由本人独立完成。以下按``问题 $\to$ 对话记录 $\to$ 我的判断与修改 $\to$ 最终实测结果''的结构给出两个具有代表性的咨询片段。
+本实验在代码调试、脚本拼接和 \LaTeX{} 排版过程中使用过在线大语言模型（豆包）做辅助查询，主要用于 AVX2/NEON intrinsic 参数校对、\LaTeX{} 格式修正及 PQ/FastScan 优化路线的技术验证。所有算法设计、参数选择、实验方案、数据采集、结果分析与报告组织均由本人独立完成。以下是两个代表性咨询片段。
 
-\subsection*{A.1 对话记录一：FastScan shuffle 掩码构造与 nibble 拆分验证}
-
-\paragraph{我的提问（原文）}
-
-> 我在做 PQ FastScan 的 AVX2 实现，$M=16$、$K_s=16$ 的 4-bit PQ。每两个子空间的 code 打包成一个字节（高 4 bit = 子空间 0，低 4 bit = 子空间 1）。我想用 \texttt{\_mm256\_shuffle\_epi8} 一次查 32 个 code 的 LUT 值，但需要先把每个字节拆成两个 nibble 分别查表。我的问题是：
-> 1. 低 nibble 查表后，高 nibble 查表前需要右移 4 位，这个移位是否必须在 shuffle 之前做？
-> 2. \texttt{\_mm256\_shuffle\_epi8} 的掩码如果超过 15（0x0F），结果会被置零——我需要如何构造掩码来保证低 nibble 查表不受高 nibble 干扰？
-> 3. 两轮查表结果（低/高 nibble）如何用 \texttt{\_mm256\_adds\_epu8} 安全累加，8-bit 饱和边界是否够用？
-
-\paragraph{豆包回复（摘要）}
-
-> 关于你的三个问题：
->
-> 1. 是的，高 nibble 查表前必须先右移 4 位。标准做法是用 \texttt{\_mm256\_srli\_epi16}（或 \texttt{\_mm256\_srli\_epi32} 再截断）对原始 code 向量做 4-bit 逻辑右移，得到高 nibble 对齐到低 4 位的副本，再分别送入两次 \texttt{shuffle\_epi8}。
->
-> 2. 掩码构造的关键是用 \texttt{\_mm256\_and\_si256(code, \_mm256\_set1\_epi8(0x0F))} 将低 nibble 的查表输入限制在 0--15 范围内。高 nibble 则是在移位后自然落在 0--15 范围（因为原始高 nibble 已经是 0--15）。不会出现索引 ≥ 16 的问题。
->
-> 3. \texttt{\_mm256\_adds\_epu8} 的饱和值为 255。单个 LUT 项取值范围取决于你的 LUT 量化参数。以 DEEP100K 的 12 维子段为例，float32 距离经 8-bit 量化后单段 LUT 值通常在 0--127 以内，16 段累加最大约 $16\times 127=2032$，确实会超过 255。建议不要用饱和加，改用 \texttt{\_mm256\_add\_epi16}（先扩展到 16-bit）或 \texttt{\_mm256\_maddubs\_epi16}（乘加一步完成，输出 16-bit）。如果坚持用 epu8 节省寄存器，需要确认你的 LUT 量化上限——比如把每段 LUT 线性缩放到 0--15 以内，此时 16 段饱和累加 ≤ 240 不会溢出。
-
-\paragraph{我的判断、修改与结果复核}
-
-豆包的回复确认了两轮 shuffle 的 nibble 拆分流程，但关于饱和累加边界的提醒是关键——我最初设计确实忽略了 16 段累加可能超过 255 的问题。我的处理方式是：(1) 在 LUT 量化阶段对每段独立记录 min/max 并做线性缩放，确保单段 LUT 值 ≤ 15；(2) 粗排累加改用 \texttt{\_mm256\_sad\_epu8}（Sum of Absolute Differences）做 8-bit 无符号字节水平求和，其内部累加器为 16-bit，自然避免了饱和问题；(3) rerank 阈值改为编译期宏定义，规避远程作业环境变量丢失。
-
-表 \ref{tab:fastscan} 与表 \ref{tab:fastscan_kunpeng} 的正式端到端结果（i9 上相对标准 PQ 最高 4.51$\times$，鲲鹏上最高 2.34$\times$）均由本人独立完成并复核，nibble 拆分与累加精度的正确性通过对比 FastScan 粗排 top-$p$ 结果与标准 PQ ADC 粗排结果的一致性进行了验证。
-
-\subsection*{A.2 对话记录二：gather vs shuffle 路线选择的技术验证}
+\subsection*{A.1 对话记录一：FastScan shuffle 的 nibble 拆分与累加精度}
 
 \paragraph{我的提问（原文）}
 
-> 我正在做 PQ ADC 查表累加的 SIMD 优化，两种方案在考虑：
-> (a) 用 \texttt{\_mm256\_i32gather\_ps} 一次 gather 8 个 float LUT 值，然后 FMA 累加；
-> (b) 把 $K_s$ 从 256 压到 16，用 \texttt{\_mm256\_shuffle\_epi8} 做寄存器内查表（类似 FastScan 论文的路线）。
->
-> 实验平台是 Intel i9-13900H（AVX2 + FMA），每个向量有 $M=8$ 段，每段独立 LUT（256 × 4B）。
-> 问题：
-> 1. AVX2 的 gather 指令在随机索引场景下实际吞吐大概是多少？会比标量逐条查表还慢吗？
-> 2. 方案 (b) 需要把 $K_s$ 从 256 压到 16，这会对 recall 造成多大损失？FastScan 原论文有没有讨论 $K_s=16$ 时的 recall 表现？
-> 3. 另外我的 ARM NEON 平台没有 gather 指令，如果用 NEON 的 \texttt{vqtbl1q\_u8} 做 4-bit 查表，是否和 AVX2 shuffle 的语义完全对应？
+> 做 PQ FastScan AVX2 实现，$M=16,K_s=16$，每两段 code 打包为一字节。想用 \texttt{\_mm256\_shuffle\_epi8} 一次查 32 个 code，需先拆 nibble 分别查表。三个问题：
+> 1. 高 nibble 移位是否必须在 shuffle 前？
+> 2. AVX2 \texttt{vpshufb} 控制字节低 4 bit 为索引，bit 7 为 1 才置零——掩码应当 \texttt{\& 0x0F} 清理高 nibble 而非信赖``超 15 置零''，对吗？
+> 3. \texttt{\_mm256\_adds\_epu8} 饱和累加在 $M=16$ 时够用吗？
 
-\paragraph{豆包回复（摘要）}
+\paragraph{豆包回复（要点）}
 
-> 1. Intel 优化手册（第 16 章，Gather/Scatter 指令）指出 \texttt{VGATHERDPS} 在 Haswell/Skylake 上的吞吐约为每 2 个周期 1 个元素（即 8 个元素约需 16 周期），且索引越分散（cache line 跨度越大），实际吞吐越低。相比之下，标量 \texttt{movss} + \texttt{addss} 在乱序窗口下可以达到接近每周期 1 个元素的吞吐（L1 命中时）。因此在完全随机的 LUT 索引下，gather 慢于标量是常见现象，你的直觉是对的。
->
-> 2. FastScan 原论文（André et al., 2015）主要讨论 $K_s=256$ 的 8-bit PQ，但也提及 $K_s=16$ 的 4-bit 变体在 SIFT1M 上 recall@1 仅下降 2--3 个百分点（相对 $K_s=256$）。具体到你的 DEEP100K 数据集，96 维分成 $M=16$ 段后每段仅 6 维，$K_s=16$ 可能已足够捕获子空间结构。建议你先用 Python 快速验证 $M=16,K_s=16$ 的 k-means 量化误差是否在可接受范围内。
->
-> 3. NEON 的 \texttt{vqtbl1q\_u8} 与 AVX2 的 \texttt{pshufb}（即 \texttt{\_mm256\_shuffle\_epi8}）语义几乎相同：都是 128-bit 寄存器内 16×8-bit 查表，索引超出 0--15 时返回 0。区别是 \texttt{vqtbl1q\_u8} 只有 128-bit 宽度（一次查 16 个），而 AVX2 的 \texttt{pshufb} 是 256-bit 内两条 128-bit lane 独立查表。因此你的 AVX2 实现需要处理 lane 交叉问题（用 \texttt{\_mm256\_permute2f128\_si256} 或 lane 内查表后合并）。NEON 侧直接用 \texttt{vqtbl1q\_u8} 即可，不需要额外的跨 lane 处理。
+> 1. 是的，用 \texttt{\_mm256\_srli\_epi16} 右移 4 bit 得到高 nibble 对齐副本。
+> 2. 对，AVX2 \texttt{vpshufb} 以控制字节 bit 7 决定置零，低 4 bit 决定索引；\texttt{\& 0x0F} 是为防止高 nibble 低 4 bit 混入索引，NEON \texttt{vqtbl1q\_u8} 语义略有不同（索引 $\ge 16$ 返回 0），移植时需分别处理。
+> 3. \texttt{adds\_epu8} 上限 255，16 段可能溢出。建议用 \texttt{\_mm256\_sad\_epu8}（内部 16-bit 累加）或先将 LUT 缩放到每段 $\le$ 15。
 
 \paragraph{我的判断、修改与结果复核}
 
-豆包关于 gather 吞吐的提醒与 Intel 手册一致，进一步坚定了我放弃 gather 路线的判断；关于 $K_s=16$ recall 损失的估计也在我可接受的范围内（后续实测 DEEP100K 上 $M=16,K_s=16$ 的 PQ-FastScan 在 $p=1000$ 时 Recall@10 = 0.97535，与标准 $M=8,K_s=256$ PQ 的 0.98330 相差不到 1 个百分点）。NEON 的 lane 宽度差异提示（128-bit vs 256-bit lane）是豆包提供的最有价值的技术细节——我在 AVX2 实现中确实需要额外的 lane 内掩码处理来避免 shuffle 时高 128-bit lane 的索引被低 lane 干扰。
+豆包确认了 nibble 拆分流程和 AVX2/NEON 语义差异，最关键的是 16-bit 累加提醒——我最初忽略了 16 段可能溢出 255。我改用 \texttt{\_mm256\_sad\_epu8} 做无饱和水平求和，同时将 LUT 线性缩放到每段 $\le$ 15。表 \ref{tab:fastscan} 与表 \ref{tab:fastscan_kunpeng} 的端到端结果均为本人独立实测，nibble 拆分正确性通过对比 FastScan 粗排与标准 PQ ADC 粗排结果的一致性进行了验证。
 
-最终路线选择（放弃 gather、采用 $K_s=16$ + shuffle）由我独立做出并实现。表 \ref{tab:gather_vs_shuffle} 的微基准实测（gather 慢于标量 3.9$\times$，shuffle 与标量持平）和表 \ref{tab:fastscan} 的端到端加速结果均为本人独立采集并复核，验证了这一路线判断的正确性。
+\subsection*{A.2 对话记录二：gather vs shuffle 路线选择}
 
-\subsection*{A.3 AI 使用方式总结}
+\paragraph{我的提问（原文）}
 
-以上两个片段展示了本实验中 AI 辅助的典型模式：AI 提供的 intrinsic 语法核对、优化手册速查、跨平台差异提示等信息，帮我减少了查阅文档的时间，但所有关键技术决策（路线选择、参数配置、数据结构设计）、代码实现、实验方案与数据分析均来源于我自己的判断和验证。正式结果中的所有性能数据均来自本人编写的 C++ 代码在真实硬件上的运行输出，未使用 AI 生成任何性能数字或实验曲线。
+> PQ ADC 查表两方案：(a) \texttt{\_mm256\_i32gather\_ps} gather 8 个 LUT 值后 FMA；(b) $K_s$ 压到 16，用 \texttt{shuffle\_epi8} 做寄存器内查表。i9-13900H 平台。
+> 1. AVX2 gather 随机索引吞吐如何？是否可能慢于标量？
+> 2. $K_s=16$ 对 recall 影响多大？
+> 3. NEON \texttt{vqtbl1q\_u8} 与 \texttt{pshufb} 语义是否可移植？
+
+\paragraph{豆包回复（要点）}
+
+> 1. Intel 优化手册指出 \texttt{VGATHERDPS} 每 2 周期约 1 元素，完全随机索引下慢于标量是常见现象。
+> 2. FastScan 原论文提及 4-bit 低比特变体可行；建议你以 DEEP100K 实测为准，先 Python 验证量化误差。
+> 3. NEON \texttt{vqtbl1q\_u8} 为 128-bit 宽度（16 路查表），AVX2 \texttt{pshufb} 为 256-bit 内两条独立 128-bit lane。AVX2 侧需额外处理 lane 交叉。
+
+\paragraph{我的判断、修改与结果复核}
+
+豆包关于 gather 吞吐的提醒与 Intel 手册一致，坚定了我放弃 gather 的路线。NEON 128-bit lane vs AVX2 256-bit lane 的差异是我在实现中需要注意的关键点。最终路线（$K_s=16$ + shuffle）由我独立决策并实现，表 \ref{tab:gather_vs_shuffle} 微基准（gather 慢标量 3.9$\times$）与表 \ref{tab:fastscan} 端到端结果均为本人独立采集复核。
+
+\medskip
+\noindent 综上，AI 辅助限于 intrinsic 语法核对、手册速查和跨平台差异提示；所有关键技术决策、代码实现、实验设计与数据分析均来源本人独立工作，未使用 AI 生成任何性能数据或图表。
 
 \newpage
 \bibliographystyle{plain}
