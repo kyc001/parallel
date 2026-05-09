@@ -1,0 +1,444 @@
+===== Vectorization Log =====
+analysis\manual_vs_autovec.cc:35:23: optimized: loop vectorized using 32 byte vectors
+analysis\manual_vs_autovec.cc:35:23: optimized: loop vectorized using 16 byte vectors
+analysis\../flat_scan_avx2.h:61:14: optimized: loop vectorized using 16 byte vectors
+analysis\../flat_scan_avx2.h:51:18: missed: couldn't vectorize loop
+C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.2.0/include/avxintrin.h:905:10: missed: not vectorized: no vectype for stmt: _45 = MEM[(__m256_u * {ref-all})_44];
+ scalar_type: __m256_u
+analysis\../flat_scan_avx2.h:33:19: missed: couldn't vectorize loop
+C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.2.0/include/avxintrin.h:905:10: missed: not vectorized: no vectype for stmt: _10 = MEM[(__m256_u * {ref-all})_9];
+ scalar_type: __m256_u
+analysis\manual_vs_autovec.cc:54:23: missed: couldn't vectorize loop
+analysis\manual_vs_autovec.cc:55:19: missed: statement clobbers memory: _26 = fn_20(D) (_16, _23, d_24(D));
+analysis\manual_vs_autovec.cc:52:20: missed: not vectorized: volatile type: sink ={v} 0.0;
+analysis\manual_vs_autovec.cc:53:63: missed: statement clobbers memory: start = std::chrono::_V2::system_clock::now ();
+analysis\manual_vs_autovec.cc:55:19: missed: statement clobbers memory: _26 = fn_20(D) (_16, _23, d_24(D));
+analysis\manual_vs_autovec.cc:55:14: missed: not vectorized: volatile type: sink.25_1 ={v} sink;
+analysis\manual_vs_autovec.cc:55:14: missed: not vectorized: volatile type: sink ={v} _2;
+analysis\manual_vs_autovec.cc:57:62: missed: statement clobbers memory: stop = std::chrono::_V2::system_clock::now ();
+analysis\manual_vs_autovec.cc:58:9: missed: not vectorized: volatile type: sink.27_3 ={v} sink;
+analysis\manual_vs_autovec.cc:59:21: missed: statement clobbers memory: _14 = __acrt_iob_func (2);
+analysis\manual_vs_autovec.cc:59:21: missed: statement clobbers memory: fprintf (_14, "impossible\n");
+C:/msys64/mingw64/include/c++/14.2.0/bits/char_traits.h:391:25: missed: statement clobbers memory: _3 = __builtin_strlen (__s_1(D));
+C:/msys64/mingw64/include/c++/14.2.0/ostream:673:18: missed: statement clobbers memory: std::__ostream_insert<char, std::char_traits<char> > (__out_2(D), __s_1(D), _4);
+C:/msys64/mingw64/include/c++/14.2.0/bits/basic_ios.h:162:20: missed: statement clobbers memory: std::basic_ios<char>::clear (_12, _14);
+C:/msys64/mingw64/include/c++/14.2.0/bits/new_allocator.h:151:48: missed: statement clobbers memory: _27 = operator new (_26);
+C:/msys64/mingw64/include/c++/14.2.0/bits/stl_algobase.h:952:11: missed: statement clobbers memory: __builtin_memset (__first_28, 0, _39);
+C:/msys64/mingw64/include/c++/14.2.0/bits/stl_vector.h:1920:24: missed: statement clobbers memory: std::__throw_length_error ("cannot create std::vector larger than max_size()");
+C:/msys64/mingw64/include/c++/14.2.0/bits/stl_vector.h:99:4: optimized: basic block part vectorized using 16 byte vectors
+analysis\manual_vs_autovec.cc:81:23: optimized: loop vectorized using 32 byte vectors
+analysis\manual_vs_autovec.cc:81:23: optimized:  loop versioned for vectorization because of possible aliasing
+analysis\manual_vs_autovec.cc:81:23: optimized: loop vectorized using 16 byte vectors
+analysis\manual_vs_autovec.cc:75:5: missed: splitting region at control altering definition _37 = {anonymous}::BenchmarkKernel<float (*)(const float*, const float*, int)> (ip_distance_scalar_novec, &a, &b, iftmp.18_95, iftmp.19_17);
+analysis\manual_vs_autovec.cc:76:42: missed: statement clobbers memory: iftmp.18_27 = atoi (_1);
+analysis\manual_vs_autovec.cc:77:47: missed: statement clobbers memory: iftmp.19_29 = atoi (_2);
+analysis\manual_vs_autovec.cc:79:48: missed: statement clobbers memory: std::vector<float>::__ct_comp .isra (&a, _3);
+analysis\manual_vs_autovec.cc:80:48: missed: not vectorized: statement can throw an exception: std::vector<float>::__ct_comp .isra (&b, _3);
+analysis\manual_vs_autovec.cc:86:45: missed: not vectorized: statement can throw an exception: _37 = {anonymous}::BenchmarkKernel<float (*)(const float*, const float*, int)> (ip_distance_scalar_novec, &a, &b, iftmp.18_95, iftmp.19_17);
+analysis\manual_vs_autovec.cc:75:5: missed: splitting region at control altering definition _39 = {anonymous}::BenchmarkKernel<float (*)(const float*, const float*, int)> (ip_distance_auto, &a, &b, iftmp.18_95, iftmp.19_17);
+analysis\manual_vs_autovec.cc:87:43: missed: not vectorized: statement can throw an exception: _39 = {anonymous}::BenchmarkKernel<float (*)(const float*, const float*, int)> (ip_distance_auto, &a, &b, iftmp.18_95, iftmp.19_17);
+analysis\manual_vs_autovec.cc:87:43: missed: splitting region at control altering definition _41 = {anonymous}::BenchmarkKernel<float (*)(const float*, const float*, int)> (ip_distance_manual, &a, &b, iftmp.18_95, iftmp.19_17);
+analysis\manual_vs_autovec.cc:88:45: missed: not vectorized: statement can throw an exception: _41 = {anonymous}::BenchmarkKernel<float (*)(const float*, const float*, int)> (ip_distance_manual, &a, &b, iftmp.18_95, iftmp.19_17);
+analysis\manual_vs_autovec.cc:88:45: missed: splitting region at control altering definition _68 = std::__ostream_insert<char, std::char_traits<char> > (&cout, &D.105729.D.38843._M_local_buf, 4);
+C:/msys64/mingw64/include/c++/14.2.0/ostream:673:18: missed: not vectorized: statement can throw an exception: std::__ostream_insert<char, std::char_traits<char> > (&cout, "arch=", 5);
+C:/msys64/mingw64/include/c++/14.2.0/bits/char_traits.h:427:49: missed: statement clobbers memory: __builtin_memcpy (&D.105729.D.38843._M_local_buf, "avx2", 4);
+C:/msys64/mingw64/include/c++/14.2.0/bits/basic_string.h:4082:30: missed: not vectorized: statement can throw an exception: _68 = std::__ostream_insert<char, std::char_traits<char> > (&cout, &D.105729.D.38843._M_local_buf, 4);
+C:/msys64/mingw64/include/c++/14.2.0/bits/basic_string.h:4082:30: missed: splitting region at dominance boundary bb16
+C:/msys64/mingw64/include/c++/14.2.0/bits/basic_string.h:4082:30: missed: splitting region at control altering definition _45 = std::basic_ostream<char>::operator<< (&cout, iftmp.18_95);
+analysis\manual_vs_autovec.cc:90:44: missed: not vectorized: statement can throw an exception: std::operator<<.isra (_68, "\n");
+C:/msys64/mingw64/include/c++/14.2.0/bits/basic_string.h:809:19: missed: statement clobbers memory: std::__cxx11::basic_string<char>::_M_dispose (&D.105729);
+C:/msys64/mingw64/include/c++/14.2.0/ostream:673:18: missed: not vectorized: statement can throw an exception: std::__ostream_insert<char, std::char_traits<char> > (&cout, "d=", 2);
+analysis\manual_vs_autovec.cc:91:31: missed: not vectorized: statement can throw an exception: _45 = std::basic_ostream<char>::operator<< (&cout, iftmp.18_95);
+analysis\manual_vs_autovec.cc:91:31: missed: splitting region at control altering definition _47 = std::basic_ostream<char>::operator<< (_45, iftmp.19_17);
+C:/msys64/mingw64/include/c++/14.2.0/ostream:673:18: missed: not vectorized: statement can throw an exception: std::__ostream_insert<char, std::char_traits<char> > (_45, " repeat=", 8);
+analysis\manual_vs_autovec.cc:91:55: missed: not vectorized: statement can throw an exception: _47 = std::basic_ostream<char>::operator<< (_45, iftmp.19_17);
+analysis\manual_vs_autovec.cc:91:55: missed: splitting region at control altering definition _69 = std::basic_ostream<char>::_M_insert<double> (&cout, _37);
+analysis\manual_vs_autovec.cc:91:55: missed: not vectorized: statement can throw an exception: std::operator<<.isra (_47, "\n");
+C:/msys64/mingw64/include/c++/14.2.0/ostream:673:18: missed: not vectorized: statement can throw an exception: std::__ostream_insert<char, std::char_traits<char> > (&cout, "scalar_novec_ns=", 16);
+C:/msys64/mingw64/include/c++/14.2.0/ostream:229:25: missed: not vectorized: statement can throw an exception: _69 = std::basic_ostream<char>::_M_insert<double> (&cout, _37);
+C:/msys64/mingw64/include/c++/14.2.0/ostream:229:25: missed: splitting region at dominance boundary bb32
+C:/msys64/mingw64/include/c++/14.2.0/ostream:229:25: missed: splitting region at control altering definition _70 = std::basic_ostream<char>::_M_insert<double> (&cout, _39);
+analysis\manual_vs_autovec.cc:92:53: missed: not vectorized: statement can throw an exception: std::operator<<.isra (_69, "\n");
+C:/msys64/mingw64/include/c++/14.2.0/ostream:673:18: missed: not vectorized: statement can throw an exception: std::__ostream_insert<char, std::char_traits<char> > (&cout, "autovec_ns=", 11);
+C:/msys64/mingw64/include/c++/14.2.0/ostream:229:25: missed: not vectorized: statement can throw an exception: _70 = std::basic_ostream<char>::_M_insert<double> (&cout, _39);
+C:/msys64/mingw64/include/c++/14.2.0/ostream:229:25: missed: splitting region at dominance boundary bb38
+C:/msys64/mingw64/include/c++/14.2.0/ostream:229:25: missed: splitting region at control altering definition _71 = std::basic_ostream<char>::_M_insert<double> (&cout, _41);
+analysis\manual_vs_autovec.cc:93:46: missed: not vectorized: statement can throw an exception: std::operator<<.isra (_70, "\n");
+C:/msys64/mingw64/include/c++/14.2.0/ostream:673:18: missed: not vectorized: statement can throw an exception: std::__ostream_insert<char, std::char_traits<char> > (&cout, "manual_simd_ns=", 15);
+C:/msys64/mingw64/include/c++/14.2.0/ostream:229:25: missed: not vectorized: statement can throw an exception: _71 = std::basic_ostream<char>::_M_insert<double> (&cout, _41);
+C:/msys64/mingw64/include/c++/14.2.0/ostream:229:25: missed: splitting region at dominance boundary bb44
+C:/msys64/mingw64/include/c++/14.2.0/ostream:229:25: missed: splitting region at control altering definition _72 = std::basic_ostream<char>::_M_insert<double> (&cout, _13);
+analysis\manual_vs_autovec.cc:94:52: missed: not vectorized: statement can throw an exception: std::operator<<.isra (_71, "\n");
+C:/msys64/mingw64/include/c++/14.2.0/ostream:673:18: missed: not vectorized: statement can throw an exception: std::__ostream_insert<char, std::char_traits<char> > (&cout, "autovec_speedup_vs_scalar=", 26);
+C:/msys64/mingw64/include/c++/14.2.0/ostream:229:25: missed: not vectorized: statement can throw an exception: _72 = std::basic_ostream<char>::_M_insert<double> (&cout, _13);
+C:/msys64/mingw64/include/c++/14.2.0/ostream:229:25: missed: splitting region at dominance boundary bb50
+C:/msys64/mingw64/include/c++/14.2.0/ostream:229:25: missed: splitting region at control altering definition _73 = std::basic_ostream<char>::_M_insert<double> (&cout, _14);
+analysis\manual_vs_autovec.cc:95:75: missed: not vectorized: statement can throw an exception: std::operator<<.isra (_72, "\n");
+C:/msys64/mingw64/include/c++/14.2.0/ostream:673:18: missed: not vectorized: statement can throw an exception: std::__ostream_insert<char, std::char_traits<char> > (&cout, "manual_speedup_vs_scalar=", 25);
+C:/msys64/mingw64/include/c++/14.2.0/ostream:229:25: missed: not vectorized: statement can throw an exception: _73 = std::basic_ostream<char>::_M_insert<double> (&cout, _14);
+C:/msys64/mingw64/include/c++/14.2.0/ostream:229:25: missed: splitting region at dominance boundary bb56
+C:/msys64/mingw64/include/c++/14.2.0/ostream:229:25: missed: splitting region at control altering definition _74 = std::basic_ostream<char>::_M_insert<double> (&cout, _15);
+analysis\manual_vs_autovec.cc:96:76: missed: not vectorized: statement can throw an exception: std::operator<<.isra (_73, "\n");
+C:/msys64/mingw64/include/c++/14.2.0/ostream:673:18: missed: not vectorized: statement can throw an exception: std::__ostream_insert<char, std::char_traits<char> > (&cout, "manual_speedup_vs_autovec=", 26);
+C:/msys64/mingw64/include/c++/14.2.0/ostream:229:25: missed: not vectorized: statement can throw an exception: _74 = std::basic_ostream<char>::_M_insert<double> (&cout, _15);
+C:/msys64/mingw64/include/c++/14.2.0/ostream:229:25: missed: splitting region at dominance boundary bb62
+C:/msys64/mingw64/include/c++/14.2.0/ostream:229:25: missed: splitting region at dominance boundary bb57
+analysis\manual_vs_autovec.cc:97:75: missed: not vectorized: statement can throw an exception: std::operator<<.isra (_74, "\n");
+C:/msys64/mingw64/include/c++/14.2.0/bits/new_allocator.h:172:26: missed: statement clobbers memory: operator delete (b$D105400$_M_impl$D104740$_M_start_138, _82);
+C:/msys64/mingw64/include/c++/14.2.0/bits/new_allocator.h:172:26: missed: statement clobbers memory: operator delete (a$D105400$_M_impl$D104740$_M_start_67, _78);
+analysis\manual_vs_autovec.cc:75:5: missed: splitting region at dominance boundary bb51
+analysis\manual_vs_autovec.cc:75:5: missed: splitting region at dominance boundary bb45
+analysis\manual_vs_autovec.cc:75:5: missed: splitting region at dominance boundary bb39
+analysis\manual_vs_autovec.cc:75:5: missed: splitting region at dominance boundary bb33
+analysis\manual_vs_autovec.cc:75:5: missed: splitting region at dominance boundary bb27
+analysis\manual_vs_autovec.cc:75:5: missed: splitting region at dominance boundary bb25
+analysis\manual_vs_autovec.cc:75:5: missed: splitting region at dominance boundary bb21
+analysis\manual_vs_autovec.cc:75:5: missed: splitting region at dominance boundary bb17
+analysis\manual_vs_autovec.cc:75:5: missed: splitting region at dominance boundary bb70
+analysis\manual_vs_autovec.cc:75:5: missed: splitting region at dominance boundary bb12
+C:/msys64/mingw64/include/c++/14.2.0/bits/basic_string.h:809:19: missed: statement clobbers memory: std::__cxx11::basic_string<char>::_M_dispose (&D.105729);
+analysis\manual_vs_autovec.cc:75:5: missed: not vectorized: statement can throw an exception: resx 13
+C:/msys64/mingw64/include/c++/14.2.0/bits/basic_string.h:809:23: missed: splitting region at dominance boundary bb10
+C:/msys64/mingw64/include/c++/14.2.0/bits/basic_string.h:809:23: missed: splitting region at dominance boundary bb72
+C:/msys64/mingw64/include/c++/14.2.0/bits/basic_string.h:809:23: missed: splitting region at dominance boundary bb73
+C:/msys64/mingw64/include/c++/14.2.0/bits/basic_string.h:809:23: missed: splitting region at dominance boundary bb77
+C:/msys64/mingw64/include/c++/14.2.0/bits/new_allocator.h:172:26: missed: statement clobbers memory: operator delete (b$D105400$_M_impl$D104740$_M_start_138, _86);
+analysis\manual_vs_autovec.cc:75:5: missed: not vectorized: statement can throw an exception: resx 11
+C:/msys64/mingw64/include/c++/14.2.0/bits/stl_vector.h:738:7: missed: splitting region at dominance boundary bb78
+C:/msys64/mingw64/include/c++/14.2.0/bits/new_allocator.h:172:26: missed: statement clobbers memory: operator delete (a$D105400$_M_impl$D104740$_M_start_67, _90);
+C:/msys64/mingw64/include/c++/14.2.0/bits/stl_uninitialized.h:1102:22: missed: couldn't vectorize loop
+C:/msys64/mingw64/include/c++/14.2.0/bits/new_allocator.h:191:4: missed: not vectorized: more than one data ref in stmt: *__cur_15 = *__first_40;
+C:/msys64/mingw64/include/c++/14.2.0/bits/new_allocator.h:151:48: missed: statement clobbers memory: _50 = operator new (prephitmp_45);
+C:/msys64/mingw64/include/c++/14.2.0/bits/new_allocator.h:191:4: missed: not vectorized: more than one data ref in stmt: *_2 = *__args#0_14(D);
+C:/msys64/mingw64/include/c++/14.2.0/bits/new_allocator.h:191:4: missed: not vectorized: more than one data ref in stmt: *__cur_15 = *__first_40;
+C:/msys64/mingw64/include/c++/14.2.0/bits/new_allocator.h:172:26: missed: statement clobbers memory: operator delete (_33, _21);
+C:/msys64/mingw64/include/c++/14.2.0/bits/stl_vector.h:1909:24: missed: statement clobbers memory: std::__throw_length_error ("vector::_M_realloc_append");
+C:/msys64/mingw64/include/c++/14.2.0/bits/vector.tcc:692:30: missed: not vectorized: vectorization is not profitable.
+C:/msys64/mingw64/include/c++/14.2.0/bits/vector.tcc:692:30: missed: not vectorized: vectorization is not profitable.
+analysis\../flat_scan_avx2.h:75:26: missed: couldn't vectorize loop
+analysis\../flat_scan_avx2.h:75:26: missed: not vectorized: loop nest containing two or more consecutive inner loops cannot be vectorized
+C:/msys64/mingw64/include/c++/14.2.0/bits/stl_pair.h:1047:36: missed: couldn't vectorize loop
+C:/msys64/mingw64/include/c++/14.2.0/bits/stl_pair.h:1047:36: missed: not vectorized: could not determine main exit from loop with multiple exits.
+C:/msys64/mingw64/include/c++/14.2.0/bits/stl_pair.h:1047:36: missed: couldn't vectorize loop
+C:/msys64/mingw64/include/c++/14.2.0/bits/stl_pair.h:1047:36: missed: not vectorized: could not determine main exit from loop with multiple exits.
+C:/msys64/mingw64/include/c++/14.2.0/bits/stl_heap.h:229:28: missed: couldn't vectorize loop
+C:/msys64/mingw64/include/c++/14.2.0/bits/stl_heap.h:229:28: missed: not vectorized: number of iterations cannot be computed.
+C:/msys64/mingw64/include/c++/14.2.0/bits/stl_pair.h:1047:36: missed: couldn't vectorize loop
+C:/msys64/mingw64/include/c++/14.2.0/bits/stl_pair.h:1047:36: missed: not vectorized: could not determine main exit from loop with multiple exits.
+analysis\../flat_scan_avx2.h:61:14: optimized: loop vectorized using 16 byte vectors
+analysis\../flat_scan_avx2.h:51:18: missed: couldn't vectorize loop
+C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.2.0/include/avxintrin.h:905:10: missed: not vectorized: no vectype for stmt: _86 = MEM[(__m256_u * {ref-all})_85];
+ scalar_type: __m256_u
+analysis\../flat_scan_avx2.h:33:19: missed: couldn't vectorize loop
+C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.2.0/include/avxintrin.h:905:10: missed: not vectorized: no vectype for stmt: _51 = MEM[(__m256_u * {ref-all})_50];
+ scalar_type: __m256_u
+analysis\../flat_scan_avx2.h:72:1: missed: splitting region at dont-vectorize loop 9 entry at bb109
+C:/msys64/mingw64/include/c++/14.2.0/bits/vector.tcc:123:21: missed: not vectorized: statement can throw an exception: std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >::_M_realloc_append<std::pair<float, unsigned int> > (_149, &D.104295);
+C:/msys64/mingw64/include/c++/14.2.0/bits/stl_vector.h:99:4: optimized: basic block part vectorized using 16 byte vectors
+C:/msys64/mingw64/include/c++/14.2.0/bits/stl_vector.h:99:4: missed: splitting region at dominance boundary bb51
+C:/msys64/mingw64/include/c++/14.2.0/bits/stl_heap.h:139:17: missed: splitting region at dominance boundary bb54
+C:/msys64/mingw64/include/c++/14.2.0/bits/stl_pair.h:938:9: missed: splitting region at dominance boundary bb62
+C:/msys64/mingw64/include/c++/14.2.0/bits/stl_iterator.h:1139:45: missed: splitting region at dominance boundary bb63
+C:/msys64/mingw64/include/c++/14.2.0/bits/stl_pair.h:938:9: missed: splitting region at dominance boundary bb13
+C:/msys64/mingw64/include/c++/14.2.0/bits/new_allocator.h:198:4: missed: splitting region at dominance boundary bb64
+C:/msys64/mingw64/include/c++/14.2.0/bits/vector.tcc:123:21: missed: not vectorized: statement can throw an exception: std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >::_M_realloc_append<std::pair<float, unsigned int> > (_114, &D.104284);
+C:/msys64/mingw64/include/c++/14.2.0/bits/stl_pair.h:938:9: missed: splitting region at dominance boundary bb30
+analysis\../flat_scan_avx2.h:75:26: missed: splitting region at dominance boundary bb65
+analysis\../flat_scan_avx2.h:75:26: missed: splitting region at dominance boundary bb66
+analysis\../flat_scan_avx2.h:75:26: missed: splitting region at dominance boundary bb104
+C:/msys64/mingw64/include/c++/14.2.0/bits/new_allocator.h:172:26: missed: statement clobbers memory: operator delete (_34, _36);
+C:/msys64/mingw64/include/c++/14.2.0/bits/new_allocator.h:172:26: missed: splitting region at dominance boundary bb3
+
+===== ip_distance_auto / ip_distance_manual in objdump =====
+> D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:7:0000000000000000 <(anonymous namespace)::ip_distance_scalar_novec(float const*, float const*, int)>:
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:8:   0:	45 85 c0             	test   r8d,r8d
+> D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:9:   3:	7e 43                	jle    48 <(anonymous namespace)::ip_distance_scalar_novec(float const*, float const*, int)+0x48>
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:10:   5:	4d 63 c0             	movsxd r8,r8d
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:11:   8:	31 c0                	xor    eax,eax
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:12:   a:	c5 f0 57 c9          	vxorps xmm1,xmm1,xmm1
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:13:   e:	49 c1 e0 02          	shl    r8,0x2
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:14:  12:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:15:  19:	00 00 00 00 
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:16:  1d:	0f 1f 00             	nop    DWORD PTR [rax]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:17:  20:	c5 fa 10 04 01       	vmovss xmm0,DWORD PTR [rcx+rax*1]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:18:  25:	c5 fa 59 04 02       	vmulss xmm0,xmm0,DWORD PTR [rdx+rax*1]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:19:  2a:	48 83 c0 04          	add    rax,0x4
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:20:  2e:	c5 f2 58 c8          	vaddss xmm1,xmm1,xmm0
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:21:  32:	49 39 c0             	cmp    r8,rax
+> D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:22:  35:	75 e9                	jne    20 <(anonymous namespace)::ip_distance_scalar_novec(float const*, float const*, int)+0x20>
+> D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:23:  37:	c5 fa 10 05 ec 00 00 	vmovss xmm0,DWORD PTR [rip+0xec]        # 12b <(anonymous namespace)::ip_distance_auto(float const*, float const*, int)+0xcb>
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:24:  3e:	00 
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:25:  3f:	c5 fa 5c c1          	vsubss xmm0,xmm0,xmm1
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:26:  43:	c3                   	ret
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:27:  44:	0f 1f 40 00          	nop    DWORD PTR [rax+0x0]
+> D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:28:  48:	c5 fa 10 05 ec 00 00 	vmovss xmm0,DWORD PTR [rip+0xec]        # 13c <(anonymous namespace)::ip_distance_auto(float const*, float const*, int)+0xdc>
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:29:  4f:	00 
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:30:  50:	c3                   	ret
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:31:  51:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:32:  58:	00 00 00 00 
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:33:  5c:	0f 1f 40 00          	nop    DWORD PTR [rax+0x0]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:34:
+> D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:35:0000000000000060 <(anonymous namespace)::ip_distance_auto(float const*, float const*, int)>:
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:36:  60:	45 85 c0             	test   r8d,r8d
+> D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:37:  63:	0f 8e 2f 01 00 00    	jle    198 <(anonymous namespace)::ip_distance_auto(float const*, float const*, int)+0x138>
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:38:  69:	41 8d 40 ff          	lea    eax,[r8-0x1]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:39:  6d:	83 f8 06             	cmp    eax,0x6
+> D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:40:  70:	0f 86 43 01 00 00    	jbe    1b9 <(anonymous namespace)::ip_distance_auto(float const*, float const*, int)+0x159>
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:41:  76:	45 89 c1             	mov    r9d,r8d
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:42:  79:	31 c0                	xor    eax,eax
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:43:  7b:	c5 f0 57 c9          	vxorps xmm1,xmm1,xmm1
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:44:  7f:	41 c1 e9 03          	shr    r9d,0x3
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:45:  83:	49 c1 e1 05          	shl    r9,0x5
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:46:  87:	66 0f 1f 84 00 00 00 	nop    WORD PTR [rax+rax*1+0x0]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:47:  8e:	00 00 
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:48:  90:	c5 fc 10 04 02       	vmovups ymm0,YMMWORD PTR [rdx+rax*1]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:49:  95:	c5 fc 59 04 01       	vmulps ymm0,ymm0,YMMWORD PTR [rcx+rax*1]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:50:  9a:	48 83 c0 20          	add    rax,0x20
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:51:  9e:	c5 f2 58 c8          	vaddss xmm1,xmm1,xmm0
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:52:  a2:	c5 f8 c6 d8 55       	vshufps xmm3,xmm0,xmm0,0x55
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:53:  a7:	c5 f8 c6 d0 ff       	vshufps xmm2,xmm0,xmm0,0xff
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:54:  ac:	c5 f2 58 cb          	vaddss xmm1,xmm1,xmm3
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:55:  b0:	c5 f8 15 d8          	vunpckhps xmm3,xmm0,xmm0
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:56:  b4:	c4 e3 7d 19 c0 01    	vextractf128 xmm0,ymm0,0x1
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:57:  ba:	c5 f2 58 cb          	vaddss xmm1,xmm1,xmm3
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:58:  be:	c5 f2 58 ca          	vaddss xmm1,xmm1,xmm2
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:59:  c2:	c5 f8 c6 d0 55       	vshufps xmm2,xmm0,xmm0,0x55
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:60:  c7:	c5 f2 58 c8          	vaddss xmm1,xmm1,xmm0
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:61:  cb:	c5 f2 58 ca          	vaddss xmm1,xmm1,xmm2
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:62:  cf:	c5 f8 15 d0          	vunpckhps xmm2,xmm0,xmm0
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:63:  d3:	c5 f8 c6 c0 ff       	vshufps xmm0,xmm0,xmm0,0xff
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:64:  d8:	c5 f2 58 ca          	vaddss xmm1,xmm1,xmm2
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:65:  dc:	c5 f2 58 c8          	vaddss xmm1,xmm1,xmm0
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:66:  e0:	4c 39 c8             	cmp    rax,r9
+> D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:67:  e3:	75 ab                	jne    90 <(anonymous namespace)::ip_distance_auto(float const*, float const*, int)+0x30>
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:68:  e5:	44 89 c0             	mov    eax,r8d
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:69:  e8:	83 e0 f8             	and    eax,0xfffffff8
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:70:  eb:	41 89 c1             	mov    r9d,eax
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:71:  ee:	41 39 c0             	cmp    r8d,eax
+> D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:72:  f1:	0f 84 b1 00 00 00    	je     1a8 <(anonymous namespace)::ip_distance_auto(float const*, float const*, int)+0x148>
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:73:  f7:	c5 f8 77             	vzeroupper
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:74:  fa:	45 89 c2             	mov    r10d,r8d
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:75:  fd:	45 29 ca             	sub    r10d,r9d
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:76: 100:	45 8d 5a ff          	lea    r11d,[r10-0x1]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:77: 104:	41 83 fb 02          	cmp    r11d,0x2
+> D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:78: 108:	76 3a                	jbe    144 <(anonymous namespace)::ip_distance_auto(float const*, float const*, int)+0xe4>
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:79: 10a:	c4 a1 78 10 04 8a    	vmovups xmm0,XMMWORD PTR [rdx+r9*4]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:80: 110:	c4 a1 78 59 04 89    	vmulps xmm0,xmm0,XMMWORD PTR [rcx+r9*4]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:81: 116:	45 89 d1             	mov    r9d,r10d
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:82: 119:	41 83 e1 fc          	and    r9d,0xfffffffc
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:83: 11d:	44 01 c8             	add    eax,r9d
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:84: 120:	41 83 e2 03          	and    r10d,0x3
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:85: 124:	c5 f2 58 c8          	vaddss xmm1,xmm1,xmm0
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:86: 128:	c5 f8 c6 d0 55       	vshufps xmm2,xmm0,xmm0,0x55
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:87: 12d:	c5 f2 58 ca          	vaddss xmm1,xmm1,xmm2
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:88: 131:	c5 f8 15 d0          	vunpckhps xmm2,xmm0,xmm0
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:89: 135:	c5 f8 c6 c0 ff       	vshufps xmm0,xmm0,xmm0,0xff
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:90: 13a:	c5 f2 58 ca          	vaddss xmm1,xmm1,xmm2
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:91: 13e:	c5 f2 58 c8          	vaddss xmm1,xmm1,xmm0
+> D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:92: 142:	74 44                	je     188 <(anonymous namespace)::ip_distance_auto(float const*, float const*, int)+0x128>
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:93: 144:	4c 63 c8             	movsxd r9,eax
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:94: 147:	c4 a1 7a 10 24 89    	vmovss xmm4,DWORD PTR [rcx+r9*4]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:95: 14d:	4e 8d 14 8d 00 00 00 	lea    r10,[r9*4+0x0]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:96: 154:	00 
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:97: 155:	c4 a2 59 b9 0c 8a    	vfmadd231ss xmm1,xmm4,DWORD PTR [rdx+r9*4]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:98: 15b:	44 8d 48 01          	lea    r9d,[rax+0x1]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:99: 15f:	45 39 c8             	cmp    r8d,r9d
+> D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:100: 162:	7e 24                	jle    188 <(anonymous namespace)::ip_distance_auto(float const*, float const*, int)+0x128>
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:101: 164:	83 c0 02             	add    eax,0x2
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:102: 167:	c4 a1 7a 10 6c 12 04 	vmovss xmm5,DWORD PTR [rdx+r10*1+0x4]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:103: 16e:	c4 a2 51 b9 4c 11 04 	vfmadd231ss xmm1,xmm5,DWORD PTR [rcx+r10*1+0x4]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:104: 175:	41 39 c0             	cmp    r8d,eax
+> D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:105: 178:	7e 0e                	jle    188 <(anonymous namespace)::ip_distance_auto(float const*, float const*, int)+0x128>
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:106: 17a:	c4 a1 7a 10 6c 11 08 	vmovss xmm5,DWORD PTR [rcx+r10*1+0x8]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:107: 181:	c4 a2 51 b9 4c 12 08 	vfmadd231ss xmm1,xmm5,DWORD PTR [rdx+r10*1+0x8]
+> D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:108: 188:	c5 fa 10 05 ec 00 00 	vmovss xmm0,DWORD PTR [rip+0xec]        # 27c <(anonymous namespace)::ip_distance_manual(float const*, float const*, int)+0xac>
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:109: 18f:	00 
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:110: 190:	c5 fa 5c c1          	vsubss xmm0,xmm0,xmm1
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:111: 194:	c3                   	ret
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:112: 195:	0f 1f 00             	nop    DWORD PTR [rax]
+> D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:113: 198:	c5 fa 10 05 ec 00 00 	vmovss xmm0,DWORD PTR [rip+0xec]        # 28c <(anonymous namespace)::ip_distance_manual(float const*, float const*, int)+0xbc>
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:114: 19f:	00 
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:115: 1a0:	c3                   	ret
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:116: 1a1:	0f 1f 80 00 00 00 00 	nop    DWORD PTR [rax+0x0]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:117: 1a8:	c5 f8 77             	vzeroupper
+> D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:118: 1ab:	c5 fa 10 05 ec 00 00 	vmovss xmm0,DWORD PTR [rip+0xec]        # 29f <(anonymous namespace)::ip_distance_manual(float const*, float const*, int)+0xcf>
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:119: 1b2:	00 
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:120: 1b3:	c5 fa 5c c1          	vsubss xmm0,xmm0,xmm1
+> D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:121: 1b7:	eb db                	jmp    194 <(anonymous namespace)::ip_distance_auto(float const*, float const*, int)+0x134>
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:122: 1b9:	45 31 c9             	xor    r9d,r9d
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:123: 1bc:	31 c0                	xor    eax,eax
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:124: 1be:	c5 f0 57 c9          	vxorps xmm1,xmm1,xmm1
+> D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:125: 1c2:	e9 33 ff ff ff       	jmp    fa <(anonymous namespace)::ip_distance_auto(float const*, float const*, int)+0x9a>
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:126: 1c7:	66 0f 1f 84 00 00 00 	nop    WORD PTR [rax+rax*1+0x0]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:127: 1ce:	00 00 
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:128:
+> D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:129:00000000000001d0 <(anonymous namespace)::ip_distance_manual(float const*, float const*, int)>:
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:130: 1d0:	49 89 c9             	mov    r9,rcx
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:131: 1d3:	49 89 d2             	mov    r10,rdx
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:132: 1d6:	41 83 f8 1f          	cmp    r8d,0x1f
+> D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:133: 1da:	0f 8e d0 01 00 00    	jle    3b0 <(anonymous namespace)::ip_distance_manual(float const*, float const*, int)+0x1e0>
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:134: 1e0:	48 89 c8             	mov    rax,rcx
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:135: 1e3:	c5 e0 57 db          	vxorps xmm3,xmm3,xmm3
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:136: 1e7:	45 8d 58 e0          	lea    r11d,[r8-0x20]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:137: 1eb:	44 89 c1             	mov    ecx,r8d
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:138: 1ee:	c5 fc 28 d3          	vmovaps ymm2,ymm3
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:139: 1f2:	c1 e9 05             	shr    ecx,0x5
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:140: 1f5:	c5 fc 28 c3          	vmovaps ymm0,ymm3
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:141: 1f9:	c5 fc 28 cb          	vmovaps ymm1,ymm3
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:142: 1fd:	83 e9 01             	sub    ecx,0x1
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:143: 200:	48 c1 e1 07          	shl    rcx,0x7
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:144: 204:	49 8d 8c 09 80 00 00 	lea    rcx,[r9+rcx*1+0x80]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:145: 20b:	00 
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:146: 20c:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:147: 213:	00 00 00 00 
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:148: 217:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:149: 21e:	00 00 00 00 
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:150: 222:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:151: 229:	00 00 00 00 
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:152: 22d:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:153: 234:	00 00 00 00 
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:154: 238:	0f 1f 84 00 00 00 00 	nop    DWORD PTR [rax+rax*1+0x0]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:155: 23f:	00 
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:156: 240:	c5 fc 10 20          	vmovups ymm4,YMMWORD PTR [rax]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:157: 244:	c5 fc 10 68 20       	vmovups ymm5,YMMWORD PTR [rax+0x20]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:158: 249:	48 83 e8 80          	sub    rax,0xffffffffffffff80
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:159: 24d:	48 83 ea 80          	sub    rdx,0xffffffffffffff80
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:160: 251:	c4 e2 5d b8 4a 80    	vfmadd231ps ymm1,ymm4,YMMWORD PTR [rdx-0x80]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:161: 257:	c4 e2 55 b8 42 a0    	vfmadd231ps ymm0,ymm5,YMMWORD PTR [rdx-0x60]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:162: 25d:	c5 fc 10 60 c0       	vmovups ymm4,YMMWORD PTR [rax-0x40]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:163: 262:	c5 fc 10 68 e0       	vmovups ymm5,YMMWORD PTR [rax-0x20]
+> D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:167: 276:	75 c8                	jne    240 <(anonymous namespace)::ip_distance_manual(float const*, float const*, int)+0x70>
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:168: 278:	44 89 da             	mov    edx,r11d
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:169: 27b:	c5 ec 58 d3          	vaddps ymm2,ymm2,ymm3
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:170: 27f:	83 e2 e0             	and    edx,0xffffffe0
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:171: 282:	8d 42 20             	lea    eax,[rdx+0x20]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:172: 285:	83 c2 27             	add    edx,0x27
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:173: 288:	41 39 d0             	cmp    r8d,edx
+> D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:174: 28b:	7e 5e                	jle    2eb <(anonymous namespace)::ip_distance_manual(float const*, float const*, int)+0x11b>
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:175: 28d:	48 63 d0             	movsxd rdx,eax
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:176: 290:	c4 c1 7c 10 1c 91    	vmovups ymm3,YMMWORD PTR [r9+rdx*4]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:177: 296:	48 8d 0c 95 00 00 00 	lea    rcx,[rdx*4+0x0]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:178: 29d:	00 
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:179: 29e:	c4 c2 65 b8 0c 92    	vfmadd231ps ymm1,ymm3,YMMWORD PTR [r10+rdx*4]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:180: 2a4:	8d 50 0f             	lea    edx,[rax+0xf]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:181: 2a7:	41 39 d0             	cmp    r8d,edx
+> D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:182: 2aa:	7e 24                	jle    2d0 <(anonymous namespace)::ip_distance_manual(float const*, float const*, int)+0x100>
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:183: 2ac:	8d 50 17             	lea    edx,[rax+0x17]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:184: 2af:	c4 c1 7c 10 5c 09 20 	vmovups ymm3,YMMWORD PTR [r9+rcx*1+0x20]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:185: 2b6:	c4 c2 65 b8 4c 0a 20 	vfmadd231ps ymm1,ymm3,YMMWORD PTR [r10+rcx*1+0x20]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:186: 2bd:	41 39 d0             	cmp    r8d,edx
+> D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:187: 2c0:	7e 0e                	jle    2d0 <(anonymous namespace)::ip_distance_manual(float const*, float const*, int)+0x100>
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:188: 2c2:	c4 c1 7c 10 5c 09 40 	vmovups ymm3,YMMWORD PTR [r9+rcx*1+0x40]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:189: 2c9:	c4 c2 65 b8 4c 0a 40 	vfmadd231ps ymm1,ymm3,YMMWORD PTR [r10+rcx*1+0x40]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:190: 2d0:	41 8d 50 f8          	lea    edx,[r8-0x8]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:191: 2d4:	8d 48 07             	lea    ecx,[rax+0x7]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:192: 2d7:	29 c2                	sub    edx,eax
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:193: 2d9:	83 e2 f8             	and    edx,0xfffffff8
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:194: 2dc:	41 39 c8             	cmp    r8d,ecx
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:195: 2df:	b9 00 00 00 00       	mov    ecx,0x0
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:196: 2e4:	0f 4e d1             	cmovle edx,ecx
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:197: 2e7:	8d 44 10 08          	lea    eax,[rax+rdx*1+0x8]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:198: 2eb:	c5 fc 58 c1          	vaddps ymm0,ymm0,ymm1
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:199: 2ef:	c5 fc 58 c2          	vaddps ymm0,ymm0,ymm2
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:200: 2f3:	c5 ff 7c c0          	vhaddps ymm0,ymm0,ymm0
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:201: 2f7:	c5 ff 7c c0          	vhaddps ymm0,ymm0,ymm0
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:202: 2fb:	c5 f8 28 c8          	vmovaps xmm1,xmm0
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:203: 2ff:	c4 e3 7d 19 c0 01    	vextractf128 xmm0,ymm0,0x1
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:204: 305:	c5 f2 58 c8          	vaddss xmm1,xmm1,xmm0
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:205: 309:	41 39 c0             	cmp    r8d,eax
+> D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:206: 30c:	0f 8e 89 00 00 00    	jle    39b <(anonymous namespace)::ip_distance_manual(float const*, float const*, int)+0x1cb>
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:207: 312:	44 89 c2             	mov    edx,r8d
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:208: 315:	29 c2                	sub    edx,eax
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:209: 317:	8d 4a ff             	lea    ecx,[rdx-0x1]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:210: 31a:	83 f9 02             	cmp    ecx,0x2
+> D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:211: 31d:	76 39                	jbe    358 <(anonymous namespace)::ip_distance_manual(float const*, float const*, int)+0x188>
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:212: 31f:	48 63 c8             	movsxd rcx,eax
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:213: 322:	c4 c1 78 10 04 89    	vmovups xmm0,XMMWORD PTR [r9+rcx*4]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:214: 328:	c4 c1 78 59 04 8a    	vmulps xmm0,xmm0,XMMWORD PTR [r10+rcx*4]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:215: 32e:	89 d1                	mov    ecx,edx
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:216: 330:	83 e1 fc             	and    ecx,0xfffffffc
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:217: 333:	01 c8                	add    eax,ecx
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:218: 335:	83 e2 03             	and    edx,0x3
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:219: 338:	c5 f2 58 c8          	vaddss xmm1,xmm1,xmm0
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:220: 33c:	c5 f8 c6 d0 55       	vshufps xmm2,xmm0,xmm0,0x55
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:221: 341:	c5 ea 58 d1          	vaddss xmm2,xmm2,xmm1
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:222: 345:	c5 f8 15 c8          	vunpckhps xmm1,xmm0,xmm0
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:223: 349:	c5 f8 c6 c0 ff       	vshufps xmm0,xmm0,xmm0,0xff
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:224: 34e:	c5 f2 58 ca          	vaddss xmm1,xmm1,xmm2
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:225: 352:	c5 f2 58 c8          	vaddss xmm1,xmm1,xmm0
+> D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:226: 356:	74 43                	je     39b <(anonymous namespace)::ip_distance_manual(float const*, float const*, int)+0x1cb>
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:227: 358:	48 63 d0             	movsxd rdx,eax
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:228: 35b:	c4 c1 7a 10 1c 91    	vmovss xmm3,DWORD PTR [r9+rdx*4]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:229: 361:	48 8d 0c 95 00 00 00 	lea    rcx,[rdx*4+0x0]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:230: 368:	00 
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:231: 369:	c4 c2 61 b9 0c 92    	vfmadd231ss xmm1,xmm3,DWORD PTR [r10+rdx*4]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:232: 36f:	8d 50 01             	lea    edx,[rax+0x1]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:233: 372:	41 39 d0             	cmp    r8d,edx
+> D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:234: 375:	7e 24                	jle    39b <(anonymous namespace)::ip_distance_manual(float const*, float const*, int)+0x1cb>
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:235: 377:	83 c0 02             	add    eax,0x2
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:236: 37a:	c4 c1 7a 10 5c 0a 04 	vmovss xmm3,DWORD PTR [r10+rcx*1+0x4]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:237: 381:	c4 c2 61 b9 4c 09 04 	vfmadd231ss xmm1,xmm3,DWORD PTR [r9+rcx*1+0x4]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:238: 388:	41 39 c0             	cmp    r8d,eax
+> D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:239: 38b:	7e 0e                	jle    39b <(anonymous namespace)::ip_distance_manual(float const*, float const*, int)+0x1cb>
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:240: 38d:	c4 c1 7a 10 5c 0a 08 	vmovss xmm3,DWORD PTR [r10+rcx*1+0x8]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:241: 394:	c4 c2 61 b9 4c 09 08 	vfmadd231ss xmm1,xmm3,DWORD PTR [r9+rcx*1+0x8]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:242: 39b:	c5 fa 10 05 ec 00 00 	vmovss xmm0,DWORD PTR [rip+0xec]        # 48f <double (anonymous namespace)::BenchmarkKernel<float (*)(float const*, float const*, int)>(float (*)(float const*, float const*, int), std::vector<float, std::allocator<float> > const&, std::vector<float, std::allocator<float> > const&, int, int)+0xbf>
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:243: 3a2:	00 
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:244: 3a3:	c5 fa 5c c1          	vsubss xmm0,xmm0,xmm1
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:245: 3a7:	c5 f8 77             	vzeroupper
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:246: 3aa:	c3                   	ret
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:247: 3ab:	0f 1f 44 00 00       	nop    DWORD PTR [rax+rax*1+0x0]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:248: 3b0:	c5 e8 57 d2          	vxorps xmm2,xmm2,xmm2
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:249: 3b4:	ba 07 00 00 00       	mov    edx,0x7
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:250: 3b9:	31 c0                	xor    eax,eax
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:251: 3bb:	c5 fc 28 c2          	vmovaps ymm0,ymm2
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:252: 3bf:	c5 fc 28 ca          	vmovaps ymm1,ymm2
+> D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:253: 3c3:	e9 c0 fe ff ff       	jmp    288 <(anonymous namespace)::ip_distance_manual(float const*, float const*, int)+0xb8>
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:254: 3c8:	0f 1f 84 00 00 00 00 	nop    DWORD PTR [rax+rax*1+0x0]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:255: 3cf:	00 
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:256:
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:257:00000000000003d0 <double (anonymous namespace)::BenchmarkKernel<float (*)(float const*, float const*, int)>(float (*)(float const*, float const*, int), std::vector<float, std::allocator<float> > const&, std::vector<float, std::allocator<float> > const&, int, int)>:
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:258: 3d0:	41 56                	push   r14
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:259: 3d2:	41 55                	push   r13
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:260: 3d4:	41 54                	push   r12
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:261: 3d6:	55                   	push   rbp
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:262: 3d7:	57                   	push   rdi
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:263: 3d8:	56                   	push   rsi
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:264: 3d9:	53                   	push   rbx
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:265: 3da:	48 83 ec 30          	sub    rsp,0x30
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:266: 3de:	8b b4 24 90 00 00 00 	mov    esi,DWORD PTR [rsp+0x90]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:267: 3e5:	48 89 cf             	mov    rdi,rcx
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:268: 3e8:	48 89 d5             	mov    rbp,rdx
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:269: 3eb:	4d 89 c4             	mov    r12,r8
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:270: 3ee:	45 89 cd             	mov    r13d,r9d
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:271: 3f1:	c7 44 24 2c 00 00 00 	mov    DWORD PTR [rsp+0x2c],0x0
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:272: 3f8:	00 
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:273: 3f9:	e8 00 00 00 00       	call   3fe <double (anonymous namespace)::BenchmarkKernel<float (*)(float const*, float const*, int)>(float (*)(float const*, float const*, int), std::vector<float, std::allocator<float> > const&, std::vector<float, std::allocator<float> > const&, int, int)+0x2e>
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:274: 3fe:	49 89 c6             	mov    r14,rax
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:275: 401:	85 f6                	test   esi,esi
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:276: 403:	7e 33                	jle    438 <double (anonymous namespace)::BenchmarkKernel<float (*)(float const*, float const*, int)>(float (*)(float const*, float const*, int), std::vector<float, std::allocator<float> > const&, std::vector<float, std::allocator<float> > const&, int, int)+0x68>
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:277: 405:	31 db                	xor    ebx,ebx
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:278: 407:	66 0f 1f 84 00 00 00 	nop    WORD PTR [rax+rax*1+0x0]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:279: 40e:	00 00 
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:280: 410:	49 8b 14 24          	mov    rdx,QWORD PTR [r12]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:281: 414:	48 8b 4d 00          	mov    rcx,QWORD PTR [rbp+0x0]
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:282: 418:	45 89 e8             	mov    r8d,r13d
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:283: 41b:	83 c3 01             	add    ebx,0x1
+> D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:1430: 104:	48 8d 0d d2 00 00 00 	lea    rcx,[rip+0xd2]        # 1dd <(anonymous namespace)::ip_distance_manual(float const*, float const*, int)+0xd>
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:1431: 10b:	e8 00 00 00 00       	call   110 <void std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >::_M_realloc_append<std::pair<float, unsigned int> >(std::pair<float, unsigned int>&&)+0x110>
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:1432: 110:	90                   	nop
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:1433: 111:	90                   	nop
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:1434: 112:	90                   	nop
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:1435: 113:	90                   	nop
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:1436: 114:	90                   	nop
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:1437: 115:	90                   	nop
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:1438: 116:	90                   	nop
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:1439: 117:	90                   	nop
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:1440: 118:	90                   	nop
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:1441: 119:	90                   	nop
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:1442: 11a:	90                   	nop
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:1443: 11b:	90                   	nop
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:1444: 11c:	90                   	nop
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:1445: 11d:	90                   	nop
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:1446: 11e:	90                   	nop
+  D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_objdump.txt:1447: 11f:	90                   	nop

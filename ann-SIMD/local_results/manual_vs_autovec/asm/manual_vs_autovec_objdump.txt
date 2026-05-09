@@ -1,0 +1,1447 @@
+
+D:\Study\26sp\parallel\ann\local_results\manual_vs_autovec\asm\manual_vs_autovec_O3.o:     file format pe-x86-64
+
+
+Disassembly of section .text:
+
+0000000000000000 <(anonymous namespace)::ip_distance_scalar_novec(float const*, float const*, int)>:
+   0:	45 85 c0             	test   r8d,r8d
+   3:	7e 43                	jle    48 <(anonymous namespace)::ip_distance_scalar_novec(float const*, float const*, int)+0x48>
+   5:	4d 63 c0             	movsxd r8,r8d
+   8:	31 c0                	xor    eax,eax
+   a:	c5 f0 57 c9          	vxorps xmm1,xmm1,xmm1
+   e:	49 c1 e0 02          	shl    r8,0x2
+  12:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+  19:	00 00 00 00 
+  1d:	0f 1f 00             	nop    DWORD PTR [rax]
+  20:	c5 fa 10 04 01       	vmovss xmm0,DWORD PTR [rcx+rax*1]
+  25:	c5 fa 59 04 02       	vmulss xmm0,xmm0,DWORD PTR [rdx+rax*1]
+  2a:	48 83 c0 04          	add    rax,0x4
+  2e:	c5 f2 58 c8          	vaddss xmm1,xmm1,xmm0
+  32:	49 39 c0             	cmp    r8,rax
+  35:	75 e9                	jne    20 <(anonymous namespace)::ip_distance_scalar_novec(float const*, float const*, int)+0x20>
+  37:	c5 fa 10 05 ec 00 00 	vmovss xmm0,DWORD PTR [rip+0xec]        # 12b <(anonymous namespace)::ip_distance_auto(float const*, float const*, int)+0xcb>
+  3e:	00 
+  3f:	c5 fa 5c c1          	vsubss xmm0,xmm0,xmm1
+  43:	c3                   	ret
+  44:	0f 1f 40 00          	nop    DWORD PTR [rax+0x0]
+  48:	c5 fa 10 05 ec 00 00 	vmovss xmm0,DWORD PTR [rip+0xec]        # 13c <(anonymous namespace)::ip_distance_auto(float const*, float const*, int)+0xdc>
+  4f:	00 
+  50:	c3                   	ret
+  51:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+  58:	00 00 00 00 
+  5c:	0f 1f 40 00          	nop    DWORD PTR [rax+0x0]
+
+0000000000000060 <(anonymous namespace)::ip_distance_auto(float const*, float const*, int)>:
+  60:	45 85 c0             	test   r8d,r8d
+  63:	0f 8e 2f 01 00 00    	jle    198 <(anonymous namespace)::ip_distance_auto(float const*, float const*, int)+0x138>
+  69:	41 8d 40 ff          	lea    eax,[r8-0x1]
+  6d:	83 f8 06             	cmp    eax,0x6
+  70:	0f 86 43 01 00 00    	jbe    1b9 <(anonymous namespace)::ip_distance_auto(float const*, float const*, int)+0x159>
+  76:	45 89 c1             	mov    r9d,r8d
+  79:	31 c0                	xor    eax,eax
+  7b:	c5 f0 57 c9          	vxorps xmm1,xmm1,xmm1
+  7f:	41 c1 e9 03          	shr    r9d,0x3
+  83:	49 c1 e1 05          	shl    r9,0x5
+  87:	66 0f 1f 84 00 00 00 	nop    WORD PTR [rax+rax*1+0x0]
+  8e:	00 00 
+  90:	c5 fc 10 04 02       	vmovups ymm0,YMMWORD PTR [rdx+rax*1]
+  95:	c5 fc 59 04 01       	vmulps ymm0,ymm0,YMMWORD PTR [rcx+rax*1]
+  9a:	48 83 c0 20          	add    rax,0x20
+  9e:	c5 f2 58 c8          	vaddss xmm1,xmm1,xmm0
+  a2:	c5 f8 c6 d8 55       	vshufps xmm3,xmm0,xmm0,0x55
+  a7:	c5 f8 c6 d0 ff       	vshufps xmm2,xmm0,xmm0,0xff
+  ac:	c5 f2 58 cb          	vaddss xmm1,xmm1,xmm3
+  b0:	c5 f8 15 d8          	vunpckhps xmm3,xmm0,xmm0
+  b4:	c4 e3 7d 19 c0 01    	vextractf128 xmm0,ymm0,0x1
+  ba:	c5 f2 58 cb          	vaddss xmm1,xmm1,xmm3
+  be:	c5 f2 58 ca          	vaddss xmm1,xmm1,xmm2
+  c2:	c5 f8 c6 d0 55       	vshufps xmm2,xmm0,xmm0,0x55
+  c7:	c5 f2 58 c8          	vaddss xmm1,xmm1,xmm0
+  cb:	c5 f2 58 ca          	vaddss xmm1,xmm1,xmm2
+  cf:	c5 f8 15 d0          	vunpckhps xmm2,xmm0,xmm0
+  d3:	c5 f8 c6 c0 ff       	vshufps xmm0,xmm0,xmm0,0xff
+  d8:	c5 f2 58 ca          	vaddss xmm1,xmm1,xmm2
+  dc:	c5 f2 58 c8          	vaddss xmm1,xmm1,xmm0
+  e0:	4c 39 c8             	cmp    rax,r9
+  e3:	75 ab                	jne    90 <(anonymous namespace)::ip_distance_auto(float const*, float const*, int)+0x30>
+  e5:	44 89 c0             	mov    eax,r8d
+  e8:	83 e0 f8             	and    eax,0xfffffff8
+  eb:	41 89 c1             	mov    r9d,eax
+  ee:	41 39 c0             	cmp    r8d,eax
+  f1:	0f 84 b1 00 00 00    	je     1a8 <(anonymous namespace)::ip_distance_auto(float const*, float const*, int)+0x148>
+  f7:	c5 f8 77             	vzeroupper
+  fa:	45 89 c2             	mov    r10d,r8d
+  fd:	45 29 ca             	sub    r10d,r9d
+ 100:	45 8d 5a ff          	lea    r11d,[r10-0x1]
+ 104:	41 83 fb 02          	cmp    r11d,0x2
+ 108:	76 3a                	jbe    144 <(anonymous namespace)::ip_distance_auto(float const*, float const*, int)+0xe4>
+ 10a:	c4 a1 78 10 04 8a    	vmovups xmm0,XMMWORD PTR [rdx+r9*4]
+ 110:	c4 a1 78 59 04 89    	vmulps xmm0,xmm0,XMMWORD PTR [rcx+r9*4]
+ 116:	45 89 d1             	mov    r9d,r10d
+ 119:	41 83 e1 fc          	and    r9d,0xfffffffc
+ 11d:	44 01 c8             	add    eax,r9d
+ 120:	41 83 e2 03          	and    r10d,0x3
+ 124:	c5 f2 58 c8          	vaddss xmm1,xmm1,xmm0
+ 128:	c5 f8 c6 d0 55       	vshufps xmm2,xmm0,xmm0,0x55
+ 12d:	c5 f2 58 ca          	vaddss xmm1,xmm1,xmm2
+ 131:	c5 f8 15 d0          	vunpckhps xmm2,xmm0,xmm0
+ 135:	c5 f8 c6 c0 ff       	vshufps xmm0,xmm0,xmm0,0xff
+ 13a:	c5 f2 58 ca          	vaddss xmm1,xmm1,xmm2
+ 13e:	c5 f2 58 c8          	vaddss xmm1,xmm1,xmm0
+ 142:	74 44                	je     188 <(anonymous namespace)::ip_distance_auto(float const*, float const*, int)+0x128>
+ 144:	4c 63 c8             	movsxd r9,eax
+ 147:	c4 a1 7a 10 24 89    	vmovss xmm4,DWORD PTR [rcx+r9*4]
+ 14d:	4e 8d 14 8d 00 00 00 	lea    r10,[r9*4+0x0]
+ 154:	00 
+ 155:	c4 a2 59 b9 0c 8a    	vfmadd231ss xmm1,xmm4,DWORD PTR [rdx+r9*4]
+ 15b:	44 8d 48 01          	lea    r9d,[rax+0x1]
+ 15f:	45 39 c8             	cmp    r8d,r9d
+ 162:	7e 24                	jle    188 <(anonymous namespace)::ip_distance_auto(float const*, float const*, int)+0x128>
+ 164:	83 c0 02             	add    eax,0x2
+ 167:	c4 a1 7a 10 6c 12 04 	vmovss xmm5,DWORD PTR [rdx+r10*1+0x4]
+ 16e:	c4 a2 51 b9 4c 11 04 	vfmadd231ss xmm1,xmm5,DWORD PTR [rcx+r10*1+0x4]
+ 175:	41 39 c0             	cmp    r8d,eax
+ 178:	7e 0e                	jle    188 <(anonymous namespace)::ip_distance_auto(float const*, float const*, int)+0x128>
+ 17a:	c4 a1 7a 10 6c 11 08 	vmovss xmm5,DWORD PTR [rcx+r10*1+0x8]
+ 181:	c4 a2 51 b9 4c 12 08 	vfmadd231ss xmm1,xmm5,DWORD PTR [rdx+r10*1+0x8]
+ 188:	c5 fa 10 05 ec 00 00 	vmovss xmm0,DWORD PTR [rip+0xec]        # 27c <(anonymous namespace)::ip_distance_manual(float const*, float const*, int)+0xac>
+ 18f:	00 
+ 190:	c5 fa 5c c1          	vsubss xmm0,xmm0,xmm1
+ 194:	c3                   	ret
+ 195:	0f 1f 00             	nop    DWORD PTR [rax]
+ 198:	c5 fa 10 05 ec 00 00 	vmovss xmm0,DWORD PTR [rip+0xec]        # 28c <(anonymous namespace)::ip_distance_manual(float const*, float const*, int)+0xbc>
+ 19f:	00 
+ 1a0:	c3                   	ret
+ 1a1:	0f 1f 80 00 00 00 00 	nop    DWORD PTR [rax+0x0]
+ 1a8:	c5 f8 77             	vzeroupper
+ 1ab:	c5 fa 10 05 ec 00 00 	vmovss xmm0,DWORD PTR [rip+0xec]        # 29f <(anonymous namespace)::ip_distance_manual(float const*, float const*, int)+0xcf>
+ 1b2:	00 
+ 1b3:	c5 fa 5c c1          	vsubss xmm0,xmm0,xmm1
+ 1b7:	eb db                	jmp    194 <(anonymous namespace)::ip_distance_auto(float const*, float const*, int)+0x134>
+ 1b9:	45 31 c9             	xor    r9d,r9d
+ 1bc:	31 c0                	xor    eax,eax
+ 1be:	c5 f0 57 c9          	vxorps xmm1,xmm1,xmm1
+ 1c2:	e9 33 ff ff ff       	jmp    fa <(anonymous namespace)::ip_distance_auto(float const*, float const*, int)+0x9a>
+ 1c7:	66 0f 1f 84 00 00 00 	nop    WORD PTR [rax+rax*1+0x0]
+ 1ce:	00 00 
+
+00000000000001d0 <(anonymous namespace)::ip_distance_manual(float const*, float const*, int)>:
+ 1d0:	49 89 c9             	mov    r9,rcx
+ 1d3:	49 89 d2             	mov    r10,rdx
+ 1d6:	41 83 f8 1f          	cmp    r8d,0x1f
+ 1da:	0f 8e d0 01 00 00    	jle    3b0 <(anonymous namespace)::ip_distance_manual(float const*, float const*, int)+0x1e0>
+ 1e0:	48 89 c8             	mov    rax,rcx
+ 1e3:	c5 e0 57 db          	vxorps xmm3,xmm3,xmm3
+ 1e7:	45 8d 58 e0          	lea    r11d,[r8-0x20]
+ 1eb:	44 89 c1             	mov    ecx,r8d
+ 1ee:	c5 fc 28 d3          	vmovaps ymm2,ymm3
+ 1f2:	c1 e9 05             	shr    ecx,0x5
+ 1f5:	c5 fc 28 c3          	vmovaps ymm0,ymm3
+ 1f9:	c5 fc 28 cb          	vmovaps ymm1,ymm3
+ 1fd:	83 e9 01             	sub    ecx,0x1
+ 200:	48 c1 e1 07          	shl    rcx,0x7
+ 204:	49 8d 8c 09 80 00 00 	lea    rcx,[r9+rcx*1+0x80]
+ 20b:	00 
+ 20c:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+ 213:	00 00 00 00 
+ 217:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+ 21e:	00 00 00 00 
+ 222:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+ 229:	00 00 00 00 
+ 22d:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+ 234:	00 00 00 00 
+ 238:	0f 1f 84 00 00 00 00 	nop    DWORD PTR [rax+rax*1+0x0]
+ 23f:	00 
+ 240:	c5 fc 10 20          	vmovups ymm4,YMMWORD PTR [rax]
+ 244:	c5 fc 10 68 20       	vmovups ymm5,YMMWORD PTR [rax+0x20]
+ 249:	48 83 e8 80          	sub    rax,0xffffffffffffff80
+ 24d:	48 83 ea 80          	sub    rdx,0xffffffffffffff80
+ 251:	c4 e2 5d b8 4a 80    	vfmadd231ps ymm1,ymm4,YMMWORD PTR [rdx-0x80]
+ 257:	c4 e2 55 b8 42 a0    	vfmadd231ps ymm0,ymm5,YMMWORD PTR [rdx-0x60]
+ 25d:	c5 fc 10 60 c0       	vmovups ymm4,YMMWORD PTR [rax-0x40]
+ 262:	c5 fc 10 68 e0       	vmovups ymm5,YMMWORD PTR [rax-0x20]
+ 267:	c4 e2 5d b8 52 c0    	vfmadd231ps ymm2,ymm4,YMMWORD PTR [rdx-0x40]
+ 26d:	c4 e2 55 b8 5a e0    	vfmadd231ps ymm3,ymm5,YMMWORD PTR [rdx-0x20]
+ 273:	48 39 c1             	cmp    rcx,rax
+ 276:	75 c8                	jne    240 <(anonymous namespace)::ip_distance_manual(float const*, float const*, int)+0x70>
+ 278:	44 89 da             	mov    edx,r11d
+ 27b:	c5 ec 58 d3          	vaddps ymm2,ymm2,ymm3
+ 27f:	83 e2 e0             	and    edx,0xffffffe0
+ 282:	8d 42 20             	lea    eax,[rdx+0x20]
+ 285:	83 c2 27             	add    edx,0x27
+ 288:	41 39 d0             	cmp    r8d,edx
+ 28b:	7e 5e                	jle    2eb <(anonymous namespace)::ip_distance_manual(float const*, float const*, int)+0x11b>
+ 28d:	48 63 d0             	movsxd rdx,eax
+ 290:	c4 c1 7c 10 1c 91    	vmovups ymm3,YMMWORD PTR [r9+rdx*4]
+ 296:	48 8d 0c 95 00 00 00 	lea    rcx,[rdx*4+0x0]
+ 29d:	00 
+ 29e:	c4 c2 65 b8 0c 92    	vfmadd231ps ymm1,ymm3,YMMWORD PTR [r10+rdx*4]
+ 2a4:	8d 50 0f             	lea    edx,[rax+0xf]
+ 2a7:	41 39 d0             	cmp    r8d,edx
+ 2aa:	7e 24                	jle    2d0 <(anonymous namespace)::ip_distance_manual(float const*, float const*, int)+0x100>
+ 2ac:	8d 50 17             	lea    edx,[rax+0x17]
+ 2af:	c4 c1 7c 10 5c 09 20 	vmovups ymm3,YMMWORD PTR [r9+rcx*1+0x20]
+ 2b6:	c4 c2 65 b8 4c 0a 20 	vfmadd231ps ymm1,ymm3,YMMWORD PTR [r10+rcx*1+0x20]
+ 2bd:	41 39 d0             	cmp    r8d,edx
+ 2c0:	7e 0e                	jle    2d0 <(anonymous namespace)::ip_distance_manual(float const*, float const*, int)+0x100>
+ 2c2:	c4 c1 7c 10 5c 09 40 	vmovups ymm3,YMMWORD PTR [r9+rcx*1+0x40]
+ 2c9:	c4 c2 65 b8 4c 0a 40 	vfmadd231ps ymm1,ymm3,YMMWORD PTR [r10+rcx*1+0x40]
+ 2d0:	41 8d 50 f8          	lea    edx,[r8-0x8]
+ 2d4:	8d 48 07             	lea    ecx,[rax+0x7]
+ 2d7:	29 c2                	sub    edx,eax
+ 2d9:	83 e2 f8             	and    edx,0xfffffff8
+ 2dc:	41 39 c8             	cmp    r8d,ecx
+ 2df:	b9 00 00 00 00       	mov    ecx,0x0
+ 2e4:	0f 4e d1             	cmovle edx,ecx
+ 2e7:	8d 44 10 08          	lea    eax,[rax+rdx*1+0x8]
+ 2eb:	c5 fc 58 c1          	vaddps ymm0,ymm0,ymm1
+ 2ef:	c5 fc 58 c2          	vaddps ymm0,ymm0,ymm2
+ 2f3:	c5 ff 7c c0          	vhaddps ymm0,ymm0,ymm0
+ 2f7:	c5 ff 7c c0          	vhaddps ymm0,ymm0,ymm0
+ 2fb:	c5 f8 28 c8          	vmovaps xmm1,xmm0
+ 2ff:	c4 e3 7d 19 c0 01    	vextractf128 xmm0,ymm0,0x1
+ 305:	c5 f2 58 c8          	vaddss xmm1,xmm1,xmm0
+ 309:	41 39 c0             	cmp    r8d,eax
+ 30c:	0f 8e 89 00 00 00    	jle    39b <(anonymous namespace)::ip_distance_manual(float const*, float const*, int)+0x1cb>
+ 312:	44 89 c2             	mov    edx,r8d
+ 315:	29 c2                	sub    edx,eax
+ 317:	8d 4a ff             	lea    ecx,[rdx-0x1]
+ 31a:	83 f9 02             	cmp    ecx,0x2
+ 31d:	76 39                	jbe    358 <(anonymous namespace)::ip_distance_manual(float const*, float const*, int)+0x188>
+ 31f:	48 63 c8             	movsxd rcx,eax
+ 322:	c4 c1 78 10 04 89    	vmovups xmm0,XMMWORD PTR [r9+rcx*4]
+ 328:	c4 c1 78 59 04 8a    	vmulps xmm0,xmm0,XMMWORD PTR [r10+rcx*4]
+ 32e:	89 d1                	mov    ecx,edx
+ 330:	83 e1 fc             	and    ecx,0xfffffffc
+ 333:	01 c8                	add    eax,ecx
+ 335:	83 e2 03             	and    edx,0x3
+ 338:	c5 f2 58 c8          	vaddss xmm1,xmm1,xmm0
+ 33c:	c5 f8 c6 d0 55       	vshufps xmm2,xmm0,xmm0,0x55
+ 341:	c5 ea 58 d1          	vaddss xmm2,xmm2,xmm1
+ 345:	c5 f8 15 c8          	vunpckhps xmm1,xmm0,xmm0
+ 349:	c5 f8 c6 c0 ff       	vshufps xmm0,xmm0,xmm0,0xff
+ 34e:	c5 f2 58 ca          	vaddss xmm1,xmm1,xmm2
+ 352:	c5 f2 58 c8          	vaddss xmm1,xmm1,xmm0
+ 356:	74 43                	je     39b <(anonymous namespace)::ip_distance_manual(float const*, float const*, int)+0x1cb>
+ 358:	48 63 d0             	movsxd rdx,eax
+ 35b:	c4 c1 7a 10 1c 91    	vmovss xmm3,DWORD PTR [r9+rdx*4]
+ 361:	48 8d 0c 95 00 00 00 	lea    rcx,[rdx*4+0x0]
+ 368:	00 
+ 369:	c4 c2 61 b9 0c 92    	vfmadd231ss xmm1,xmm3,DWORD PTR [r10+rdx*4]
+ 36f:	8d 50 01             	lea    edx,[rax+0x1]
+ 372:	41 39 d0             	cmp    r8d,edx
+ 375:	7e 24                	jle    39b <(anonymous namespace)::ip_distance_manual(float const*, float const*, int)+0x1cb>
+ 377:	83 c0 02             	add    eax,0x2
+ 37a:	c4 c1 7a 10 5c 0a 04 	vmovss xmm3,DWORD PTR [r10+rcx*1+0x4]
+ 381:	c4 c2 61 b9 4c 09 04 	vfmadd231ss xmm1,xmm3,DWORD PTR [r9+rcx*1+0x4]
+ 388:	41 39 c0             	cmp    r8d,eax
+ 38b:	7e 0e                	jle    39b <(anonymous namespace)::ip_distance_manual(float const*, float const*, int)+0x1cb>
+ 38d:	c4 c1 7a 10 5c 0a 08 	vmovss xmm3,DWORD PTR [r10+rcx*1+0x8]
+ 394:	c4 c2 61 b9 4c 09 08 	vfmadd231ss xmm1,xmm3,DWORD PTR [r9+rcx*1+0x8]
+ 39b:	c5 fa 10 05 ec 00 00 	vmovss xmm0,DWORD PTR [rip+0xec]        # 48f <double (anonymous namespace)::BenchmarkKernel<float (*)(float const*, float const*, int)>(float (*)(float const*, float const*, int), std::vector<float, std::allocator<float> > const&, std::vector<float, std::allocator<float> > const&, int, int)+0xbf>
+ 3a2:	00 
+ 3a3:	c5 fa 5c c1          	vsubss xmm0,xmm0,xmm1
+ 3a7:	c5 f8 77             	vzeroupper
+ 3aa:	c3                   	ret
+ 3ab:	0f 1f 44 00 00       	nop    DWORD PTR [rax+rax*1+0x0]
+ 3b0:	c5 e8 57 d2          	vxorps xmm2,xmm2,xmm2
+ 3b4:	ba 07 00 00 00       	mov    edx,0x7
+ 3b9:	31 c0                	xor    eax,eax
+ 3bb:	c5 fc 28 c2          	vmovaps ymm0,ymm2
+ 3bf:	c5 fc 28 ca          	vmovaps ymm1,ymm2
+ 3c3:	e9 c0 fe ff ff       	jmp    288 <(anonymous namespace)::ip_distance_manual(float const*, float const*, int)+0xb8>
+ 3c8:	0f 1f 84 00 00 00 00 	nop    DWORD PTR [rax+rax*1+0x0]
+ 3cf:	00 
+
+00000000000003d0 <double (anonymous namespace)::BenchmarkKernel<float (*)(float const*, float const*, int)>(float (*)(float const*, float const*, int), std::vector<float, std::allocator<float> > const&, std::vector<float, std::allocator<float> > const&, int, int)>:
+ 3d0:	41 56                	push   r14
+ 3d2:	41 55                	push   r13
+ 3d4:	41 54                	push   r12
+ 3d6:	55                   	push   rbp
+ 3d7:	57                   	push   rdi
+ 3d8:	56                   	push   rsi
+ 3d9:	53                   	push   rbx
+ 3da:	48 83 ec 30          	sub    rsp,0x30
+ 3de:	8b b4 24 90 00 00 00 	mov    esi,DWORD PTR [rsp+0x90]
+ 3e5:	48 89 cf             	mov    rdi,rcx
+ 3e8:	48 89 d5             	mov    rbp,rdx
+ 3eb:	4d 89 c4             	mov    r12,r8
+ 3ee:	45 89 cd             	mov    r13d,r9d
+ 3f1:	c7 44 24 2c 00 00 00 	mov    DWORD PTR [rsp+0x2c],0x0
+ 3f8:	00 
+ 3f9:	e8 00 00 00 00       	call   3fe <double (anonymous namespace)::BenchmarkKernel<float (*)(float const*, float const*, int)>(float (*)(float const*, float const*, int), std::vector<float, std::allocator<float> > const&, std::vector<float, std::allocator<float> > const&, int, int)+0x2e>
+ 3fe:	49 89 c6             	mov    r14,rax
+ 401:	85 f6                	test   esi,esi
+ 403:	7e 33                	jle    438 <double (anonymous namespace)::BenchmarkKernel<float (*)(float const*, float const*, int)>(float (*)(float const*, float const*, int), std::vector<float, std::allocator<float> > const&, std::vector<float, std::allocator<float> > const&, int, int)+0x68>
+ 405:	31 db                	xor    ebx,ebx
+ 407:	66 0f 1f 84 00 00 00 	nop    WORD PTR [rax+rax*1+0x0]
+ 40e:	00 00 
+ 410:	49 8b 14 24          	mov    rdx,QWORD PTR [r12]
+ 414:	48 8b 4d 00          	mov    rcx,QWORD PTR [rbp+0x0]
+ 418:	45 89 e8             	mov    r8d,r13d
+ 41b:	83 c3 01             	add    ebx,0x1
+ 41e:	ff d7                	call   rdi
+ 420:	c5 f8 28 c8          	vmovaps xmm1,xmm0
+ 424:	c5 fa 10 44 24 2c    	vmovss xmm0,DWORD PTR [rsp+0x2c]
+ 42a:	c5 fa 58 c1          	vaddss xmm0,xmm0,xmm1
+ 42e:	c5 fa 11 44 24 2c    	vmovss DWORD PTR [rsp+0x2c],xmm0
+ 434:	39 de                	cmp    esi,ebx
+ 436:	75 d8                	jne    410 <double (anonymous namespace)::BenchmarkKernel<float (*)(float const*, float const*, int)>(float (*)(float const*, float const*, int), std::vector<float, std::allocator<float> > const&, std::vector<float, std::allocator<float> > const&, int, int)+0x40>
+ 438:	e8 00 00 00 00       	call   43d <double (anonymous namespace)::BenchmarkKernel<float (*)(float const*, float const*, int)>(float (*)(float const*, float const*, int), std::vector<float, std::allocator<float> > const&, std::vector<float, std::allocator<float> > const&, int, int)+0x6d>
+ 43d:	c5 fa 10 44 24 2c    	vmovss xmm0,DWORD PTR [rsp+0x2c]
+ 443:	c5 f8 2e 05 f0 00 00 	vucomiss xmm0,DWORD PTR [rip+0xf0]        # 53b <std::vector<float, std::allocator<float> >::vector(unsigned long long, std::allocator<float> const&) [clone .isra.0]+0x4b>
+ 44a:	00 
+ 44b:	48 89 c3             	mov    rbx,rax
+ 44e:	7a 02                	jp     452 <double (anonymous namespace)::BenchmarkKernel<float (*)(float const*, float const*, int)>(float (*)(float const*, float const*, int), std::vector<float, std::allocator<float> > const&, std::vector<float, std::allocator<float> > const&, int, int)+0x82>
+ 450:	74 23                	je     475 <double (anonymous namespace)::BenchmarkKernel<float (*)(float const*, float const*, int)>(float (*)(float const*, float const*, int), std::vector<float, std::allocator<float> > const&, std::vector<float, std::allocator<float> > const&, int, int)+0xa5>
+ 452:	c5 f0 57 c9          	vxorps xmm1,xmm1,xmm1
+ 456:	4c 29 f3             	sub    rbx,r14
+ 459:	c4 e1 f3 2a c3       	vcvtsi2sd xmm0,xmm1,rbx
+ 45e:	c5 f3 2a ce          	vcvtsi2sd xmm1,xmm1,esi
+ 462:	c5 fb 5e c1          	vdivsd xmm0,xmm0,xmm1
+ 466:	48 83 c4 30          	add    rsp,0x30
+ 46a:	5b                   	pop    rbx
+ 46b:	5e                   	pop    rsi
+ 46c:	5f                   	pop    rdi
+ 46d:	5d                   	pop    rbp
+ 46e:	41 5c                	pop    r12
+ 470:	41 5d                	pop    r13
+ 472:	41 5e                	pop    r14
+ 474:	c3                   	ret
+ 475:	b9 02 00 00 00       	mov    ecx,0x2
+ 47a:	ff 15 00 00 00 00    	call   QWORD PTR [rip+0x0]        # 480 <double (anonymous namespace)::BenchmarkKernel<float (*)(float const*, float const*, int)>(float (*)(float const*, float const*, int), std::vector<float, std::allocator<float> > const&, std::vector<float, std::allocator<float> > const&, int, int)+0xb0>
+ 480:	48 8d 15 00 00 00 00 	lea    rdx,[rip+0x0]        # 487 <double (anonymous namespace)::BenchmarkKernel<float (*)(float const*, float const*, int)>(float (*)(float const*, float const*, int), std::vector<float, std::allocator<float> > const&, std::vector<float, std::allocator<float> > const&, int, int)+0xb7>
+ 487:	48 89 c1             	mov    rcx,rax
+ 48a:	e8 00 00 00 00       	call   48f <double (anonymous namespace)::BenchmarkKernel<float (*)(float const*, float const*, int)>(float (*)(float const*, float const*, int), std::vector<float, std::allocator<float> > const&, std::vector<float, std::allocator<float> > const&, int, int)+0xbf>
+ 48f:	eb c1                	jmp    452 <double (anonymous namespace)::BenchmarkKernel<float (*)(float const*, float const*, int)>(float (*)(float const*, float const*, int), std::vector<float, std::allocator<float> > const&, std::vector<float, std::allocator<float> > const&, int, int)+0x82>
+ 491:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+ 498:	00 00 00 00 
+ 49c:	0f 1f 40 00          	nop    DWORD PTR [rax+0x0]
+
+00000000000004a0 <std::basic_ostream<char, std::char_traits<char> >& std::operator<< <std::char_traits<char> >(std::basic_ostream<char, std::char_traits<char> >&, char const*) [clone .isra.0]>:
+ 4a0:	56                   	push   rsi
+ 4a1:	53                   	push   rbx
+ 4a2:	48 83 ec 28          	sub    rsp,0x28
+ 4a6:	48 89 ce             	mov    rsi,rcx
+ 4a9:	48 89 d3             	mov    rbx,rdx
+ 4ac:	48 85 d2             	test   rdx,rdx
+ 4af:	74 1c                	je     4cd <std::basic_ostream<char, std::char_traits<char> >& std::operator<< <std::char_traits<char> >(std::basic_ostream<char, std::char_traits<char> >&, char const*) [clone .isra.0]+0x2d>
+ 4b1:	48 89 d1             	mov    rcx,rdx
+ 4b4:	e8 00 00 00 00       	call   4b9 <std::basic_ostream<char, std::char_traits<char> >& std::operator<< <std::char_traits<char> >(std::basic_ostream<char, std::char_traits<char> >&, char const*) [clone .isra.0]+0x19>
+ 4b9:	48 89 da             	mov    rdx,rbx
+ 4bc:	48 89 f1             	mov    rcx,rsi
+ 4bf:	49 89 c0             	mov    r8,rax
+ 4c2:	48 83 c4 28          	add    rsp,0x28
+ 4c6:	5b                   	pop    rbx
+ 4c7:	5e                   	pop    rsi
+ 4c8:	e9 00 00 00 00       	jmp    4cd <std::basic_ostream<char, std::char_traits<char> >& std::operator<< <std::char_traits<char> >(std::basic_ostream<char, std::char_traits<char> >&, char const*) [clone .isra.0]+0x2d>
+ 4cd:	48 8b 01             	mov    rax,QWORD PTR [rcx]
+ 4d0:	48 03 70 e8          	add    rsi,QWORD PTR [rax-0x18]
+ 4d4:	8b 56 20             	mov    edx,DWORD PTR [rsi+0x20]
+ 4d7:	48 89 f1             	mov    rcx,rsi
+ 4da:	83 ca 01             	or     edx,0x1
+ 4dd:	48 83 c4 28          	add    rsp,0x28
+ 4e1:	5b                   	pop    rbx
+ 4e2:	5e                   	pop    rsi
+ 4e3:	e9 00 00 00 00       	jmp    4e8 <std::basic_ostream<char, std::char_traits<char> >& std::operator<< <std::char_traits<char> >(std::basic_ostream<char, std::char_traits<char> >&, char const*) [clone .isra.0]+0x48>
+ 4e8:	0f 1f 84 00 00 00 00 	nop    DWORD PTR [rax+rax*1+0x0]
+ 4ef:	00 
+
+00000000000004f0 <std::vector<float, std::allocator<float> >::vector(unsigned long long, std::allocator<float> const&) [clone .isra.0]>:
+ 4f0:	41 54                	push   r12
+ 4f2:	55                   	push   rbp
+ 4f3:	57                   	push   rdi
+ 4f4:	56                   	push   rsi
+ 4f5:	53                   	push   rbx
+ 4f6:	48 83 ec 20          	sub    rsp,0x20
+ 4fa:	48 89 d0             	mov    rax,rdx
+ 4fd:	48 89 cb             	mov    rbx,rcx
+ 500:	48 89 d6             	mov    rsi,rdx
+ 503:	48 c1 e8 3d          	shr    rax,0x3d
+ 507:	75 72                	jne    57b <std::vector<float, std::allocator<float> >::vector(unsigned long long, std::allocator<float> const&) [clone .isra.0]+0x8b>
+ 509:	c5 f9 ef c0          	vpxor  xmm0,xmm0,xmm0
+ 50d:	48 c7 41 10 00 00 00 	mov    QWORD PTR [rcx+0x10],0x0
+ 514:	00 
+ 515:	c5 fa 7f 01          	vmovdqu XMMWORD PTR [rcx],xmm0
+ 519:	48 85 d2             	test   rdx,rdx
+ 51c:	74 50                	je     56e <std::vector<float, std::allocator<float> >::vector(unsigned long long, std::allocator<float> const&) [clone .isra.0]+0x7e>
+ 51e:	48 8d 2c 95 00 00 00 	lea    rbp,[rdx*4+0x0]
+ 525:	00 
+ 526:	48 89 e9             	mov    rcx,rbp
+ 529:	e8 00 00 00 00       	call   52e <std::vector<float, std::allocator<float> >::vector(unsigned long long, std::allocator<float> const&) [clone .isra.0]+0x3e>
+ 52e:	48 83 ee 01          	sub    rsi,0x1
+ 532:	4c 8d 24 28          	lea    r12,[rax+rbp*1]
+ 536:	48 89 03             	mov    QWORD PTR [rbx],rax
+ 539:	48 89 c7             	mov    rdi,rax
+ 53c:	48 8d 48 04          	lea    rcx,[rax+0x4]
+ 540:	4c 89 63 10          	mov    QWORD PTR [rbx+0x10],r12
+ 544:	c7 00 00 00 00 00    	mov    DWORD PTR [rax],0x0
+ 54a:	74 13                	je     55f <std::vector<float, std::allocator<float> >::vector(unsigned long long, std::allocator<float> const&) [clone .isra.0]+0x6f>
+ 54c:	4c 8d 45 fc          	lea    r8,[rbp-0x4]
+ 550:	31 d2                	xor    edx,edx
+ 552:	e8 00 00 00 00       	call   557 <std::vector<float, std::allocator<float> >::vector(unsigned long long, std::allocator<float> const&) [clone .isra.0]+0x67>
+ 557:	4a 8d 4c 20 fc       	lea    rcx,[rax+r12*1-0x4]
+ 55c:	48 29 f9             	sub    rcx,rdi
+ 55f:	48 89 4b 08          	mov    QWORD PTR [rbx+0x8],rcx
+ 563:	48 83 c4 20          	add    rsp,0x20
+ 567:	5b                   	pop    rbx
+ 568:	5e                   	pop    rsi
+ 569:	5f                   	pop    rdi
+ 56a:	5d                   	pop    rbp
+ 56b:	41 5c                	pop    r12
+ 56d:	c3                   	ret
+ 56e:	31 c0                	xor    eax,eax
+ 570:	48 89 01             	mov    QWORD PTR [rcx],rax
+ 573:	48 89 41 10          	mov    QWORD PTR [rcx+0x10],rax
+ 577:	31 c9                	xor    ecx,ecx
+ 579:	eb e4                	jmp    55f <std::vector<float, std::allocator<float> >::vector(unsigned long long, std::allocator<float> const&) [clone .isra.0]+0x6f>
+ 57b:	48 8d 0d 10 00 00 00 	lea    rcx,[rip+0x10]        # 592 <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x2>
+ 582:	e8 00 00 00 00       	call   587 <std::vector<float, std::allocator<float> >::vector(unsigned long long, std::allocator<float> const&) [clone .isra.0]+0x97>
+ 587:	90                   	nop
+ 588:	0f 1f 84 00 00 00 00 	nop    DWORD PTR [rax+rax*1+0x0]
+ 58f:	00 
+
+0000000000000590 <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)>:
+ 590:	41 57                	push   r15
+ 592:	41 56                	push   r14
+ 594:	41 55                	push   r13
+ 596:	41 54                	push   r12
+ 598:	55                   	push   rbp
+ 599:	57                   	push   rdi
+ 59a:	56                   	push   rsi
+ 59b:	53                   	push   rbx
+ 59c:	48 83 ec 78          	sub    rsp,0x78
+ 5a0:	c5 f8 11 74 24 60    	vmovups XMMWORD PTR [rsp+0x60],xmm6
+ 5a6:	c5 f9 ef c0          	vpxor  xmm0,xmm0,xmm0
+ 5aa:	49 89 ce             	mov    r14,rcx
+ 5ad:	49 89 d7             	mov    r15,rdx
+ 5b0:	4c 89 c6             	mov    rsi,r8
+ 5b3:	c5 fa 7f 01          	vmovdqu XMMWORD PTR [rcx],xmm0
+ 5b7:	4c 89 8c 24 d8 00 00 	mov    QWORD PTR [rsp+0xd8],r9
+ 5be:	00 
+ 5bf:	48 c7 41 10 00 00 00 	mov    QWORD PTR [rcx+0x10],0x0
+ 5c6:	00 
+ 5c7:	4d 85 c9             	test   r9,r9
+ 5ca:	0f 84 26 02 00 00    	je     7f6 <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x266>
+ 5d0:	8b 9c 24 e0 00 00 00 	mov    ebx,DWORD PTR [rsp+0xe0]
+ 5d7:	31 ed                	xor    ebp,ebp
+ 5d9:	31 c9                	xor    ecx,ecx
+ 5db:	31 ff                	xor    edi,edi
+ 5dd:	c5 fa 10 35 ec 00 00 	vmovss xmm6,DWORD PTR [rip+0xec]        # 6d1 <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x141>
+ 5e4:	00 
+ 5e5:	89 d8                	mov    eax,ebx
+ 5e7:	41 89 dc             	mov    r12d,ebx
+ 5ea:	83 e8 20             	sub    eax,0x20
+ 5ed:	89 c2                	mov    edx,eax
+ 5ef:	89 44 24 24          	mov    DWORD PTR [rsp+0x24],eax
+ 5f3:	31 c0                	xor    eax,eax
+ 5f5:	c1 ea 05             	shr    edx,0x5
+ 5f8:	83 c2 01             	add    edx,0x1
+ 5fb:	48 c1 e2 07          	shl    rdx,0x7
+ 5ff:	48 89 54 24 28       	mov    QWORD PTR [rsp+0x28],rdx
+ 604:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+ 60b:	00 00 00 00 
+ 60f:	90                   	nop
+ 610:	49 8d 14 af          	lea    rdx,[r15+rbp*4]
+ 614:	49 89 d0             	mov    r8,rdx
+ 617:	83 fb 1f             	cmp    ebx,0x1f
+ 61a:	0f 8e 10 05 00 00    	jle    b30 <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x5a0>
+ 620:	4c 8b 5c 24 28       	mov    r11,QWORD PTR [rsp+0x28]
+ 625:	c5 e0 57 db          	vxorps xmm3,xmm3,xmm3
+ 629:	49 89 f1             	mov    r9,rsi
+ 62c:	c5 fc 28 cb          	vmovaps ymm1,ymm3
+ 630:	c5 fc 28 d3          	vmovaps ymm2,ymm3
+ 634:	c5 fc 28 c3          	vmovaps ymm0,ymm3
+ 638:	4d 8d 14 13          	lea    r10,[r11+rdx*1]
+ 63c:	0f 1f 40 00          	nop    DWORD PTR [rax+0x0]
+ 640:	c5 fc 10 22          	vmovups ymm4,YMMWORD PTR [rdx]
+ 644:	c5 fc 10 6a 20       	vmovups ymm5,YMMWORD PTR [rdx+0x20]
+ 649:	48 83 ea 80          	sub    rdx,0xffffffffffffff80
+ 64d:	49 83 e9 80          	sub    r9,0xffffffffffffff80
+ 651:	c4 c2 5d b8 41 80    	vfmadd231ps ymm0,ymm4,YMMWORD PTR [r9-0x80]
+ 657:	c4 c2 55 b8 51 a0    	vfmadd231ps ymm2,ymm5,YMMWORD PTR [r9-0x60]
+ 65d:	c5 fc 10 62 c0       	vmovups ymm4,YMMWORD PTR [rdx-0x40]
+ 662:	c5 fc 10 6a e0       	vmovups ymm5,YMMWORD PTR [rdx-0x20]
+ 667:	c4 c2 5d b8 49 c0    	vfmadd231ps ymm1,ymm4,YMMWORD PTR [r9-0x40]
+ 66d:	c4 c2 55 b8 59 e0    	vfmadd231ps ymm3,ymm5,YMMWORD PTR [r9-0x20]
+ 673:	4c 39 d2             	cmp    rdx,r10
+ 676:	75 c8                	jne    640 <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0xb0>
+ 678:	44 8b 4c 24 24       	mov    r9d,DWORD PTR [rsp+0x24]
+ 67d:	c5 f4 58 cb          	vaddps ymm1,ymm1,ymm3
+ 681:	41 83 e1 e0          	and    r9d,0xffffffe0
+ 685:	41 8d 51 20          	lea    edx,[r9+0x20]
+ 689:	41 83 c1 27          	add    r9d,0x27
+ 68d:	44 39 cb             	cmp    ebx,r9d
+ 690:	7e 67                	jle    6f9 <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x169>
+ 692:	4c 63 ca             	movsxd r9,edx
+ 695:	c4 81 7c 10 1c 88    	vmovups ymm3,YMMWORD PTR [r8+r9*4]
+ 69b:	4e 8d 14 8d 00 00 00 	lea    r10,[r9*4+0x0]
+ 6a2:	00 
+ 6a3:	c4 a2 65 b8 04 8e    	vfmadd231ps ymm0,ymm3,YMMWORD PTR [rsi+r9*4]
+ 6a9:	44 8d 4a 0f          	lea    r9d,[rdx+0xf]
+ 6ad:	44 39 cb             	cmp    ebx,r9d
+ 6b0:	7e 25                	jle    6d7 <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x147>
+ 6b2:	44 8d 4a 17          	lea    r9d,[rdx+0x17]
+ 6b6:	c4 81 7c 10 5c 10 20 	vmovups ymm3,YMMWORD PTR [r8+r10*1+0x20]
+ 6bd:	c4 a2 65 b8 44 16 20 	vfmadd231ps ymm0,ymm3,YMMWORD PTR [rsi+r10*1+0x20]
+ 6c4:	44 39 cb             	cmp    ebx,r9d
+ 6c7:	7e 0e                	jle    6d7 <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x147>
+ 6c9:	c4 81 7c 10 5c 10 40 	vmovups ymm3,YMMWORD PTR [r8+r10*1+0x40]
+ 6d0:	c4 a2 65 b8 44 16 40 	vfmadd231ps ymm0,ymm3,YMMWORD PTR [rsi+r10*1+0x40]
+ 6d7:	45 8d 4c 24 f8       	lea    r9d,[r12-0x8]
+ 6dc:	44 8d 52 07          	lea    r10d,[rdx+0x7]
+ 6e0:	41 29 d1             	sub    r9d,edx
+ 6e3:	41 83 e1 f8          	and    r9d,0xfffffff8
+ 6e7:	44 39 d3             	cmp    ebx,r10d
+ 6ea:	41 ba 00 00 00 00    	mov    r10d,0x0
+ 6f0:	45 0f 4e ca          	cmovle r9d,r10d
+ 6f4:	42 8d 54 0a 08       	lea    edx,[rdx+r9*1+0x8]
+ 6f9:	c5 fc 58 c2          	vaddps ymm0,ymm0,ymm2
+ 6fd:	c5 fc 58 c1          	vaddps ymm0,ymm0,ymm1
+ 701:	c5 ff 7c c0          	vhaddps ymm0,ymm0,ymm0
+ 705:	c5 ff 7c c0          	vhaddps ymm0,ymm0,ymm0
+ 709:	c5 f8 28 c8          	vmovaps xmm1,xmm0
+ 70d:	c4 e3 7d 19 c0 01    	vextractf128 xmm0,ymm0,0x1
+ 713:	c5 f2 58 c0          	vaddss xmm0,xmm1,xmm0
+ 717:	39 d3                	cmp    ebx,edx
+ 719:	0f 8e 94 00 00 00    	jle    7b3 <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x223>
+ 71f:	45 89 e1             	mov    r9d,r12d
+ 722:	41 29 d1             	sub    r9d,edx
+ 725:	45 8d 51 ff          	lea    r10d,[r9-0x1]
+ 729:	41 83 fa 02          	cmp    r10d,0x2
+ 72d:	76 41                	jbe    770 <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x1e0>
+ 72f:	4c 63 d2             	movsxd r10,edx
+ 732:	4d 8d 1c 2a          	lea    r11,[r10+rbp*1]
+ 736:	c4 a1 78 10 0c 96    	vmovups xmm1,XMMWORD PTR [rsi+r10*4]
+ 73c:	45 89 ca             	mov    r10d,r9d
+ 73f:	c4 81 70 59 0c 9f    	vmulps xmm1,xmm1,XMMWORD PTR [r15+r11*4]
+ 745:	41 83 e2 fc          	and    r10d,0xfffffffc
+ 749:	44 01 d2             	add    edx,r10d
+ 74c:	41 83 e1 03          	and    r9d,0x3
+ 750:	c5 fa 58 c1          	vaddss xmm0,xmm0,xmm1
+ 754:	c5 f0 c6 d1 55       	vshufps xmm2,xmm1,xmm1,0x55
+ 759:	c5 ea 58 d0          	vaddss xmm2,xmm2,xmm0
+ 75d:	c5 f0 15 c1          	vunpckhps xmm0,xmm1,xmm1
+ 761:	c5 f0 c6 c9 ff       	vshufps xmm1,xmm1,xmm1,0xff
+ 766:	c5 fa 58 c2          	vaddss xmm0,xmm0,xmm2
+ 76a:	c5 fa 58 c1          	vaddss xmm0,xmm0,xmm1
+ 76e:	74 43                	je     7b3 <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x223>
+ 770:	4c 63 ca             	movsxd r9,edx
+ 773:	c4 81 7a 10 1c 88    	vmovss xmm3,DWORD PTR [r8+r9*4]
+ 779:	4e 8d 14 8d 00 00 00 	lea    r10,[r9*4+0x0]
+ 780:	00 
+ 781:	c4 a2 61 b9 04 8e    	vfmadd231ss xmm0,xmm3,DWORD PTR [rsi+r9*4]
+ 787:	44 8d 4a 01          	lea    r9d,[rdx+0x1]
+ 78b:	44 39 cb             	cmp    ebx,r9d
+ 78e:	7e 23                	jle    7b3 <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x223>
+ 790:	83 c2 02             	add    edx,0x2
+ 793:	c4 81 7a 10 5c 10 04 	vmovss xmm3,DWORD PTR [r8+r10*1+0x4]
+ 79a:	c4 a2 61 b9 44 16 04 	vfmadd231ss xmm0,xmm3,DWORD PTR [rsi+r10*1+0x4]
+ 7a1:	39 d3                	cmp    ebx,edx
+ 7a3:	7e 0e                	jle    7b3 <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x223>
+ 7a5:	c4 a1 7a 10 54 16 08 	vmovss xmm2,DWORD PTR [rsi+r10*1+0x8]
+ 7ac:	c4 82 69 b9 44 10 08 	vfmadd231ss xmm0,xmm2,DWORD PTR [r8+r10*1+0x8]
+ 7b3:	48 89 ca             	mov    rdx,rcx
+ 7b6:	c5 ca 5c c0          	vsubss xmm0,xmm6,xmm0
+ 7ba:	48 29 c2             	sub    rdx,rax
+ 7bd:	48 c1 fa 03          	sar    rdx,0x3
+ 7c1:	48 3b 94 24 e8 00 00 	cmp    rdx,QWORD PTR [rsp+0xe8]
+ 7c8:	00 
+ 7c9:	72 45                	jb     810 <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x280>
+ 7cb:	c5 fa 10 08          	vmovss xmm1,DWORD PTR [rax]
+ 7cf:	c5 f8 2f c8          	vcomiss xmm1,xmm0
+ 7d3:	0f 87 ef 00 00 00    	ja     8c8 <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x338>
+ 7d9:	48 83 c7 01          	add    rdi,0x1
+ 7dd:	48 03 ac 24 e0 00 00 	add    rbp,QWORD PTR [rsp+0xe0]
+ 7e4:	00 
+ 7e5:	48 39 bc 24 d8 00 00 	cmp    QWORD PTR [rsp+0xd8],rdi
+ 7ec:	00 
+ 7ed:	0f 85 1d fe ff ff    	jne    610 <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x80>
+ 7f3:	c5 f8 77             	vzeroupper
+ 7f6:	c5 f8 10 74 24 60    	vmovups xmm6,XMMWORD PTR [rsp+0x60]
+ 7fc:	4c 89 f0             	mov    rax,r14
+ 7ff:	48 83 c4 78          	add    rsp,0x78
+ 803:	5b                   	pop    rbx
+ 804:	5e                   	pop    rsi
+ 805:	5f                   	pop    rdi
+ 806:	5d                   	pop    rbp
+ 807:	41 5c                	pop    r12
+ 809:	41 5d                	pop    r13
+ 80b:	41 5e                	pop    r14
+ 80d:	41 5f                	pop    r15
+ 80f:	c3                   	ret
+ 810:	41 89 fa             	mov    r10d,edi
+ 813:	49 39 4e 10          	cmp    QWORD PTR [r14+0x10],rcx
+ 817:	0f 84 60 03 00 00    	je     b7d <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x5ed>
+ 81d:	89 79 04             	mov    DWORD PTR [rcx+0x4],edi
+ 820:	48 83 c1 08          	add    rcx,0x8
+ 824:	c5 fa 11 41 f8       	vmovss DWORD PTR [rcx-0x8],xmm0
+ 829:	49 89 4e 08          	mov    QWORD PTR [r14+0x8],rcx
+ 82d:	49 89 c9             	mov    r9,rcx
+ 830:	49 29 c1             	sub    r9,rax
+ 833:	4d 89 c8             	mov    r8,r9
+ 836:	49 c1 f8 03          	sar    r8,0x3
+ 83a:	4d 8d 58 ff          	lea    r11,[r8-0x1]
+ 83e:	49 83 e8 02          	sub    r8,0x2
+ 842:	4c 89 c2             	mov    rdx,r8
+ 845:	48 c1 ea 3f          	shr    rdx,0x3f
+ 849:	4c 01 c2             	add    rdx,r8
+ 84c:	4e 8d 44 08 f8       	lea    r8,[rax+r9*1-0x8]
+ 851:	48 d1 fa             	sar    rdx,1
+ 854:	4d 85 db             	test   r11,r11
+ 857:	7e 5e                	jle    8b7 <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x327>
+ 859:	4c 8d 04 d0          	lea    r8,[rax+rdx*8]
+ 85d:	c4 c1 7a 10 08       	vmovss xmm1,DWORD PTR [r8]
+ 862:	c5 f8 2f c1          	vcomiss xmm0,xmm1
+ 866:	76 3c                	jbe    8a4 <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x314>
+ 868:	45 8b 68 04          	mov    r13d,DWORD PTR [r8+0x4]
+ 86c:	4e 8d 0c d8          	lea    r9,[rax+r11*8]
+ 870:	4c 8d 5a ff          	lea    r11,[rdx-0x1]
+ 874:	45 89 69 04          	mov    DWORD PTR [r9+0x4],r13d
+ 878:	c4 c1 7a 11 09       	vmovss DWORD PTR [r9],xmm1
+ 87d:	4d 89 d9             	mov    r9,r11
+ 880:	49 c1 e9 3f          	shr    r9,0x3f
+ 884:	4d 01 d9             	add    r9,r11
+ 887:	49 89 d3             	mov    r11,rdx
+ 88a:	49 d1 f9             	sar    r9,1
+ 88d:	48 85 d2             	test   rdx,rdx
+ 890:	74 25                	je     8b7 <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x327>
+ 892:	4c 89 ca             	mov    rdx,r9
+ 895:	4c 8d 04 d0          	lea    r8,[rax+rdx*8]
+ 899:	c4 c1 7a 10 08       	vmovss xmm1,DWORD PTR [r8]
+ 89e:	c5 f8 2f c1          	vcomiss xmm0,xmm1
+ 8a2:	77 c4                	ja     868 <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x2d8>
+ 8a4:	c5 f8 2f c8          	vcomiss xmm1,xmm0
+ 8a8:	77 09                	ja     8b3 <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x323>
+ 8aa:	45 8b 68 04          	mov    r13d,DWORD PTR [r8+0x4]
+ 8ae:	45 39 d5             	cmp    r13d,r10d
+ 8b1:	72 b9                	jb     86c <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x2dc>
+ 8b3:	4e 8d 04 d8          	lea    r8,[rax+r11*8]
+ 8b7:	45 89 50 04          	mov    DWORD PTR [r8+0x4],r10d
+ 8bb:	c4 c1 7a 11 00       	vmovss DWORD PTR [r8],xmm0
+ 8c0:	e9 14 ff ff ff       	jmp    7d9 <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x249>
+ 8c5:	0f 1f 00             	nop    DWORD PTR [rax]
+ 8c8:	41 89 fb             	mov    r11d,edi
+ 8cb:	49 39 4e 10          	cmp    QWORD PTR [r14+0x10],rcx
+ 8cf:	0f 84 d7 02 00 00    	je     bac <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x61c>
+ 8d5:	4c 8d 51 08          	lea    r10,[rcx+0x8]
+ 8d9:	89 79 04             	mov    DWORD PTR [rcx+0x4],edi
+ 8dc:	c5 fa 11 01          	vmovss DWORD PTR [rcx],xmm0
+ 8e0:	4d 89 56 08          	mov    QWORD PTR [r14+0x8],r10
+ 8e4:	4d 89 d1             	mov    r9,r10
+ 8e7:	49 29 c1             	sub    r9,rax
+ 8ea:	4d 89 c8             	mov    r8,r9
+ 8ed:	49 c1 f8 03          	sar    r8,0x3
+ 8f1:	4d 8d 68 ff          	lea    r13,[r8-0x1]
+ 8f5:	49 83 e8 02          	sub    r8,0x2
+ 8f9:	4c 89 c2             	mov    rdx,r8
+ 8fc:	48 c1 ea 3f          	shr    rdx,0x3f
+ 900:	4c 01 c2             	add    rdx,r8
+ 903:	48 d1 fa             	sar    rdx,1
+ 906:	4d 85 ed             	test   r13,r13
+ 909:	0f 8e d1 02 00 00    	jle    be0 <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x650>
+ 90f:	4c 8d 04 d0          	lea    r8,[rax+rdx*8]
+ 913:	c4 c1 7a 10 08       	vmovss xmm1,DWORD PTR [r8]
+ 918:	c5 f8 2f c1          	vcomiss xmm0,xmm1
+ 91c:	76 3d                	jbe    95b <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x3cb>
+ 91e:	45 8b 48 04          	mov    r9d,DWORD PTR [r8+0x4]
+ 922:	4e 8d 2c e8          	lea    r13,[rax+r13*8]
+ 926:	45 89 4d 04          	mov    DWORD PTR [r13+0x4],r9d
+ 92a:	c4 c1 7a 11 4d 00    	vmovss DWORD PTR [r13+0x0],xmm1
+ 930:	4c 8d 6a ff          	lea    r13,[rdx-0x1]
+ 934:	4d 89 e9             	mov    r9,r13
+ 937:	49 c1 e9 3f          	shr    r9,0x3f
+ 93b:	4d 01 e9             	add    r9,r13
+ 93e:	49 89 d5             	mov    r13,rdx
+ 941:	49 d1 f9             	sar    r9,1
+ 944:	48 85 d2             	test   rdx,rdx
+ 947:	74 25                	je     96e <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x3de>
+ 949:	4c 89 ca             	mov    rdx,r9
+ 94c:	4c 8d 04 d0          	lea    r8,[rax+rdx*8]
+ 950:	c4 c1 7a 10 08       	vmovss xmm1,DWORD PTR [r8]
+ 955:	c5 f8 2f c1          	vcomiss xmm0,xmm1
+ 959:	77 c3                	ja     91e <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x38e>
+ 95b:	c5 f8 2f c8          	vcomiss xmm1,xmm0
+ 95f:	77 09                	ja     96a <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x3da>
+ 961:	45 8b 48 04          	mov    r9d,DWORD PTR [r8+0x4]
+ 965:	45 39 d9             	cmp    r9d,r11d
+ 968:	72 b8                	jb     922 <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x392>
+ 96a:	4e 8d 04 e8          	lea    r8,[rax+r13*8]
+ 96e:	45 89 58 04          	mov    DWORD PTR [r8+0x4],r11d
+ 972:	c4 c1 7a 11 00       	vmovss DWORD PTR [r8],xmm0
+ 977:	49 89 c8             	mov    r8,rcx
+ 97a:	41 8b 52 fc          	mov    edx,DWORD PTR [r10-0x4]
+ 97e:	c5 fa 10 00          	vmovss xmm0,DWORD PTR [rax]
+ 982:	49 29 c0             	sub    r8,rax
+ 985:	c4 c1 7a 10 4a f8    	vmovss xmm1,DWORD PTR [r10-0x8]
+ 98b:	89 54 24 38          	mov    DWORD PTR [rsp+0x38],edx
+ 98f:	4d 89 c5             	mov    r13,r8
+ 992:	8b 50 04             	mov    edx,DWORD PTR [rax+0x4]
+ 995:	49 c1 fd 03          	sar    r13,0x3
+ 999:	c4 c1 7a 11 42 f8    	vmovss DWORD PTR [r10-0x8],xmm0
+ 99f:	41 89 52 fc          	mov    DWORD PTR [r10-0x4],edx
+ 9a3:	49 8d 55 ff          	lea    rdx,[r13-0x1]
+ 9a7:	4d 89 ea             	mov    r10,r13
+ 9aa:	49 89 d3             	mov    r11,rdx
+ 9ad:	41 83 e2 01          	and    r10d,0x1
+ 9b1:	49 c1 eb 3f          	shr    r11,0x3f
+ 9b5:	4c 89 54 24 30       	mov    QWORD PTR [rsp+0x30],r10
+ 9ba:	49 01 d3             	add    r11,rdx
+ 9bd:	49 d1 fb             	sar    r11,1
+ 9c0:	49 83 f8 10          	cmp    r8,0x10
+ 9c4:	0f 8e 28 02 00 00    	jle    bf2 <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x662>
+ 9ca:	89 5c 24 3c          	mov    DWORD PTR [rsp+0x3c],ebx
+ 9ce:	45 31 d2             	xor    r10d,r10d
+ 9d1:	48 89 7c 24 40       	mov    QWORD PTR [rsp+0x40],rdi
+ 9d6:	48 89 4c 24 48       	mov    QWORD PTR [rsp+0x48],rcx
+ 9db:	eb 3a                	jmp    a17 <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x487>
+ 9dd:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+ 9e4:	00 00 00 00 
+ 9e8:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+ 9ef:	00 00 00 00 
+ 9f3:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+ 9fa:	00 00 00 00 
+ 9fe:	66 90                	xchg   ax,ax
+ a00:	41 8b 49 04          	mov    ecx,DWORD PTR [r9+0x4]
+ a04:	4a 8d 14 d0          	lea    rdx,[rax+r10*8]
+ a08:	89 4a 04             	mov    DWORD PTR [rdx+0x4],ecx
+ a0b:	c5 fa 11 02          	vmovss DWORD PTR [rdx],xmm0
+ a0f:	4d 39 c3             	cmp    r11,r8
+ a12:	7e 54                	jle    a68 <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x4d8>
+ a14:	4d 89 c2             	mov    r10,r8
+ a17:	49 8d 52 01          	lea    rdx,[r10+0x1]
+ a1b:	48 8d 1c 12          	lea    rbx,[rdx+rdx*1]
+ a1f:	48 c1 e2 04          	shl    rdx,0x4
+ a23:	4c 8d 43 ff          	lea    r8,[rbx-0x1]
+ a27:	48 01 c2             	add    rdx,rax
+ a2a:	4e 8d 0c c0          	lea    r9,[rax+r8*8]
+ a2e:	c5 fa 10 1a          	vmovss xmm3,DWORD PTR [rdx]
+ a32:	c4 c1 7a 10 01       	vmovss xmm0,DWORD PTR [r9]
+ a37:	c5 f8 2f c3          	vcomiss xmm0,xmm3
+ a3b:	77 c3                	ja     a00 <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x470>
+ a3d:	c5 f8 2f d8          	vcomiss xmm3,xmm0
+ a41:	8b 4a 04             	mov    ecx,DWORD PTR [rdx+0x4]
+ a44:	0f 87 ce 00 00 00    	ja     b18 <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x588>
+ a4a:	41 8b 79 04          	mov    edi,DWORD PTR [r9+0x4]
+ a4e:	39 f9                	cmp    ecx,edi
+ a50:	0f 83 c2 00 00 00    	jae    b18 <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x588>
+ a56:	4a 8d 14 d0          	lea    rdx,[rax+r10*8]
+ a5a:	89 f9                	mov    ecx,edi
+ a5c:	89 4a 04             	mov    DWORD PTR [rdx+0x4],ecx
+ a5f:	c5 fa 11 02          	vmovss DWORD PTR [rdx],xmm0
+ a63:	4d 39 c3             	cmp    r11,r8
+ a66:	7f ac                	jg     a14 <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x484>
+ a68:	48 83 7c 24 30 00    	cmp    QWORD PTR [rsp+0x30],0x0
+ a6e:	8b 5c 24 3c          	mov    ebx,DWORD PTR [rsp+0x3c]
+ a72:	48 8b 7c 24 40       	mov    rdi,QWORD PTR [rsp+0x40]
+ a77:	48 8b 4c 24 48       	mov    rcx,QWORD PTR [rsp+0x48]
+ a7c:	0f 84 c7 00 00 00    	je     b49 <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x5b9>
+ a82:	4d 8d 50 ff          	lea    r10,[r8-0x1]
+ a86:	4c 89 d2             	mov    rdx,r10
+ a89:	48 c1 ea 3f          	shr    rdx,0x3f
+ a8d:	4c 01 d2             	add    rdx,r10
+ a90:	48 d1 fa             	sar    rdx,1
+ a93:	4d 85 c0             	test   r8,r8
+ a96:	74 66                	je     afe <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x56e>
+ a98:	4c 8d 0c d0          	lea    r9,[rax+rdx*8]
+ a9c:	c4 c1 7a 10 01       	vmovss xmm0,DWORD PTR [r9]
+ aa1:	c5 f8 2f c8          	vcomiss xmm1,xmm0
+ aa5:	76 3f                	jbe    ae6 <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x556>
+ aa7:	45 8b 51 04          	mov    r10d,DWORD PTR [r9+0x4]
+ aab:	4e 8d 04 c0          	lea    r8,[rax+r8*8]
+ aaf:	45 89 50 04          	mov    DWORD PTR [r8+0x4],r10d
+ ab3:	4c 8d 52 ff          	lea    r10,[rdx-0x1]
+ ab7:	c4 c1 7a 11 00       	vmovss DWORD PTR [r8],xmm0
+ abc:	4d 89 d0             	mov    r8,r10
+ abf:	49 c1 e8 3f          	shr    r8,0x3f
+ ac3:	4d 01 d0             	add    r8,r10
+ ac6:	49 d1 f8             	sar    r8,1
+ ac9:	4d 89 c2             	mov    r10,r8
+ acc:	49 89 d0             	mov    r8,rdx
+ acf:	48 85 d2             	test   rdx,rdx
+ ad2:	74 2a                	je     afe <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x56e>
+ ad4:	4c 89 d2             	mov    rdx,r10
+ ad7:	4c 8d 0c d0          	lea    r9,[rax+rdx*8]
+ adb:	c4 c1 7a 10 01       	vmovss xmm0,DWORD PTR [r9]
+ ae0:	c5 f8 2f c8          	vcomiss xmm1,xmm0
+ ae4:	77 c1                	ja     aa7 <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x517>
+ ae6:	c5 f8 2f c1          	vcomiss xmm0,xmm1
+ aea:	77 0e                	ja     afa <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x56a>
+ aec:	45 8b 51 04          	mov    r10d,DWORD PTR [r9+0x4]
+ af0:	44 8b 5c 24 38       	mov    r11d,DWORD PTR [rsp+0x38]
+ af5:	45 39 da             	cmp    r10d,r11d
+ af8:	72 b1                	jb     aab <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x51b>
+ afa:	4e 8d 0c c0          	lea    r9,[rax+r8*8]
+ afe:	8b 54 24 38          	mov    edx,DWORD PTR [rsp+0x38]
+ b02:	c4 c1 7a 11 09       	vmovss DWORD PTR [r9],xmm1
+ b07:	41 89 51 04          	mov    DWORD PTR [r9+0x4],edx
+ b0b:	49 89 4e 08          	mov    QWORD PTR [r14+0x8],rcx
+ b0f:	e9 c5 fc ff ff       	jmp    7d9 <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x249>
+ b14:	0f 1f 40 00          	nop    DWORD PTR [rax+0x0]
+ b18:	c5 f8 28 c3          	vmovaps xmm0,xmm3
+ b1c:	49 89 d1             	mov    r9,rdx
+ b1f:	49 89 d8             	mov    r8,rbx
+ b22:	e9 dd fe ff ff       	jmp    a04 <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x474>
+ b27:	66 0f 1f 84 00 00 00 	nop    WORD PTR [rax+rax*1+0x0]
+ b2e:	00 00 
+ b30:	c5 f0 57 c9          	vxorps xmm1,xmm1,xmm1
+ b34:	41 b9 07 00 00 00    	mov    r9d,0x7
+ b3a:	31 d2                	xor    edx,edx
+ b3c:	c5 fc 28 d1          	vmovaps ymm2,ymm1
+ b40:	c5 fc 28 c1          	vmovaps ymm0,ymm1
+ b44:	e9 44 fb ff ff       	jmp    68d <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0xfd>
+ b49:	49 83 ed 02          	sub    r13,0x2
+ b4d:	49 d1 fd             	sar    r13,1
+ b50:	4d 39 c5             	cmp    r13,r8
+ b53:	0f 85 29 ff ff ff    	jne    a82 <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x4f2>
+ b59:	4f 8d 54 00 01       	lea    r10,[r8+r8*1+0x1]
+ b5e:	4a 8d 14 d0          	lea    rdx,[rax+r10*8]
+ b62:	c5 fa 10 02          	vmovss xmm0,DWORD PTR [rdx]
+ b66:	8b 52 04             	mov    edx,DWORD PTR [rdx+0x4]
+ b69:	c4 c1 7a 11 01       	vmovss DWORD PTR [r9],xmm0
+ b6e:	41 89 51 04          	mov    DWORD PTR [r9+0x4],edx
+ b72:	4c 89 c2             	mov    rdx,r8
+ b75:	4d 89 d0             	mov    r8,r10
+ b78:	e9 1b ff ff ff       	jmp    a98 <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x508>
+ b7d:	89 7c 24 54          	mov    DWORD PTR [rsp+0x54],edi
+ b81:	48 8d 54 24 50       	lea    rdx,[rsp+0x50]
+ b86:	4c 89 f1             	mov    rcx,r14
+ b89:	c5 fa 11 44 24 50    	vmovss DWORD PTR [rsp+0x50],xmm0
+ b8f:	c5 f8 77             	vzeroupper
+ b92:	e8 00 00 00 00       	call   b97 <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x607>
+ b97:	49 8b 4e 08          	mov    rcx,QWORD PTR [r14+0x8]
+ b9b:	49 8b 06             	mov    rax,QWORD PTR [r14]
+ b9e:	c5 fa 10 41 f8       	vmovss xmm0,DWORD PTR [rcx-0x8]
+ ba3:	44 8b 51 fc          	mov    r10d,DWORD PTR [rcx-0x4]
+ ba7:	e9 81 fc ff ff       	jmp    82d <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x29d>
+ bac:	89 7c 24 5c          	mov    DWORD PTR [rsp+0x5c],edi
+ bb0:	48 8d 54 24 58       	lea    rdx,[rsp+0x58]
+ bb5:	4c 89 f1             	mov    rcx,r14
+ bb8:	c5 fa 11 44 24 58    	vmovss DWORD PTR [rsp+0x58],xmm0
+ bbe:	c5 f8 77             	vzeroupper
+ bc1:	e8 00 00 00 00       	call   bc6 <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x636>
+ bc6:	4d 8b 56 08          	mov    r10,QWORD PTR [r14+0x8]
+ bca:	49 8b 06             	mov    rax,QWORD PTR [r14]
+ bcd:	45 8b 5a fc          	mov    r11d,DWORD PTR [r10-0x4]
+ bd1:	c4 c1 7a 10 42 f8    	vmovss xmm0,DWORD PTR [r10-0x8]
+ bd7:	49 8d 4a f8          	lea    rcx,[r10-0x8]
+ bdb:	e9 04 fd ff ff       	jmp    8e4 <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x354>
+ be0:	4a 8d 54 08 f8       	lea    rdx,[rax+r9*1-0x8]
+ be5:	44 89 5a 04          	mov    DWORD PTR [rdx+0x4],r11d
+ be9:	c5 fa 11 02          	vmovss DWORD PTR [rdx],xmm0
+ bed:	e9 19 ff ff ff       	jmp    b0b <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x57b>
+ bf2:	48 83 7c 24 30 00    	cmp    QWORD PTR [rsp+0x30],0x0
+ bf8:	49 89 c1             	mov    r9,rax
+ bfb:	0f 85 fd fe ff ff    	jne    afe <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x56e>
+ c01:	48 83 fa 02          	cmp    rdx,0x2
+ c05:	0f 87 f3 fe ff ff    	ja     afe <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x56e>
+ c0b:	45 31 c0             	xor    r8d,r8d
+ c0e:	e9 46 ff ff ff       	jmp    b59 <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x5c9>
+ c13:	49 8b 0e             	mov    rcx,QWORD PTR [r14]
+ c16:	49 8b 56 10          	mov    rdx,QWORD PTR [r14+0x10]
+ c1a:	48 89 c3             	mov    rbx,rax
+ c1d:	48 29 ca             	sub    rdx,rcx
+ c20:	48 85 c9             	test   rcx,rcx
+ c23:	74 10                	je     c35 <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x6a5>
+ c25:	c5 f8 77             	vzeroupper
+ c28:	e8 00 00 00 00       	call   c2d <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x69d>
+ c2d:	48 89 d9             	mov    rcx,rbx
+ c30:	e8 00 00 00 00       	call   c35 <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x6a5>
+ c35:	c5 f8 77             	vzeroupper
+ c38:	eb f3                	jmp    c2d <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x69d>
+ c3a:	90                   	nop
+ c3b:	90                   	nop
+ c3c:	90                   	nop
+ c3d:	90                   	nop
+ c3e:	90                   	nop
+ c3f:	90                   	nop
+
+Disassembly of section .text.startup:
+
+0000000000000000 <main>:
+   0:	41 57                	push   r15
+   2:	41 56                	push   r14
+   4:	41 55                	push   r13
+   6:	41 54                	push   r12
+   8:	55                   	push   rbp
+   9:	57                   	push   rdi
+   a:	56                   	push   rsi
+   b:	53                   	push   rbx
+   c:	48 81 ec 28 01 00 00 	sub    rsp,0x128
+  13:	c5 f8 11 b4 24 a0 00 	vmovups XMMWORD PTR [rsp+0xa0],xmm6
+  1a:	00 00 
+  1c:	c5 f8 11 bc 24 b0 00 	vmovups XMMWORD PTR [rsp+0xb0],xmm7
+  23:	00 00 
+  25:	c5 78 11 84 24 c0 00 	vmovups XMMWORD PTR [rsp+0xc0],xmm8
+  2c:	00 00 
+  2e:	c5 78 11 8c 24 d0 00 	vmovups XMMWORD PTR [rsp+0xd0],xmm9
+  35:	00 00 
+  37:	c5 78 11 94 24 e0 00 	vmovups XMMWORD PTR [rsp+0xe0],xmm10
+  3e:	00 00 
+  40:	c5 78 11 9c 24 f0 00 	vmovups XMMWORD PTR [rsp+0xf0],xmm11
+  47:	00 00 
+  49:	c5 78 11 a4 24 00 01 	vmovups XMMWORD PTR [rsp+0x100],xmm12
+  50:	00 00 
+  52:	c5 78 11 ac 24 10 01 	vmovups XMMWORD PTR [rsp+0x110],xmm13
+  59:	00 00 
+  5b:	bb 60 00 00 00       	mov    ebx,0x60
+  60:	bd 80 84 1e 00       	mov    ebp,0x1e8480
+  65:	89 ce                	mov    esi,ecx
+  67:	48 89 d7             	mov    rdi,rdx
+  6a:	e8 00 00 00 00       	call   6f <main+0x6f>
+  6f:	83 fe 01             	cmp    esi,0x1
+  72:	0f 8f 02 06 00 00    	jg     67a <main+0x67a>
+  78:	4c 63 f3             	movsxd r14,ebx
+  7b:	4c 8d 64 24 40       	lea    r12,[rsp+0x40]
+  80:	4c 8d 6c 24 60       	lea    r13,[rsp+0x60]
+  85:	4c 89 f2             	mov    rdx,r14
+  88:	4c 89 e1             	mov    rcx,r12
+  8b:	e8 f0 04 00 00       	call   580 <main+0x580>
+  90:	48 8b 44 24 50       	mov    rax,QWORD PTR [rsp+0x50]
+  95:	4c 89 f2             	mov    rdx,r14
+  98:	4c 89 e9             	mov    rcx,r13
+  9b:	48 8b 74 24 40       	mov    rsi,QWORD PTR [rsp+0x40]
+  a0:	48 89 44 24 38       	mov    QWORD PTR [rsp+0x38],rax
+  a5:	e8 f0 04 00 00       	call   59a <main+0x59a>
+  aa:	48 8b 7c 24 60       	mov    rdi,QWORD PTR [rsp+0x60]
+  af:	4c 8b 7c 24 70       	mov    r15,QWORD PTR [rsp+0x70]
+  b4:	85 db                	test   ebx,ebx
+  b6:	0f 8e 14 03 00 00    	jle    3d0 <main+0x3d0>
+  bc:	8d 53 ff             	lea    edx,[rbx-0x1]
+  bf:	c4 41 28 57 d2       	vxorps xmm10,xmm10,xmm10
+  c4:	89 d8                	mov    eax,ebx
+  c6:	83 fa 02             	cmp    edx,0x2
+  c9:	0f 86 d7 05 00 00    	jbe    6a6 <main+0x6a6>
+  cf:	4c 8d 46 04          	lea    r8,[rsi+0x4]
+  d3:	48 89 f9             	mov    rcx,rdi
+  d6:	4c 29 c1             	sub    rcx,r8
+  d9:	48 83 f9 18          	cmp    rcx,0x18
+  dd:	0f 86 c3 05 00 00    	jbe    6a6 <main+0x6a6>
+  e3:	83 fa 06             	cmp    edx,0x6
+  e6:	0f 86 40 06 00 00    	jbe    72c <main+0x72c>
+  ec:	b9 08 00 00 00       	mov    ecx,0x8
+  f1:	89 da                	mov    edx,ebx
+  f3:	31 c0                	xor    eax,eax
+  f5:	c5 fe 6f 1d 00 01 00 	vmovdqu ymm3,YMMWORD PTR [rip+0x100]        # 1fd <main+0x1fd>
+  fc:	00 
+  fd:	c4 62 7d 18 25 20 01 	vbroadcastss ymm12,DWORD PTR [rip+0x120]        # 226 <main+0x226>
+ 104:	00 00 
+ 106:	c5 79 6e c9          	vmovd  xmm9,ecx
+ 10a:	c1 ea 03             	shr    edx,0x3
+ 10d:	b9 eb 07 1d 15       	mov    ecx,0x151d07eb
+ 112:	c5 f9 6e e9          	vmovd  xmm5,ecx
+ 116:	b9 01 00 00 00       	mov    ecx,0x1
+ 11b:	48 c1 e2 05          	shl    rdx,0x5
+ 11f:	c4 62 7d 18 1d 24 01 	vbroadcastss ymm11,DWORD PTR [rip+0x124]        # 24c <main+0x24c>
+ 126:	00 00 
+ 128:	c5 79 6e c1          	vmovd  xmm8,ecx
+ 12c:	b9 e1 02 17 b8       	mov    ecx,0xb81702e1
+ 131:	c4 42 7d 58 c9       	vpbroadcastd ymm9,xmm9
+ 136:	c5 f9 6e e1          	vmovd  xmm4,ecx
+ 13a:	b9 59 00 00 00       	mov    ecx,0x59
+ 13f:	c4 e2 7d 58 ed       	vpbroadcastd ymm5,xmm5
+ 144:	c5 f9 6e f9          	vmovd  xmm7,ecx
+ 148:	b9 03 00 00 00       	mov    ecx,0x3
+ 14d:	c4 42 7d 58 c0       	vpbroadcastd ymm8,xmm8
+ 152:	c5 f9 6e f1          	vmovd  xmm6,ecx
+ 156:	c4 e2 7d 58 e4       	vpbroadcastd ymm4,xmm4
+ 15b:	c4 e2 7d 58 ff       	vpbroadcastd ymm7,xmm7
+ 160:	c4 e2 7d 58 f6       	vpbroadcastd ymm6,xmm6
+ 165:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+ 16c:	00 00 00 00 
+ 170:	c5 fd 6f cb          	vmovdqa ymm1,ymm3
+ 174:	c4 c1 65 fe d9       	vpaddd ymm3,ymm3,ymm9
+ 179:	c5 ed 73 d1 20       	vpsrlq ymm2,ymm1,0x20
+ 17e:	c4 e2 75 28 c5       	vpmuldq ymm0,ymm1,ymm5
+ 183:	c4 62 6d 28 ed       	vpmuldq ymm13,ymm2,ymm5
+ 188:	c5 fd 70 c0 f5       	vpshufd ymm0,ymm0,0xf5
+ 18d:	c4 63 15 02 e8 55    	vpblendd ymm13,ymm13,ymm0,0x55
+ 193:	c4 c1 15 72 e5 03    	vpsrad ymm13,ymm13,0x3
+ 199:	c4 c1 7d 72 f5 01    	vpslld ymm0,ymm13,0x1
+ 19f:	c4 c1 7d fe c5       	vpaddd ymm0,ymm0,ymm13
+ 1a4:	c5 fd 72 f0 05       	vpslld ymm0,ymm0,0x5
+ 1a9:	c4 c1 7d fe c5       	vpaddd ymm0,ymm0,ymm13
+ 1ae:	c4 62 75 28 ec       	vpmuldq ymm13,ymm1,ymm4
+ 1b3:	c5 f5 fa c0          	vpsubd ymm0,ymm1,ymm0
+ 1b7:	c4 c1 7d fe c0       	vpaddd ymm0,ymm0,ymm8
+ 1bc:	c5 fc 5b c0          	vcvtdq2ps ymm0,ymm0
+ 1c0:	c4 c1 7c 59 c4       	vmulps ymm0,ymm0,ymm12
+ 1c5:	c5 fc 11 04 06       	vmovups YMMWORD PTR [rsi+rax*1],ymm0
+ 1ca:	c4 e2 6d 28 c4       	vpmuldq ymm0,ymm2,ymm4
+ 1cf:	c4 c1 7d 70 d5 f5    	vpshufd ymm2,ymm13,0xf5
+ 1d5:	c4 e3 7d 02 c2 55    	vpblendd ymm0,ymm0,ymm2,0x55
+ 1db:	c5 fd fe c1          	vpaddd ymm0,ymm0,ymm1
+ 1df:	c5 fd 72 e0 06       	vpsrad ymm0,ymm0,0x6
+ 1e4:	c4 e2 7d 40 c7       	vpmulld ymm0,ymm0,ymm7
+ 1e9:	c5 f5 fa c8          	vpsubd ymm1,ymm1,ymm0
+ 1ed:	c5 f5 fe ce          	vpaddd ymm1,ymm1,ymm6
+ 1f1:	c5 fc 5b c9          	vcvtdq2ps ymm1,ymm1
+ 1f5:	c4 c1 74 59 cb       	vmulps ymm1,ymm1,ymm11
+ 1fa:	c5 fc 11 0c 07       	vmovups YMMWORD PTR [rdi+rax*1],ymm1
+ 1ff:	48 83 c0 20          	add    rax,0x20
+ 203:	48 39 c2             	cmp    rdx,rax
+ 206:	0f 85 64 ff ff ff    	jne    170 <main+0x170>
+ 20c:	89 d9                	mov    ecx,ebx
+ 20e:	83 e1 f8             	and    ecx,0xfffffff8
+ 211:	89 ca                	mov    edx,ecx
+ 213:	39 cb                	cmp    ebx,ecx
+ 215:	0f 84 09 05 00 00    	je     724 <main+0x724>
+ 21b:	89 d8                	mov    eax,ebx
+ 21d:	29 c8                	sub    eax,ecx
+ 21f:	44 8d 40 ff          	lea    r8d,[rax-0x1]
+ 223:	41 83 f8 02          	cmp    r8d,0x2
+ 227:	0f 86 71 04 00 00    	jbe    69e <main+0x69e>
+ 22d:	c5 f8 77             	vzeroupper
+ 230:	c4 e2 79 58 05 28 01 	vpbroadcastd xmm0,DWORD PTR [rip+0x128]        # 361 <main+0x361>
+ 237:	00 00 
+ 239:	c5 f9 6e f1          	vmovd  xmm6,ecx
+ 23d:	c4 e2 79 58 ce       	vpbroadcastd xmm1,xmm6
+ 242:	c5 f1 fe 0d 00 01 00 	vpaddd xmm1,xmm1,XMMWORD PTR [rip+0x100]        # 34a <main+0x34a>
+ 249:	00 
+ 24a:	c4 e2 71 28 d0       	vpmuldq xmm2,xmm1,xmm0
+ 24f:	c5 e1 73 d1 20       	vpsrlq xmm3,xmm1,0x20
+ 254:	c4 e2 61 28 c0       	vpmuldq xmm0,xmm3,xmm0
+ 259:	c5 f9 70 d2 f5       	vpshufd xmm2,xmm2,0xf5
+ 25e:	c4 e3 79 02 c2 05    	vpblendd xmm0,xmm0,xmm2,0x5
+ 264:	c4 e2 79 58 15 2c 01 	vpbroadcastd xmm2,DWORD PTR [rip+0x12c]        # 399 <main+0x399>
+ 26b:	00 00 
+ 26d:	c5 f9 72 e0 03       	vpsrad xmm0,xmm0,0x3
+ 272:	c4 e2 79 40 c2       	vpmulld xmm0,xmm0,xmm2
+ 277:	c4 e2 79 58 15 04 01 	vpbroadcastd xmm2,DWORD PTR [rip+0x104]        # 384 <main+0x384>
+ 27e:	00 00 
+ 280:	c5 f1 fa c0          	vpsubd xmm0,xmm1,xmm0
+ 284:	c5 f9 fe c2          	vpaddd xmm0,xmm0,xmm2
+ 288:	c4 e2 79 18 15 20 01 	vbroadcastss xmm2,DWORD PTR [rip+0x120]        # 3b1 <main+0x3b1>
+ 28f:	00 00 
+ 291:	c5 f8 5b c0          	vcvtdq2ps xmm0,xmm0
+ 295:	c5 f8 59 c2          	vmulps xmm0,xmm0,xmm2
+ 299:	c4 e2 79 58 15 30 01 	vpbroadcastd xmm2,DWORD PTR [rip+0x130]        # 3d2 <main+0x3d2>
+ 2a0:	00 00 
+ 2a2:	c4 e2 71 28 e2       	vpmuldq xmm4,xmm1,xmm2
+ 2a7:	c5 f8 11 04 96       	vmovups XMMWORD PTR [rsi+rdx*4],xmm0
+ 2ac:	c4 e2 61 28 c2       	vpmuldq xmm0,xmm3,xmm2
+ 2b1:	c5 f9 70 d4 f5       	vpshufd xmm2,xmm4,0xf5
+ 2b6:	c4 e3 79 02 c2 05    	vpblendd xmm0,xmm0,xmm2,0x5
+ 2bc:	c4 e2 79 58 15 34 01 	vpbroadcastd xmm2,DWORD PTR [rip+0x134]        # 3f9 <main+0x3f9>
+ 2c3:	00 00 
+ 2c5:	c5 f9 fe c1          	vpaddd xmm0,xmm0,xmm1
+ 2c9:	c5 f9 72 e0 06       	vpsrad xmm0,xmm0,0x6
+ 2ce:	c4 e2 79 40 c2       	vpmulld xmm0,xmm0,xmm2
+ 2d3:	c5 f1 fa c0          	vpsubd xmm0,xmm1,xmm0
+ 2d7:	c4 e2 79 58 0d 0c 01 	vpbroadcastd xmm1,DWORD PTR [rip+0x10c]        # 3ec <main+0x3ec>
+ 2de:	00 00 
+ 2e0:	c5 f9 fe c1          	vpaddd xmm0,xmm0,xmm1
+ 2e4:	c4 e2 79 18 0d 24 01 	vbroadcastss xmm1,DWORD PTR [rip+0x124]        # 411 <main+0x411>
+ 2eb:	00 00 
+ 2ed:	c5 f8 5b c0          	vcvtdq2ps xmm0,xmm0
+ 2f1:	c5 f8 59 c1          	vmulps xmm0,xmm0,xmm1
+ 2f5:	c5 f8 11 04 97       	vmovups XMMWORD PTR [rdi+rdx*4],xmm0
+ 2fa:	89 c2                	mov    edx,eax
+ 2fc:	83 e2 fc             	and    edx,0xfffffffc
+ 2ff:	01 d1                	add    ecx,edx
+ 301:	a8 03                	test   al,0x3
+ 303:	0f 84 c7 00 00 00    	je     3d0 <main+0x3d0>
+ 309:	89 c8                	mov    eax,ecx
+ 30b:	41 b9 61 00 00 00    	mov    r9d,0x61
+ 311:	4c 63 d1             	movsxd r10,ecx
+ 314:	41 b8 59 00 00 00    	mov    r8d,0x59
+ 31a:	99                   	cdq
+ 31b:	c5 fa 10 15 20 01 00 	vmovss xmm2,DWORD PTR [rip+0x120]        # 443 <main+0x443>
+ 322:	00 
+ 323:	c5 fa 10 0d 24 01 00 	vmovss xmm1,DWORD PTR [rip+0x124]        # 44f <main+0x44f>
+ 32a:	00 
+ 32b:	4e 8d 1c 95 00 00 00 	lea    r11,[r10*4+0x0]
+ 332:	00 
+ 333:	41 f7 f9             	idiv   r9d
+ 336:	89 c8                	mov    eax,ecx
+ 338:	83 c2 01             	add    edx,0x1
+ 33b:	c5 aa 2a c2          	vcvtsi2ss xmm0,xmm10,edx
+ 33f:	99                   	cdq
+ 340:	41 f7 f8             	idiv   r8d
+ 343:	c5 fa 59 c2          	vmulss xmm0,xmm0,xmm2
+ 347:	c4 a1 7a 11 04 96    	vmovss DWORD PTR [rsi+r10*4],xmm0
+ 34d:	83 c2 03             	add    edx,0x3
+ 350:	c5 aa 2a c2          	vcvtsi2ss xmm0,xmm10,edx
+ 354:	c5 fa 59 c1          	vmulss xmm0,xmm0,xmm1
+ 358:	c4 a1 7a 11 04 97    	vmovss DWORD PTR [rdi+r10*4],xmm0
+ 35e:	44 8d 51 01          	lea    r10d,[rcx+0x1]
+ 362:	44 39 d3             	cmp    ebx,r10d
+ 365:	7e 69                	jle    3d0 <main+0x3d0>
+ 367:	44 89 d0             	mov    eax,r10d
+ 36a:	83 c1 02             	add    ecx,0x2
+ 36d:	99                   	cdq
+ 36e:	41 f7 f9             	idiv   r9d
+ 371:	44 89 d0             	mov    eax,r10d
+ 374:	83 c2 01             	add    edx,0x1
+ 377:	c5 aa 2a c2          	vcvtsi2ss xmm0,xmm10,edx
+ 37b:	99                   	cdq
+ 37c:	41 f7 f8             	idiv   r8d
+ 37f:	c5 fa 59 c2          	vmulss xmm0,xmm0,xmm2
+ 383:	c4 a1 7a 11 44 1e 04 	vmovss DWORD PTR [rsi+r11*1+0x4],xmm0
+ 38a:	83 c2 03             	add    edx,0x3
+ 38d:	c5 aa 2a c2          	vcvtsi2ss xmm0,xmm10,edx
+ 391:	c5 fa 59 c1          	vmulss xmm0,xmm0,xmm1
+ 395:	c4 a1 7a 11 44 1f 04 	vmovss DWORD PTR [rdi+r11*1+0x4],xmm0
+ 39c:	39 cb                	cmp    ebx,ecx
+ 39e:	7e 30                	jle    3d0 <main+0x3d0>
+ 3a0:	89 c8                	mov    eax,ecx
+ 3a2:	99                   	cdq
+ 3a3:	41 f7 f9             	idiv   r9d
+ 3a6:	89 c8                	mov    eax,ecx
+ 3a8:	83 c2 01             	add    edx,0x1
+ 3ab:	c5 aa 2a c2          	vcvtsi2ss xmm0,xmm10,edx
+ 3af:	99                   	cdq
+ 3b0:	41 f7 f8             	idiv   r8d
+ 3b3:	c5 fa 59 c2          	vmulss xmm0,xmm0,xmm2
+ 3b7:	c4 a1 7a 11 44 1e 08 	vmovss DWORD PTR [rsi+r11*1+0x8],xmm0
+ 3be:	83 c2 03             	add    edx,0x3
+ 3c1:	c5 2a 2a d2          	vcvtsi2ss xmm10,xmm10,edx
+ 3c5:	c5 2a 59 d1          	vmulss xmm10,xmm10,xmm1
+ 3c9:	c4 21 7a 11 54 1f 08 	vmovss DWORD PTR [rdi+r11*1+0x8],xmm10
+ 3d0:	89 6c 24 20          	mov    DWORD PTR [rsp+0x20],ebp
+ 3d4:	41 89 d9             	mov    r9d,ebx
+ 3d7:	4d 89 e8             	mov    r8,r13
+ 3da:	4c 89 e2             	mov    rdx,r12
+ 3dd:	48 8d 0d 00 00 00 00 	lea    rcx,[rip+0x0]        # 3e4 <main+0x3e4>
+ 3e4:	e8 d0 03 00 00       	call   7b9 <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x229>
+ 3e9:	89 6c 24 20          	mov    DWORD PTR [rsp+0x20],ebp
+ 3ed:	41 89 d9             	mov    r9d,ebx
+ 3f0:	4d 89 e8             	mov    r8,r13
+ 3f3:	4c 89 e2             	mov    rdx,r12
+ 3f6:	48 8d 0d 60 00 00 00 	lea    rcx,[rip+0x60]        # 45d <main+0x45d>
+ 3fd:	c5 79 28 c0          	vmovapd xmm8,xmm0
+ 401:	e8 d0 03 00 00       	call   7d6 <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x246>
+ 406:	89 6c 24 20          	mov    DWORD PTR [rsp+0x20],ebp
+ 40a:	41 89 d9             	mov    r9d,ebx
+ 40d:	4d 89 e8             	mov    r8,r13
+ 410:	4c 89 e2             	mov    rdx,r12
+ 413:	48 8d 0d d0 01 00 00 	lea    rcx,[rip+0x1d0]        # 5ea <main+0x5ea>
+ 41a:	c5 f9 28 f8          	vmovapd xmm7,xmm0
+ 41e:	e8 d0 03 00 00       	call   7f3 <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x263>
+ 423:	4c 8b 25 00 00 00 00 	mov    r12,QWORD PTR [rip+0x0]        # 42a <main+0x42a>
+ 42a:	41 b8 05 00 00 00    	mov    r8d,0x5
+ 430:	48 8d 15 41 00 00 00 	lea    rdx,[rip+0x41]        # 478 <main+0x478>
+ 437:	c5 f9 28 f0          	vmovapd xmm6,xmm0
+ 43b:	4c 89 e1             	mov    rcx,r12
+ 43e:	e8 00 00 00 00       	call   443 <main+0x443>
+ 443:	48 8d 94 24 90 00 00 	lea    rdx,[rsp+0x90]
+ 44a:	00 
+ 44b:	4c 89 e1             	mov    rcx,r12
+ 44e:	41 b8 04 00 00 00    	mov    r8d,0x4
+ 454:	c7 84 24 90 00 00 00 	mov    DWORD PTR [rsp+0x90],0x32787661
+ 45b:	61 76 78 32 
+ 45f:	48 89 94 24 80 00 00 	mov    QWORD PTR [rsp+0x80],rdx
+ 466:	00 
+ 467:	48 c7 84 24 88 00 00 	mov    QWORD PTR [rsp+0x88],0x4
+ 46e:	00 04 00 00 00 
+ 473:	c6 84 24 94 00 00 00 	mov    BYTE PTR [rsp+0x94],0x0
+ 47a:	00 
+ 47b:	e8 00 00 00 00       	call   480 <main+0x480>
+ 480:	4c 8d 2d 47 00 00 00 	lea    r13,[rip+0x47]        # 4ce <main+0x4ce>
+ 487:	48 89 c1             	mov    rcx,rax
+ 48a:	4c 89 ea             	mov    rdx,r13
+ 48d:	e8 a0 04 00 00       	call   932 <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x3a2>
+ 492:	48 8d 8c 24 80 00 00 	lea    rcx,[rsp+0x80]
+ 499:	00 
+ 49a:	e8 00 00 00 00       	call   49f <main+0x49f>
+ 49f:	41 b8 02 00 00 00    	mov    r8d,0x2
+ 4a5:	48 8d 15 49 00 00 00 	lea    rdx,[rip+0x49]        # 4f5 <main+0x4f5>
+ 4ac:	4c 89 e1             	mov    rcx,r12
+ 4af:	e8 00 00 00 00       	call   4b4 <main+0x4b4>
+ 4b4:	89 da                	mov    edx,ebx
+ 4b6:	4c 89 e1             	mov    rcx,r12
+ 4b9:	e8 00 00 00 00       	call   4be <main+0x4be>
+ 4be:	41 b8 08 00 00 00    	mov    r8d,0x8
+ 4c4:	48 8d 15 4c 00 00 00 	lea    rdx,[rip+0x4c]        # 517 <main+0x517>
+ 4cb:	48 89 c1             	mov    rcx,rax
+ 4ce:	48 89 c3             	mov    rbx,rax
+ 4d1:	e8 00 00 00 00       	call   4d6 <main+0x4d6>
+ 4d6:	89 ea                	mov    edx,ebp
+ 4d8:	48 89 d9             	mov    rcx,rbx
+ 4db:	e8 00 00 00 00       	call   4e0 <main+0x4e0>
+ 4e0:	48 89 c1             	mov    rcx,rax
+ 4e3:	4c 89 ea             	mov    rdx,r13
+ 4e6:	e8 a0 04 00 00       	call   98b <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x3fb>
+ 4eb:	41 b8 10 00 00 00    	mov    r8d,0x10
+ 4f1:	48 8d 15 55 00 00 00 	lea    rdx,[rip+0x55]        # 54d <main+0x54d>
+ 4f8:	4c 89 e1             	mov    rcx,r12
+ 4fb:	e8 00 00 00 00       	call   500 <main+0x500>
+ 500:	c5 79 29 c1          	vmovapd xmm1,xmm8
+ 504:	4c 89 e1             	mov    rcx,r12
+ 507:	e8 00 00 00 00       	call   50c <main+0x50c>
+ 50c:	48 89 c1             	mov    rcx,rax
+ 50f:	4c 89 ea             	mov    rdx,r13
+ 512:	e8 a0 04 00 00       	call   9b7 <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x427>
+ 517:	41 b8 0b 00 00 00    	mov    r8d,0xb
+ 51d:	48 8d 15 66 00 00 00 	lea    rdx,[rip+0x66]        # 58a <main+0x58a>
+ 524:	4c 89 e1             	mov    rcx,r12
+ 527:	e8 00 00 00 00       	call   52c <main+0x52c>
+ 52c:	c5 f9 28 cf          	vmovapd xmm1,xmm7
+ 530:	4c 89 e1             	mov    rcx,r12
+ 533:	e8 00 00 00 00       	call   538 <main+0x538>
+ 538:	48 89 c1             	mov    rcx,rax
+ 53b:	4c 89 ea             	mov    rdx,r13
+ 53e:	e8 a0 04 00 00       	call   9e3 <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x453>
+ 543:	41 b8 0f 00 00 00    	mov    r8d,0xf
+ 549:	48 8d 15 72 00 00 00 	lea    rdx,[rip+0x72]        # 5c2 <main+0x5c2>
+ 550:	4c 89 e1             	mov    rcx,r12
+ 553:	e8 00 00 00 00       	call   558 <main+0x558>
+ 558:	c5 f9 28 ce          	vmovapd xmm1,xmm6
+ 55c:	4c 89 e1             	mov    rcx,r12
+ 55f:	e8 00 00 00 00       	call   564 <main+0x564>
+ 564:	48 89 c1             	mov    rcx,rax
+ 567:	4c 89 ea             	mov    rdx,r13
+ 56a:	e8 a0 04 00 00       	call   a0f <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x47f>
+ 56f:	41 b8 1a 00 00 00    	mov    r8d,0x1a
+ 575:	48 8d 15 82 00 00 00 	lea    rdx,[rip+0x82]        # 5fe <main+0x5fe>
+ 57c:	4c 89 e1             	mov    rcx,r12
+ 57f:	e8 00 00 00 00       	call   584 <main+0x584>
+ 584:	c5 bb 5e cf          	vdivsd xmm1,xmm8,xmm7
+ 588:	4c 89 e1             	mov    rcx,r12
+ 58b:	e8 00 00 00 00       	call   590 <main+0x590>
+ 590:	48 89 c1             	mov    rcx,rax
+ 593:	4c 89 ea             	mov    rdx,r13
+ 596:	e8 a0 04 00 00       	call   a3b <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x4ab>
+ 59b:	41 b8 19 00 00 00    	mov    r8d,0x19
+ 5a1:	48 8d 15 9d 00 00 00 	lea    rdx,[rip+0x9d]        # 645 <main+0x645>
+ 5a8:	4c 89 e1             	mov    rcx,r12
+ 5ab:	e8 00 00 00 00       	call   5b0 <main+0x5b0>
+ 5b0:	c5 bb 5e ce          	vdivsd xmm1,xmm8,xmm6
+ 5b4:	4c 89 e1             	mov    rcx,r12
+ 5b7:	e8 00 00 00 00       	call   5bc <main+0x5bc>
+ 5bc:	48 89 c1             	mov    rcx,rax
+ 5bf:	4c 89 ea             	mov    rdx,r13
+ 5c2:	e8 a0 04 00 00       	call   a67 <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x4d7>
+ 5c7:	41 b8 1a 00 00 00    	mov    r8d,0x1a
+ 5cd:	48 8d 15 b7 00 00 00 	lea    rdx,[rip+0xb7]        # 68b <main+0x68b>
+ 5d4:	4c 89 e1             	mov    rcx,r12
+ 5d7:	e8 00 00 00 00       	call   5dc <main+0x5dc>
+ 5dc:	c5 c3 5e ce          	vdivsd xmm1,xmm7,xmm6
+ 5e0:	4c 89 e1             	mov    rcx,r12
+ 5e3:	e8 00 00 00 00       	call   5e8 <main+0x5e8>
+ 5e8:	48 89 c1             	mov    rcx,rax
+ 5eb:	4c 89 ea             	mov    rdx,r13
+ 5ee:	e8 a0 04 00 00       	call   a93 <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x503>
+ 5f3:	48 85 ff             	test   rdi,rdi
+ 5f6:	74 0e                	je     606 <main+0x606>
+ 5f8:	4c 89 fa             	mov    rdx,r15
+ 5fb:	48 89 f9             	mov    rcx,rdi
+ 5fe:	48 29 fa             	sub    rdx,rdi
+ 601:	e8 00 00 00 00       	call   606 <main+0x606>
+ 606:	48 85 f6             	test   rsi,rsi
+ 609:	74 11                	je     61c <main+0x61c>
+ 60b:	48 8b 54 24 38       	mov    rdx,QWORD PTR [rsp+0x38]
+ 610:	48 89 f1             	mov    rcx,rsi
+ 613:	48 29 f2             	sub    rdx,rsi
+ 616:	e8 00 00 00 00       	call   61b <main+0x61b>
+ 61b:	90                   	nop
+ 61c:	c5 f8 10 b4 24 a0 00 	vmovups xmm6,XMMWORD PTR [rsp+0xa0]
+ 623:	00 00 
+ 625:	31 c0                	xor    eax,eax
+ 627:	c5 f8 10 bc 24 b0 00 	vmovups xmm7,XMMWORD PTR [rsp+0xb0]
+ 62e:	00 00 
+ 630:	c5 78 10 84 24 c0 00 	vmovups xmm8,XMMWORD PTR [rsp+0xc0]
+ 637:	00 00 
+ 639:	c5 78 10 8c 24 d0 00 	vmovups xmm9,XMMWORD PTR [rsp+0xd0]
+ 640:	00 00 
+ 642:	c5 78 10 94 24 e0 00 	vmovups xmm10,XMMWORD PTR [rsp+0xe0]
+ 649:	00 00 
+ 64b:	c5 78 10 9c 24 f0 00 	vmovups xmm11,XMMWORD PTR [rsp+0xf0]
+ 652:	00 00 
+ 654:	c5 78 10 a4 24 00 01 	vmovups xmm12,XMMWORD PTR [rsp+0x100]
+ 65b:	00 00 
+ 65d:	c5 78 10 ac 24 10 01 	vmovups xmm13,XMMWORD PTR [rsp+0x110]
+ 664:	00 00 
+ 666:	48 81 c4 28 01 00 00 	add    rsp,0x128
+ 66d:	5b                   	pop    rbx
+ 66e:	5e                   	pop    rsi
+ 66f:	5f                   	pop    rdi
+ 670:	5d                   	pop    rbp
+ 671:	41 5c                	pop    r12
+ 673:	41 5d                	pop    r13
+ 675:	41 5e                	pop    r14
+ 677:	41 5f                	pop    r15
+ 679:	c3                   	ret
+ 67a:	48 8b 4f 08          	mov    rcx,QWORD PTR [rdi+0x8]
+ 67e:	e8 00 00 00 00       	call   683 <main+0x683>
+ 683:	89 c3                	mov    ebx,eax
+ 685:	83 fe 02             	cmp    esi,0x2
+ 688:	0f 84 ea f9 ff ff    	je     78 <main+0x78>
+ 68e:	48 8b 4f 10          	mov    rcx,QWORD PTR [rdi+0x10]
+ 692:	e8 00 00 00 00       	call   697 <main+0x697>
+ 697:	89 c5                	mov    ebp,eax
+ 699:	e9 da f9 ff ff       	jmp    78 <main+0x78>
+ 69e:	c5 f8 77             	vzeroupper
+ 6a1:	e9 63 fc ff ff       	jmp    309 <main+0x309>
+ 6a6:	c5 fa 10 15 20 01 00 	vmovss xmm2,DWORD PTR [rip+0x120]        # 7ce <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x23e>
+ 6ad:	00 
+ 6ae:	c5 fa 10 0d 24 01 00 	vmovss xmm1,DWORD PTR [rip+0x124]        # 7da <flat_search(float*, float*, unsigned long long, unsigned long long, unsigned long long)+0x24a>
+ 6b5:	00 
+ 6b6:	31 c0                	xor    eax,eax
+ 6b8:	b9 e1 02 17 b8       	mov    ecx,0xb81702e1
+ 6bd:	0f 1f 00             	nop    DWORD PTR [rax]
+ 6c0:	48 63 d0             	movsxd rdx,eax
+ 6c3:	41 89 c0             	mov    r8d,eax
+ 6c6:	48 69 d2 eb 07 1d 15 	imul   rdx,rdx,0x151d07eb
+ 6cd:	41 c1 f8 1f          	sar    r8d,0x1f
+ 6d1:	48 c1 fa 23          	sar    rdx,0x23
+ 6d5:	44 29 c2             	sub    edx,r8d
+ 6d8:	41 89 c0             	mov    r8d,eax
+ 6db:	6b d2 61             	imul   edx,edx,0x61
+ 6de:	41 29 d0             	sub    r8d,edx
+ 6e1:	41 8d 50 01          	lea    edx,[r8+0x1]
+ 6e5:	41 89 c0             	mov    r8d,eax
+ 6e8:	c5 aa 2a c2          	vcvtsi2ss xmm0,xmm10,edx
+ 6ec:	89 c2                	mov    edx,eax
+ 6ee:	48 0f af d1          	imul   rdx,rcx
+ 6f2:	c5 fa 59 c2          	vmulss xmm0,xmm0,xmm2
+ 6f6:	48 c1 ea 26          	shr    rdx,0x26
+ 6fa:	6b d2 59             	imul   edx,edx,0x59
+ 6fd:	41 29 d0             	sub    r8d,edx
+ 700:	41 8d 50 03          	lea    edx,[r8+0x3]
+ 704:	c5 fa 11 04 86       	vmovss DWORD PTR [rsi+rax*4],xmm0
+ 709:	c5 aa 2a c2          	vcvtsi2ss xmm0,xmm10,edx
+ 70d:	c5 fa 59 c1          	vmulss xmm0,xmm0,xmm1
+ 711:	c5 fa 11 04 87       	vmovss DWORD PTR [rdi+rax*4],xmm0
+ 716:	48 83 c0 01          	add    rax,0x1
+ 71a:	49 39 c6             	cmp    r14,rax
+ 71d:	75 a1                	jne    6c0 <main+0x6c0>
+ 71f:	e9 ac fc ff ff       	jmp    3d0 <main+0x3d0>
+ 724:	c5 f8 77             	vzeroupper
+ 727:	e9 a4 fc ff ff       	jmp    3d0 <main+0x3d0>
+ 72c:	31 d2                	xor    edx,edx
+ 72e:	31 c9                	xor    ecx,ecx
+ 730:	e9 fb fa ff ff       	jmp    230 <main+0x230>
+ 735:	48 89 c3             	mov    rbx,rax
+ 738:	c5 f8 77             	vzeroupper
+ 73b:	48 8b 54 24 38       	mov    rdx,QWORD PTR [rsp+0x38]
+ 740:	48 29 f2             	sub    rdx,rsi
+ 743:	48 85 f6             	test   rsi,rsi
+ 746:	74 08                	je     750 <main+0x750>
+ 748:	48 89 f1             	mov    rcx,rsi
+ 74b:	e8 00 00 00 00       	call   750 <main+0x750>
+ 750:	48 89 d9             	mov    rcx,rbx
+ 753:	e8 00 00 00 00       	call   758 <main+0x758>
+ 758:	48 89 c3             	mov    rbx,rax
+ 75b:	c5 f8 77             	vzeroupper
+ 75e:	4c 89 fa             	mov    rdx,r15
+ 761:	48 29 fa             	sub    rdx,rdi
+ 764:	48 85 ff             	test   rdi,rdi
+ 767:	74 d2                	je     73b <main+0x73b>
+ 769:	48 89 f9             	mov    rcx,rdi
+ 76c:	e8 00 00 00 00       	call   771 <main+0x771>
+ 771:	eb c8                	jmp    73b <main+0x73b>
+ 773:	48 8d 8c 24 80 00 00 	lea    rcx,[rsp+0x80]
+ 77a:	00 
+ 77b:	48 89 c3             	mov    rbx,rax
+ 77e:	c5 f8 77             	vzeroupper
+ 781:	e8 00 00 00 00       	call   786 <main+0x786>
+ 786:	eb d6                	jmp    75e <main+0x75e>
+ 788:	90                   	nop
+ 789:	90                   	nop
+ 78a:	90                   	nop
+ 78b:	90                   	nop
+ 78c:	90                   	nop
+ 78d:	90                   	nop
+ 78e:	90                   	nop
+ 78f:	90                   	nop
+
+Disassembly of section .text$_ZNSt6vectorISt4pairIfjESaIS1_EE17_M_realloc_appendIJS1_EEEvDpOT_:
+
+0000000000000000 <void std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >::_M_realloc_append<std::pair<float, unsigned int> >(std::pair<float, unsigned int>&&)>:
+   0:	41 56                	push   r14
+   2:	41 55                	push   r13
+   4:	41 54                	push   r12
+   6:	55                   	push   rbp
+   7:	57                   	push   rdi
+   8:	56                   	push   rsi
+   9:	53                   	push   rbx
+   a:	48 83 ec 20          	sub    rsp,0x20
+   e:	48 b8 ff ff ff ff ff 	movabs rax,0xfffffffffffffff
+  15:	ff ff 0f 
+  18:	48 8b 59 08          	mov    rbx,QWORD PTR [rcx+0x8]
+  1c:	48 8b 29             	mov    rbp,QWORD PTR [rcx]
+  1f:	49 89 de             	mov    r14,rbx
+  22:	49 29 ee             	sub    r14,rbp
+  25:	4c 89 f6             	mov    rsi,r14
+  28:	48 89 cf             	mov    rdi,rcx
+  2b:	49 89 d5             	mov    r13,rdx
+  2e:	48 c1 fe 03          	sar    rsi,0x3
+  32:	48 39 c6             	cmp    rsi,rax
+  35:	0f 84 c9 00 00 00    	je     104 <void std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >::_M_realloc_append<std::pair<float, unsigned int> >(std::pair<float, unsigned int>&&)+0x104>
+  3b:	48 85 f6             	test   rsi,rsi
+  3e:	b8 01 00 00 00       	mov    eax,0x1
+  43:	48 0f 45 c6          	cmovne rax,rsi
+  47:	48 01 c6             	add    rsi,rax
+  4a:	0f 82 a5 00 00 00    	jb     f5 <void std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >::_M_realloc_append<std::pair<float, unsigned int> >(std::pair<float, unsigned int>&&)+0xf5>
+  50:	48 b8 ff ff ff ff ff 	movabs rax,0xfffffffffffffff
+  57:	ff ff 0f 
+  5a:	48 39 c6             	cmp    rsi,rax
+  5d:	48 0f 47 f0          	cmova  rsi,rax
+  61:	48 c1 e6 03          	shl    rsi,0x3
+  65:	48 89 f1             	mov    rcx,rsi
+  68:	e8 00 00 00 00       	call   6d <void std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >::_M_realloc_append<std::pair<float, unsigned int> >(std::pair<float, unsigned int>&&)+0x6d>
+  6d:	49 89 c4             	mov    r12,rax
+  70:	49 8b 45 00          	mov    rax,QWORD PTR [r13+0x0]
+  74:	4b 89 04 34          	mov    QWORD PTR [r12+r14*1],rax
+  78:	48 39 dd             	cmp    rbp,rbx
+  7b:	74 73                	je     f0 <void std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >::_M_realloc_append<std::pair<float, unsigned int> >(std::pair<float, unsigned int>&&)+0xf0>
+  7d:	48 29 eb             	sub    rbx,rbp
+  80:	4c 89 e0             	mov    rax,r12
+  83:	48 89 ea             	mov    rdx,rbp
+  86:	4d 8d 04 1c          	lea    r8,[r12+rbx*1]
+  8a:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+  91:	00 00 00 00 
+  95:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+  9c:	00 00 00 00 
+  a0:	48 8b 0a             	mov    rcx,QWORD PTR [rdx]
+  a3:	48 83 c0 08          	add    rax,0x8
+  a7:	48 83 c2 08          	add    rdx,0x8
+  ab:	48 89 48 f8          	mov    QWORD PTR [rax-0x8],rcx
+  af:	4c 39 c0             	cmp    rax,r8
+  b2:	75 ec                	jne    a0 <void std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >::_M_realloc_append<std::pair<float, unsigned int> >(std::pair<float, unsigned int>&&)+0xa0>
+  b4:	48 8d 58 08          	lea    rbx,[rax+0x8]
+  b8:	48 85 ed             	test   rbp,rbp
+  bb:	74 0f                	je     cc <void std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >::_M_realloc_append<std::pair<float, unsigned int> >(std::pair<float, unsigned int>&&)+0xcc>
+  bd:	48 8b 57 10          	mov    rdx,QWORD PTR [rdi+0x10]
+  c1:	48 89 e9             	mov    rcx,rbp
+  c4:	48 29 ea             	sub    rdx,rbp
+  c7:	e8 00 00 00 00       	call   cc <void std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >::_M_realloc_append<std::pair<float, unsigned int> >(std::pair<float, unsigned int>&&)+0xcc>
+  cc:	4c 89 27             	mov    QWORD PTR [rdi],r12
+  cf:	49 01 f4             	add    r12,rsi
+  d2:	48 89 5f 08          	mov    QWORD PTR [rdi+0x8],rbx
+  d6:	4c 89 67 10          	mov    QWORD PTR [rdi+0x10],r12
+  da:	48 83 c4 20          	add    rsp,0x20
+  de:	5b                   	pop    rbx
+  df:	5e                   	pop    rsi
+  e0:	5f                   	pop    rdi
+  e1:	5d                   	pop    rbp
+  e2:	41 5c                	pop    r12
+  e4:	41 5d                	pop    r13
+  e6:	41 5e                	pop    r14
+  e8:	c3                   	ret
+  e9:	0f 1f 80 00 00 00 00 	nop    DWORD PTR [rax+0x0]
+  f0:	4c 89 e0             	mov    rax,r12
+  f3:	eb bf                	jmp    b4 <void std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >::_M_realloc_append<std::pair<float, unsigned int> >(std::pair<float, unsigned int>&&)+0xb4>
+  f5:	48 be f8 ff ff ff ff 	movabs rsi,0x7ffffffffffffff8
+  fc:	ff ff 7f 
+  ff:	e9 61 ff ff ff       	jmp    65 <void std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >::_M_realloc_append<std::pair<float, unsigned int> >(std::pair<float, unsigned int>&&)+0x65>
+ 104:	48 8d 0d d2 00 00 00 	lea    rcx,[rip+0xd2]        # 1dd <(anonymous namespace)::ip_distance_manual(float const*, float const*, int)+0xd>
+ 10b:	e8 00 00 00 00       	call   110 <void std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >::_M_realloc_append<std::pair<float, unsigned int> >(std::pair<float, unsigned int>&&)+0x110>
+ 110:	90                   	nop
+ 111:	90                   	nop
+ 112:	90                   	nop
+ 113:	90                   	nop
+ 114:	90                   	nop
+ 115:	90                   	nop
+ 116:	90                   	nop
+ 117:	90                   	nop
+ 118:	90                   	nop
+ 119:	90                   	nop
+ 11a:	90                   	nop
+ 11b:	90                   	nop
+ 11c:	90                   	nop
+ 11d:	90                   	nop
+ 11e:	90                   	nop
+ 11f:	90                   	nop
