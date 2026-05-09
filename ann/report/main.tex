@@ -171,7 +171,7 @@ Windows 平台的主要 AVX2 实验均在单线程下运行；FastScan 结果额
     \node[opt] (fs) at (3.0,-1.6) {FastScan\\4-bit packed LUT};
     \node[box] (simd) at (6.2,1.3) {SIMD distance kernel\\AVX2 / NEON / AVX-512};
     \node[box] (coarse) at (6.2,-0.4) {coarse top-$p$\\compressed space};
-    \node[box] (rerank) at (9.2,0.45) {float32 rerank\\top-$k$};
+    \node[box] (rerank) at (9.2,0.45) {float32 exact\\top-$k$ / rerank};
     \node[data] (metric) at (9.2,-1.1) {latency\\Recall@10};
     \foreach \src in {flat,sq,pq,fs} {
       \draw[arr] (base.east) -- ++(0.45,0) |- (\src.west);
@@ -184,7 +184,7 @@ Windows 平台的主要 AVX2 实验均在单线程下运行；FastScan 结果额
     \draw[arr] (coarse.east) -- (rerank.west);
     \draw[arr] (rerank.south) -- (metric.north);
   \end{tikzpicture}
-  \caption{ANN-SIMD 实现架构：Flat 直接复用 float32 SIMD 距离内核；SQ、PQ 与 FastScan 先在压缩空间粗排，再对 top-$p$ 候选使用同一精确内核 rerank。}
+  \caption{ANN-SIMD 实现架构：Flat 直接复用 float32 SIMD 距离内核完成 exact top-$k$；SQ、PQ 与 FastScan 先在压缩空间粗排，再对 top-$p$ 候选使用同一精确内核 rerank。}
   \label{fig:overall_arch}
 \end{figure}
 
@@ -216,7 +216,7 @@ for (; i + 32 <= d; i += 32) {
       fma/.style={draw,rounded corners=1pt,minimum width=1.1cm,minimum height=0.42cm,align=center,inner sep=1pt,fill=orange!15},
       acc/.style={draw,circle,minimum size=0.5cm,inner sep=0pt,fill=green!10},
       arr/.style={-Latex,shorten >=1pt}]
-    \foreach \i/\lab in {0/lane0,1/lane1,2/lane2,3/lane3} {
+    \foreach \i/\lab in {0/0{:}7,1/8{:}15,2/16{:}23,3/24{:}31} {
       \node[lane] (x\i) at (\i*1.35, 2) {$x_{\lab}$};
       \node[lane] (y\i) at (\i*1.35, 1.3) {$y_{\lab}$};
       \node[fma]  (f\i) at (\i*1.35, 0.6) {FMA};
@@ -232,7 +232,7 @@ for (; i + 32 <= d; i += 32) {
     \draw[arr] (a3) to[out=-100,in=0] (sum.east);
     \node[below=2pt of sum,align=center,text width=12cm] {32 floats / iter, 4 independent FMAs feeding 4 independent accumulators --- reduction is deferred to the end of the loop so the two FMA ports stay saturated.};
   \end{tikzpicture}
-  \caption{Flat-AVX2 四累加器点积的数据流：每条 lane 的 FMA 与累加器彼此独立，循环内无跨通道依赖，归约推迟到循环结束后}
+  \caption{Flat-AVX2 四累加器点积的数据流：每组 8-float 向量块的 FMA 与累加器彼此独立，循环内无跨块依赖，归约推迟到循环结束后}
   \label{fig:flat_dataflow}
 \end{figure}
 
@@ -319,9 +319,9 @@ PQ 编码阶段在整体时延中占比不大，但从体系结构角度看仍�
 \]
 使得固定查询子向量 $u_m(q)$ 后，AVX2 一次 \texttt{\_mm256\_loadu\_ps} 即可取出 8 个 centroid 在同一维度上的值，NEON 则一次取 4 个。此时每个查询维度通过 broadcast 与 FMA 累加，就能把“单 centroid 向量化”进一步提升为“跨 centroid 并行”。本文最终代码中，这一路径已经以头文件辅助模块的方式落地在 PQ 与 FastScan 的编码 / 训练阶段：每一轮 centroid 分配都先把 AoS 码本重排为 SoA，再以 tile 方式扫描 centroid 块完成最近中心搜索。
 
-进一步地，可在子向量批次与 centroid 维度上做 blocking，例如以 $32\times 32$ 的 tile 组织 $(n_{\text{sub}}, K_s)$ 计算，使一个 centroid tile 尽量驻留在 L1 中，减少反复装载。LUT 构建本质上是编码阶段的 $n=1$ 特例：只需固定一个查询子向量，对全部 centroid 计算距离并写入 $M\times K_s$ 的查找表。因此，跨 centroid 并行、SoA 重排和 tile 化既适用于离线编码，也适用于在线 LUT 构建。考虑到最终查询热路径的常数项，本文在标准 PQ 与 FastScan 的在线 LUT 构建上仍保留了更轻量的单 centroid SIMD / 标量量化实现，而把 SoA + blocking 主要用于编码与训练阶段，从而兼顾结构化优化的覆盖面与端到端查询性能。
+进一步地，可在 centroid 维度上做 blocking，例如以 32 个 centroid 为一个 tile，使当前 centroid 块尽量驻留在 L1 中，减少反复装载；若进行批量离线编码，还可在子向量批次方向外层分块。LUT 构建本质上是编码阶段的 $n=1$ 特例：只需固定一个查询子向量，对全部 centroid 计算距离并写入 $M\times K_s$ 的查找表。因此，跨 centroid 并行、SoA 重排和 tile 化既适用于离线编码，也适用于在线 LUT 构建。考虑到最终查询热路径的常数项，本文在标准 PQ 与 FastScan 的在线 LUT 构建上仍保留了更轻量的单 centroid SIMD / 标量量化实现，而把 SoA + blocking 主要用于编码与训练阶段，从而兼顾结构化优化的覆盖面与端到端查询性能。
 
-上述三条优化可以对应三种不同层面的性能提升路径：AoS$\to$SoA 重排属于\emph{数据布局优化}，$32\times 32$ tile 化属于 \emph{block + cache 优化}，固定查询子向量、对 8 个 centroid 并行 FMA 属于 \emph{跨 centroid 并行}。三条并列路线在 \texttt{pq\_blocked\_avx2.h} 的 \texttt{argmin\_l2\_blocked} 中统一落地，其核心结构可概括为清单 \ref{lst:blocked_soa}。NEON 版本 \texttt{pq\_blocked\_neon.h} 以 \texttt{vdupq\_n\_f32} + \texttt{vmlaq\_f32} 重现相同拓扑，每轮处理 4 个 centroid。
+上述三条优化可以对应三种不同层面的性能提升路径：AoS$\to$SoA 重排属于\emph{数据布局优化}，以 32 个 centroid 为一组的 tile 属于 \emph{block + cache 优化}，固定查询子向量、对 8 个 centroid 并行 FMA 属于 \emph{跨 centroid 并行}。三条并列路线在 \texttt{pq\_blocked\_avx2.h} 的 \texttt{argmin\_l2\_blocked} 中统一落地，其核心结构可概括为清单 \ref{lst:blocked_soa}。NEON 版本 \texttt{pq\_blocked\_neon.h} 以 \texttt{vdupq\_n\_f32} + \texttt{vmlaq\_f32} 重现相同拓扑，每轮处理 4 个 centroid。
 \begin{lstlisting}[language=C++,caption=SoA + blocking 的跨 centroid AVX2 最近中心搜索（要点）,label={lst:blocked_soa}]
 for (int block = 0; block < ksub; block += tile) {        // block: cache tile
   for (int c = block; c < block_end; c += 8) {            // c: 8 centroids/lane
@@ -367,7 +367,7 @@ for (int block = 0; block < ksub; block += tile) {        // block: cache tile
     }
     % Annotation
     \node[align=left,text width=10cm] at (4.8, -0.2) {%
-      For a fixed query dim $j$, \texttt{loadu\_ps(soa[j])} pulls \textbf{8 centroids on the same axis} into one \texttt{ymm}; \texttt{broadcast\_ps(u[j])} spreads the query scalar; one \texttt{fmadd\_ps} updates all 8 lanes' accumulated squared-distance. Outer block tile keeps a $32\times 32$ centroid window in L1.};
+      For a fixed query dim $j$, \texttt{loadu\_ps(soa[j])} pulls \textbf{8 centroids on the same axis} into one \texttt{ymm}; \texttt{broadcast\_ps(u[j])} spreads the query scalar; one \texttt{fmadd\_ps} updates all 8 lanes' accumulated squared-distance. The outer tile scans 32 centroids at a time to keep the active block cache-resident.};
   \end{tikzpicture}
   \caption{AoS $\to$ SoA 数据重排示意：按维度索引后，每次 SIMD 加载取 8 个 centroid 在\emph{同一维度}的值，配合查询 broadcast 做跨 centroid 的并行 FMA}
   \label{fig:soa_layout}
@@ -375,7 +375,7 @@ for (int block = 0; block < ksub; block += tile) {        // block: cache tile
 
 \subsection{FastScan 扩展：4-bit PQ 与查表打包}
 
-为了进一步降低 PQ 的粗排常数项，本文在 Windows AVX2 上实现了 FastScan 扩展，并额外补写了可在 AArch64 NEON 上编译的版本。该方法直接对应 André 等人在 PQ Fast Scan 中提出的"寄存器内查表"路线 \cite{andre2015fastscan}，即 shuffle / fast scan 风格的查表累加。作为延伸阅读，ScaNN 的 AVQ 路线 \cite{guo2020avq} 与 RaBitQ \cite{gao2024rabitq} 也都表明，低比特量化、查表结构重排与 SIMD 友好的数据布局仍是高性能 ANN 的重要方向。本文实现采用 $M=16$、$K_s=16$ 的 4-bit PQ，将每两个子段的 code 打包进一个字节，并把 LUT 量化到 0--15 的小整数。需要注意，这并不是在标准 PQ 的 $M=8, K_s=256$ 码本上仅替换 ADC 内核，而是在相同 8 B/code 压缩预算下改用另一组 4-bit 码本配置；因此后文与标准 PQ 的比较应理解为两种端到端量化设计的 trade-off 对比，而不是固定码本下只更换查表方式。粗排阶段不再使用 float LUT，而是使用 4-bit 量化 LUT、nibble 拆分、寄存器内查表，并通过分组求和（\texttt{\_mm256\_sad\_epu8} 风格的无饱和 16-bit 内部累加）得到粗排分数：
+为了进一步降低 PQ 的粗排常数项，本文在 Windows AVX2 上实现了 FastScan 扩展，并额外补写了可在 AArch64 NEON 上编译的版本。该方法直接对应 André 等人在 PQ Fast Scan 中提出的"寄存器内查表"路线 \cite{andre2015fastscan}，即 shuffle / fast scan 风格的查表累加。作为延伸阅读，ScaNN 的 AVQ 路线 \cite{guo2020avq} 与 RaBitQ \cite{gao2024rabitq} 也都表明，低比特量化、查表结构重排与 SIMD 友好的数据布局仍是高性能 ANN 的重要方向。本文实现采用 $M=16$、$K_s=16$ 的 4-bit PQ，将每两个子段的 code 打包进一个字节，并把 LUT 量化到 0--15 的小整数。需要注意，这并不是在标准 PQ 的 $M=8, K_s=256$ 码本上仅替换 ADC 内核，而是在相同 8 B/code 压缩预算下改用另一组 4-bit 码本配置；因此后文与标准 PQ 的比较应理解为两种端到端量化设计的 trade-off 对比，而不是固定码本下只更换查表方式。粗排阶段不再使用 float LUT，而是使用 4-bit 量化 LUT、nibble 拆分、寄存器内查表，并通过 uint8 饱和加法累加；由于每段 LUT 值不超过 15、$M=16$ 时总和不超过 240，实际不会触发 8-bit 饱和：
 \begin{itemize}
   \item AVX2 路径使用 \texttt{\_mm256\_shuffle\_epi8}；
   \item NEON 路径使用 \texttt{vqtbl1q\_u8}。
@@ -411,11 +411,11 @@ T_{\mathrm{FS}} = O(NM) + O(pd),
     \draw[arr,red] (Cx) to[bend left=28] (L7);
     % register-internal shuffle annotation
     \node[draw,rounded corners=3pt,fill=blue!5,text width=12.2cm,align=center,font=\scriptsize] at (2.8, -1.4) {%
-      \texttt{\_mm256\_shuffle\_epi8(lut\_ymm, code\_ymm)} performs the lookup \emph{entirely inside the register file}: one instruction, 32 parallel 4-bit table lookups, no L1 miss. NEON mirrors it with \texttt{vqtbl1q\_u8}.};
+      AVX2 broadcasts each 16-entry LUT into both 128-bit halves, then \texttt{\_mm256\_shuffle\_epi8(lut\_ymm, code\_ymm)} performs a register lookup: one instruction returns 32 byte scores for one subsegment, with no data-dependent L1 lookup. NEON uses \texttt{vqtbl1q\_u8} for 16 lanes.};
     % FastScan saving annotation
     \node[font=\tiny,align=right,anchor=west] at (6.3, 1.25) {LUT size: $M\times 16$B\\[-1pt](std PQ: $M\times 1$KB)};
   \end{tikzpicture}
-  \caption{FastScan 的 4-bit 打包 code + 寄存器内 shuffle 查表示意：LUT 缩小到 16 项，码本每 2 段打包为 1 字节，\texttt{shuffle\_epi8} 在一条指令内完成 32 路 4-bit 查表，绕开了 gather 的随机访存代价}
+  \caption{FastScan 的 4-bit 打包 code + 寄存器内 shuffle 查表示意：LUT 缩小到 16 项，码本每 2 段打包为 1 字节；每条 AVX2 \texttt{shuffle\_epi8} 对一个子段完成 32 路 4-bit 查表，NEON 版本按 16 路表查同构实现，绕开了 gather 的随机访存代价}
   \label{fig:fastscan_shuffle}
 \end{figure}
 
@@ -439,13 +439,13 @@ T_{\mathrm{FS}} = O(NM) + O(pd),
 
 \subsection{核心方法对比：Windows AVX2 与鲲鹏 NEON}
 
-表 \ref{tab:core_compare} 汇总了当前最具有代表性的两组核心对比结果：Windows i9-13900H AVX2 与鲲鹏 920 NEON。为了保证 recall 与延迟的平衡，SQ 取 $p=100$，PQ 与 FastScan 均取 $p=1000$。
+表 \ref{tab:core_compare} 汇总了当前最具有代表性的两组核心对比结果：Windows i9-13900H AVX2 与鲲鹏 920 NEON。为了保证 recall 与延迟的平衡，SQ 取 $p=100$，PQ 与 FastScan 均取 $p=1000$。表中 Recall@10 列取 i9 对应配置；鲲鹏上的 PQ / FastScan recall 在后文平台表中单列给出，与 i9 仅有 $10^{-4}$ 量级差异。
 
 \begin{table}[H]
   \centering\small
   \begin{tabular}{lrrrrr}
     \toprule
-    方法 & Recall@10 & i9 AVX2 ($\mu$s) & 鲲鹏 NEON ($\mu$s) & i9 vs base & 鲲鹏 vs base \\
+    方法 & Recall@10 (i9) & i9 AVX2 ($\mu$s) & 鲲鹏 NEON ($\mu$s) & i9 vs base & 鲲鹏 vs base \\
     \midrule
     Baseline Flat & 0.99995 & 4571.62 & 16120.74 & 1.00$\times$ & 1.00$\times$ \\
     Flat-SIMD & 0.99995 & 1756.11 & 5821.16 & 2.60$\times$ & 2.77$\times$ \\
@@ -606,7 +606,7 @@ Windows i9-13900H 上的 VTune 结果进一步解释了三类方法的瓶颈差�
 \subsection{SoA + blocking 的编码阶段实测加速}
 \label{sec:soa_speedup}
 
-为量化 3.4 节 SoA + blocking 的收益，本文对 100\,000 条 12 维子向量、$K_s=256$ 的一次 k-means \texttt{argmin} 分配做微基准。结果如表 \ref{tab:soa_vs_aos}。
+为量化 3.5 节 SoA + blocking 的收益，本文对 100\,000 条 12 维子向量、$K_s=256$ 的一次 k-means \texttt{argmin} 分配做微基准。结果如表 \ref{tab:soa_vs_aos}。
 
 \begin{table}[H]
   \centering\small
@@ -646,7 +646,7 @@ SoA + blocking 加速 $3.51\times$。主要原因是同一维度的 8 个 centro
 
 结论：AVX2 gather 比标量查表慢 3.9$\times$，不适合这种随机索引 LUT；shuffle 与标量基本持平，但可配合 4-bit 小 LUT、编码打包和 batch 扫描降低端到端常数。因此本文选择 shuffle/table-lookup 路线。
 
-需要澄清的是，表 \ref{tab:gather_vs_shuffle} 是单条 ADC 查表的微基准（ns/row），shuffle 与标量持平不意味着对端到端无贡献。FastScan 的加速来自三项联合收益：(1) 4-bit LUT 从 $M\times 256\times 4$ B 缩至 $M\times 16$ B，批量扫描时 LUT 可驻留 L1；(2) double-nibble 打包使 $M=16$ 仍保持 8 B/code；(3) shuffle 将 32 次标量查表合并为单条寄存器内操作，消除标量循环的分支与地址计算开销。VTune 显示标准 PQ 的 Retiring 占比 68.5\% 而 Memory Bound 仅 0.6\%，印证瓶颈在控制开销而非带宽——shuffle 正好针对此瓶颈。
+需要澄清的是，表 \ref{tab:gather_vs_shuffle} 是单条 ADC 查表的微基准（ns/row），shuffle 与标量持平不意味着对端到端无贡献。FastScan 的加速来自三项联合收益：(1) 4-bit LUT 从 $M\times 256\times 4$ B 缩至 $M\times 16$ B，批量扫描时 LUT 可驻留 L1；(2) double-nibble 打包使 $M=16$ 仍保持 8 B/code；(3) shuffle 路线对每个子段批量处理 32 个 code，把多次标量索引替换为少量向量 shuffle 与向量加法，减少标量循环中的分支与地址计算开销。VTune 显示标准 PQ 的 Retiring 占比 68.5\% 而 Memory Bound 仅 0.6\%，印证瓶颈在控制开销而非带宽——shuffle 正好针对此瓶颈。
 
 \subsection{PQ-FastScan 查表累加优化的实测结果}
 \label{sec:fastscan_results}
@@ -727,7 +727,7 @@ SoA + blocking 加速 $3.51\times$。主要原因是同一维度的 8 个 centro
 
 跨平台差异主要来自三点。第一，SIMD 宽度不是线性收益：AVX2 为 256 bit，NEON 为 128 bit，AVX-512 为 512 bit，但 Flat-AVX2 已受 DRAM 带宽限制，继续加宽 SIMD 的边际收益下降。第二，单核频率影响很大：i9 P-core 绑核后可达 5.086 GHz，而鲲鹏 920 单核约 2.6 GHz。第三，i9 的 P/E-core 混合调度会引入测量噪声，因此 Windows 关键实验需要绑到 P-core。
 
-\noindent\textbf{关于鲲鹏相对加速比系统性地高于 i9 的讨论。} 表 \ref{tab:core_compare} 中鲲鹏 920（128-bit NEON）在所有方法上的相对基线加速比均高于 i9（256-bit AVX2）：Flat-SIMD $2.77\times$ vs $2.60\times$，FastScan $12.03\times$ vs $8.44\times$。原因在于鲲鹏串行基线（$16120.74\,\mu\text{s}$）是 i9 的 $3.53$ 倍，远超频率和 SIMD 宽度的硬件差距——GCC 10.3.1 对标量代码的优化可能弱于 GCC 14.2.0，微架构与 cache 子系统的差异也会共同影响。较慢的基线放大了相对加速比，这是该指标作为跨平台比较的内在局限，因此本文始终同时报告绝对时延。鲲鹏缺少 perf 数据（见 2.3 节），但汇编输出显示其标量内循环以 \texttt{fmla} 单发射为主，未做有效的循环展开或指令重排，为上述推断提供了定性支撑。
+\noindent\textbf{关于鲲鹏相对加速比常高于 i9 的讨论。} 表 \ref{tab:core_compare} 中鲲鹏 920（128-bit NEON）在 Flat、PQ 与 FastScan 上的相对基线加速比高于 i9（256-bit AVX2），例如 Flat-SIMD $2.77\times$ vs $2.60\times$，FastScan $12.03\times$ vs $8.44\times$；但 SQ 是例外，i9 上的 $10.71\times$ 高于鲲鹏的 $6.65\times$。这种相对加速比差异首先受各平台串行基线影响：鲲鹏串行基线（$16120.74\,\mu\text{s}$）是 i9 的 $3.53$ 倍，远超频率和 SIMD 宽度的硬件差距——GCC 10.3.1 对标量代码的优化可能弱于 GCC 14.2.0，微架构与 cache 子系统的差异也会共同影响。较慢的基线会放大相对加速比，这是该指标作为跨平台比较的内在局限，因此本文始终同时报告绝对时延。鲲鹏缺少 perf 数据（见 2.3 节），但汇编输出显示其标量内循环以 \texttt{fmla} 单发射为主，未做有效的循环展开或指令重排，为上述推断提供了定性支撑。
 
 FastScan 在 x86 与 ARM 上分别取得 $1.41\times$ / $1.48\times$ 的相对 PQ 增益，说明 4-bit LUT、寄存器内查表和打包布局的收益主要来自算法结构，而不是某个平台独有指令。表 \ref{tab:bottleneck} 总结了各方法的瓶颈与后续优化方向。
 
@@ -768,7 +768,7 @@ FastScan 在 x86 与 ARM 上分别取得 $1.41\times$ / $1.48\times$ 的相对 P
 \appendix
 \section{开发工具使用说明}
 
-本实验在代码调试、脚本拼接和 \LaTeX{} 排版过程中使用过在线大语言模型（豆包）做辅助查询，主要用于 AVX2/NEON intrinsic 参数校对、\LaTeX{} 格式修正及 PQ/FastScan 优化路线的技术验证。所有算法设计、参数选择、实验方案、数据采集、结果分析与报告组织均由本人独立完成。以下是两个代表性咨询片段。
+本实验在代码调试、脚本拼接、\LaTeX{} 排版和报告一致性复核过程中使用过在线大语言模型（豆包、OpenAI Codex）做辅助查询，主要用于 AVX2/NEON intrinsic 参数校对、\LaTeX{} 格式修正、PQ/FastScan 优化路线的技术验证，以及表述与实测记录的一致性检查。所有算法设计、参数选择、实验方案、数据采集、性能数据来源与主要结果分析均由本人完成；AI 辅助不用于生成性能数据。以下是两个代表性咨询片段。
 
 \subsection*{A.1 对话记录一：FastScan shuffle 的 nibble 拆分与累加精度}
 
@@ -787,7 +787,7 @@ FastScan 在 x86 与 ARM 上分别取得 $1.41\times$ / $1.48\times$ 的相对 P
 
 \paragraph{我的判断、修改与结果复核}
 
-豆包确认了 nibble 拆分流程和 AVX2/NEON 语义差异，最关键的是 16-bit 累加提醒——我最初忽略了 16 段可能溢出 255。我改用 \texttt{\_mm256\_sad\_epu8} 做无饱和水平求和，同时将 LUT 线性缩放到每段 $\le$ 15。表 \ref{tab:fastscan} 与表 \ref{tab:fastscan_kunpeng} 的端到端结果均为本人独立实测，nibble 拆分正确性通过对比 FastScan 粗排与标准 PQ ADC 粗排结果的一致性进行了验证。
+豆包确认了 nibble 拆分流程和 AVX2/NEON 语义差异，最关键的是累加上界提醒——我最初忽略了 16 段可能溢出 255。最终实现保留 uint8 饱和加法，但将 LUT 线性缩放到每段 $\le$ 15，使 $M=16$ 时总和上界为 240，从而不会实际触发饱和。表 \ref{tab:fastscan} 与表 \ref{tab:fastscan_kunpeng} 的端到端结果均为本人独立实测，nibble 拆分正确性通过与标量 FastScan 查表版本对照进行了验证。
 
 \subsection*{A.2 对话记录二：gather vs shuffle 路线选择}
 
@@ -809,7 +809,7 @@ FastScan 在 x86 与 ARM 上分别取得 $1.41\times$ / $1.48\times$ 的相对 P
 豆包关于 gather 吞吐的提醒与 Intel 手册一致，坚定了我放弃 gather 的路线。NEON 128-bit lane vs AVX2 256-bit lane 的差异是我在实现中需要注意的关键点。最终路线（$K_s=16$ + shuffle）由我独立决策并实现，表 \ref{tab:gather_vs_shuffle} 微基准（gather 慢标量 3.9$\times$）与表 \ref{tab:fastscan} 端到端结果均为本人独立采集复核。
 
 \medskip
-\noindent 综上，AI 辅助限于 intrinsic 语法核对、手册速查和跨平台差异提示；所有关键技术决策、代码实现、实验设计与数据分析均来源本人独立工作，未使用 AI 生成任何性能数据或图表。
+\noindent 综上，AI 辅助限于 intrinsic 语法核对、手册速查、跨平台差异提示和报告一致性复核；所有关键技术决策、实验设计、数据采集与主要数据分析均来源本人工作，未使用 AI 生成任何性能数据，图表也均由脚本根据实测数据绘制。
 
 \newpage
 \bibliographystyle{plain}

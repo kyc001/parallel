@@ -18,8 +18,8 @@ i9_fs = {
 # Kunpeng 920
 kp_pq = {
     'p':      [100,     200,     500,     1000,    2000,    5000],
-    'recall': [0.70940, 0.83845, 0.94755, 0.98370, 0.99550, 0.99980],
-    'lat':    [1225.50, 1314.01, 1592.37, 2032.72, 2875.91, 4892.23],
+    'recall': [0.70930, 0.83835, 0.94740, 0.98355, 0.99550, 0.99980],
+    'lat':    [1224.20, 1315.36, 1566.47, 1984.35, 2693.58, 4506.40],
 }
 kp_fs = {
     'p':      [500,      1000,     5000],
@@ -34,13 +34,23 @@ ax.plot(i9_pq['recall'], i9_pq['lat'], marker='o', color='#1f77b4',
         linewidth=1.8, markersize=7, label='PQ-AVX2 (standard)')
 ax.plot(i9_fs['recall'], i9_fs['lat'], marker='s', color='#d62728',
         linewidth=1.8, markersize=7, label='PQ-FastScan (4-bit)')
+i9_label_offsets = {
+    40: (5, 6),
+    100: (5, 6),
+    500: (5, -14),
+    1000: (5, 8),
+    5000: (5, 10),
+}
 for p, r, l in zip(i9_fs['p'], i9_fs['recall'], i9_fs['lat']):
+    if p not in i9_label_offsets:
+        continue
+    dx, dy = i9_label_offsets.get(p, (5, 5))
     ax.annotate(f'p={p}', (r, l), textcoords='offset points',
-                xytext=(5, 5), fontsize=7, color='#d62728')
+                xytext=(dx, dy), fontsize=7, color='#d62728')
 ax.set_xlabel('Recall@10')
 ax.set_ylabel('Latency (us)')
 ax.set_title('Windows i9-13900H AVX2 (P-core bound)')
-ax.set_xlim(0.5, 1.005)
+ax.set_xlim(0.5, 1.03)
 ax.grid(True, which='both', alpha=0.3)
 ax.legend(loc='upper left', fontsize=9)
 
@@ -49,13 +59,19 @@ ax.plot(kp_pq['recall'], kp_pq['lat'], marker='o', color='#1f77b4',
         linewidth=1.8, markersize=7, label='PQ-SIMD (standard)')
 ax.plot(kp_fs['recall'], kp_fs['lat'], marker='s', color='#d62728',
         linewidth=1.8, markersize=7, label='PQ-FastScan (4-bit)')
+kp_label_offsets = {
+    500: (5, -14),
+    1000: (5, 5),
+    5000: (5, 8),
+}
 for p, r, l in zip(kp_fs['p'], kp_fs['recall'], kp_fs['lat']):
+    dx, dy = kp_label_offsets.get(p, (5, 5))
     ax.annotate(f'p={p}', (r, l), textcoords='offset points',
-                xytext=(5, 5), fontsize=7, color='#d62728')
+                xytext=(dx, dy), fontsize=7, color='#d62728')
 ax.set_xlabel('Recall@10')
 ax.set_ylabel('Latency (us)')
 ax.set_title('Kunpeng 920 NEON (test.sh submit)')
-ax.set_xlim(0.6, 1.005)
+ax.set_xlim(0.6, 1.02)
 ax.grid(True, which='both', alpha=0.3)
 ax.legend(loc='upper left', fontsize=9)
 
