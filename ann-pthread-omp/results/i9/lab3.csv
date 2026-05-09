@@ -1,0 +1,6 @@
+timestamp,platform,method,par_model,par_scope,par_paradigm,threads,schedule,chunk_size,p,problem_n,avg_recall,avg_latency_us,total_wall_us,throughput_qps,speedup_vs_serial,run_id
+1778344903,i9_avx2,flat_baseline,serial,none,n/a,1,n/a,0,0,100000,0.99995,11548.8,23127108,86.4786,1,local
+1778344920,i9_avx2,flat_simd,serial,none,n/a,1,n/a,0,0,100000,0.99995,8168.96,16379272,122.106,1,local
+1778344923,i9_avx2,sq_simd,serial,none,n/a,1,n/a,0,100,100000,0.99995,922.971,1852146,1079.83,1,local
+1778344933,i9_avx2,pq_simd,serial,none,n/a,1,n/a,0,1000,100000,0.983152,1128.99,2263345,883.648,1,local
+1778344937,i9_avx2,fastscan,serial,none,n/a,1,n/a,0,1000,100000,0.975253,853.44,1711737,1168.4,1,local
