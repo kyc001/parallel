@@ -1,0 +1,3 @@
+mode,k,recall,latency_us
+baseline,10,0.99995,7208.06
+flat_avx512,10,0.99995,1865.11
