@@ -1,22 +1,12 @@
 #!/usr/bin/env bash
-# 鲲鹏服务器一键实验脚本
+# 鲲鹏服务器一键实验脚本 (ann-pthread-omp)
 # 用法: bash run_all_kunpeng.sh
-# 将 unified_bench.cc 作为 main.cc 编译，一次 qsub 跑完所有实验矩阵
 set -euo pipefail
 
 echo "==> 复制统一实验入口到 main.cc"
 cp mains/unified_bench.cc main.cc
 
-echo "==> 编译 (仅编译，不在登录节点运行)"
-if ! g++ main.cc -o main -O2 -fopenmp -lpthread -std=c++17 -I. ; then
-    echo "FATAL: 编译失败，不提交 qsub" >&2
-    exit 1
-fi
-echo "==> 编译成功"
-echo "==> 确认 simd/ 子目录: $(ls simd/*.h 2>&1 | wc -l) 个头文件"
+echo "==> 提交 qsub 作业 (bash test_pthread_omp.sh 2 1)"
+bash test_pthread_omp.sh 2 1
 
-echo "==> 提交 qsub 作业 (bash test.sh 2 1)"
-bash test.sh 2 1
-
-echo "==> 提交完成，等待作业结束后查看 test.o / test.e"
-echo "    结果格式: RESULT <algo> <strategy> t=<n> recall=<r> latency_us=<us> [params]"
+echo "==> 提交完成。用 qstat 查看状态，结束后 test.o 中为实验结果"
