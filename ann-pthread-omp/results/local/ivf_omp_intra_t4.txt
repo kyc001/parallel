@@ -1,0 +1,6 @@
+﻿ivf_omp_dynamic_intra, nthreads=4, nlist=16, nprobe=4
+average recall: 0.96225
+average latency (us): 977.27600
+[IVF] Building index: nlist=16, niter=8
+[IVF] Index built.
+

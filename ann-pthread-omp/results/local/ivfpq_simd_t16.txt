@@ -1,4 +1,8 @@
-[PQ] Building index: M=8, dsub=12, ksub=256, niter=20
+﻿ivfpq_simd_serial, nthreads=16, nlist=16, nprobe=4, p=100, mode=global
+average recall: 0.69180
+average latency (us): 659.05265
+[IVF-PQ] Building global PQ first.
+[PQ] Building index: M=8, dsub=12, ksub=256, niter=8
 [PQ] Training sub-segment 1/8...
 [PQ] Training sub-segment 2/8...
 [PQ] Training sub-segment 3/8...
@@ -8,3 +12,6 @@
 [PQ] Training sub-segment 7/8...
 [PQ] Training sub-segment 8/8...
 [PQ] Index built.
+[IVF] Building index: nlist=16, niter=8
+[IVF] Index built.
+
