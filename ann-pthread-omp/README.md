@@ -1,4 +1,4 @@
-# ANN-SIMD: Parallel Computing Lab 2
+# ANN-SIMD: Parallel Computing Lab 2（待更新至Lab 3）
 
 并行程序设计 Lab2 的 SIMD 选题（ANN 近似最近邻搜索）。在 ARM NEON 平台上实现并对比四种检索算法，使用 DEEP100K 数据集测试。
 
