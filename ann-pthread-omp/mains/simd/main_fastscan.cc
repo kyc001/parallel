@@ -6,8 +6,8 @@
 #include <string>
 #include <vector>
 
-#include "ann_bench_common.h"
-#include "pq_fastscan_simd.h"
+#include "simd/ann_bench_common.h"
+#include "simd/pq_fastscan_simd.h"
 
 namespace {
 

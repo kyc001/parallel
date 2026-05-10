@@ -17,9 +17,9 @@
 #include "flat_scan.h"
 #undef flat_search
 
-#include "flat_scan_avx2.h"
-#include "sq_scan_avx2.h"
-#include "pq_scan_avx2.h"
+#include "simd/flat_scan_avx2.h"
+#include "simd/sq_scan_avx2.h"
+#include "simd/pq_scan_avx2.h"
 
 template <typename T>
 std::unique_ptr<T[]> LoadData(const std::string& data_path, size_t& n, size_t& d) {

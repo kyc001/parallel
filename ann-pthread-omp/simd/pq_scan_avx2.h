@@ -12,7 +12,7 @@
 #include <queue>
 #include <vector>
 
-#include "pq_blocked_avx2.h"
+#include "simd/pq_blocked_avx2.h"
 
 #ifndef ANN_AVX2_COMMON_HELPERS
 #define ANN_AVX2_COMMON_HELPERS

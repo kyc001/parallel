@@ -11,7 +11,7 @@
 #include <queue>
 #include <vector>
 
-#include "pq_blocked_neon.h"
+#include "simd/pq_blocked_neon.h"
 
 inline float horizontal_sum_f32(float32x4_t v) {
     const float32x2_t sum2 = vadd_f32(vget_low_f32(v), vget_high_f32(v));

@@ -1,4 +1,4 @@
-// 独立 main, 不 include main_win_avx2.cc, 不改变任何已有文件
+// 独立 main, �?include main_win_avx2.cc, 不改变任何已有文�?
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -6,12 +6,12 @@
 #include <string>
 #include <set>
 #include <cstdint>
-#include "pq_fastscan_avx2.h"
+#include "simd/pq_fastscan_avx2.h"
 
-// —— 从你现有 main_win_avx2.cc 里复制 LoadData / gt 读取的函数到这里 ——
-// 或直接 #include 一个抽出来的 data_loader.h (如果你之前已抽过)
-// 这里给出最小接口假设:
-// 标准 fbin/ibin loader: 头 8 字节 uint32 (n, d), 后接 n*d 个 T
+// —�?从你现有 main_win_avx2.cc 里复�?LoadData / gt 读取的函数到这里 —�?
+// 或直�?#include 一个抽出来�?data_loader.h (如果你之前已抽过)
+// 这里给出最小接口假�?
+// 标准 fbin/ibin loader: �?8 字节 uint32 (n, d), 后接 n*d �?T
 template<typename T>
 T* LoadData(const std::string& path, size_t& n, size_t& d) {
     std::ifstream fin(path, std::ios::binary);

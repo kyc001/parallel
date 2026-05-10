@@ -16,7 +16,7 @@
 #include <string>
 #include <vector>
 
-#include "pq_fastscan_avx2.h"
+#include "simd/pq_fastscan_avx2.h"
 
 template <typename T>
 static std::unique_ptr<T[]> LoadData(const std::string& path, size_t& n, size_t& d) {
