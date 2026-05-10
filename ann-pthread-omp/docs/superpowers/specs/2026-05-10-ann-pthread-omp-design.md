@@ -75,9 +75,13 @@ ann-pthread-omp/
 │   ├── ivf_pq_pthread.h          # IVF-PQ Pthread
 │   └── ivf_pq_omp.h              # IVF-PQ OMP
 │
-├── hnsw/                     # HNSW 并行搜索
-│   ├── hnsw_search_pthread.h     # query 级并行（public API）
-│   └── hnsw_search_omp.h         # query 级并行（public API）
+├── hnsw/                     # HNSW 图搜索并行
+│   ├── hnsw_graph_utils.h         # hnswlib 内部 API 封装（入口点/图层/边访问）
+│   ├── hnsw_search_pthread.h      # 多入口点并行 (static/dynamic/pool)
+│   ├── hnsw_search_omp.h          # 多入口点并行 OMP
+│   ├── hnsw_edge_parallel.h       # 边划分并行
+│   ├── hnsw_layer0_parallel.h     # Layer 0 点划分并行
+│   └── hnsw_ivf_nested.h          # IVF+HNSW 嵌套结构
 │
 ├── mains/                    # 所有 main_*.cc 变体（脚本 cp 到 main.cc）
 │   ├── main_baseline.cc
@@ -137,18 +141,30 @@ ann-pthread-omp/
 
 ### 主线（满分核心，全量实验矩阵）
 1. **Flat-SIMD + 多线程** (2分): inter + intra, static/dynamic/pool + OMP, 线程数 1/2/4/8/16
-2. **PQ-SIMD + 多线程** (2分): LUT 构建并行 + ADC 查表并行, 线程数不宜过多（memory-bound）
+2. **PQ-SIMD + 多线程** (2分):
+   - LUT 构建阶段（dense compute）：子空间并行（M 段分别计算）、跨 centroid 并行（SIMD blocked）、子查询向量并行
+   - ADC 查表累加阶段（memory-bound）：batch query 并行、base 划分并行、每线程局部 top-p merge
+   - 线程数不宜过多，分析 memory-bound 导致的负优化, 线程数不宜过多（memory-bound）
 3. **IVF-SIMD baseline + 多线程** (2+4=6分): 粗排+精排并行, nprobe 调参, dynamic 调度重点分析
 4. **IVF-PQ-SIMD baseline + 多线程** (3+5=8分): 两种构建方式对比, memory-bound 分析, 负优化诊断
 
 ### 扩展加分（采样实验矩阵，线程数 1/4/8/16）
 5. **SQ-SIMD + 多线程**: 作为补充量化方法，与 PQ 对比 compute-bound vs memory-bound
 6. **FastScan + 多线程**: shuffle-LUT 查表累加的并行化，重点分析 memory-bound 瓶颈
-7. **HNSW 并行** (2分): 第一档基于 hnswlib public API 做 query 级并行；多入口点作为可选探索，通过封装而非修改 hnswlib 内部实现
+7. **HNSW 图搜索并行化** (2分):
+   - 基于 hnswlib 开发，利用其公开内部 API（`get_linklist_at_level()`, `getDataByInternalId()`, `enterpoint_node_`, `element_levels_`）访问底层图结构，不修改 hnswlib 源码
+   - 实现四种并行策略：
+     a) **多入口点并行**: 从 Layer 0 随机选多个入口点，各线程从不同入口点独立搜索，最后 merge
+     b) **边划分并行**: 对单节点的出边集合，多线程并行计算距离，加速邻域探索
+     c) **Layer 0 点划分并行**: 将 Layer 0（最密层）的节点集划分给多线程，各线程搜索自己分区的节点
+     d) **IVF + HNSW 嵌套**: 用 IVF 粗分数据，每个簇构建独立的小 HNSW，查询时先粗排定位簇再搜索对应 HNSW
+   - 这些优化可能导致负优化，如实汇报实验结果并给出分析
 
 ### 进阶要求
 8. 跨平台 x86 (AVX2) vs ARM (NEON) 对比实验与分析
-9. LLM 辅助编程记录作为报告附录
+9. OpenMP 卸载到加速器设备（可选探索，如平台支持）
+10. oneAPI/SYCL 或 C++ 标准多线程对比（可选探索）
+11. 使用生成式 AI/大语言模型辅助多线程 + SIMD 编程，对话记录作为报告附录
 
 ## 7. 实验矩阵（分层）
 
