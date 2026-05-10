@@ -14,9 +14,8 @@ flat_search_omp_intra(float* base, float* query,
     const int nthreads = omp_get_max_threads();
     std::vector<std::priority_queue<std::pair<float, uint32_t>>> local_qs(nthreads);
 
-#pragma omp parallel num_threads(nthreads)
-    {
-        const int tid = omp_get_thread_num();
+#pragma omp parallel for schedule(runtime) num_threads(nthreads)
+    for (int tid = 0; tid < nthreads; ++tid) {
         const size_t chunk = (base_number + nthreads - 1) / nthreads;
         const size_t lo = static_cast<size_t>(tid) * chunk;
         const size_t hi = std::min(lo + chunk, base_number);

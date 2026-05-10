@@ -1,11 +1,23 @@
 #include "ann_bench_common.h"
 #include "flat_scan_dispatch.h"
 
+#include <cstdlib>
 #include <iostream>
 #include <omp.h>
 #include <set>
+#include <string>
 #include <sys/time.h>
 #include <vector>
+
+static std::string OmpScheduleName() {
+    const char* env = std::getenv("OMP_SCHEDULE");
+    return (env && env[0]) ? std::string(env) : std::string("static");
+}
+
+static int ScheduleChunkSize(const std::string& schedule) {
+    const auto comma = schedule.find(',');
+    return comma == std::string::npos ? 0 : std::atoi(schedule.c_str() + comma + 1);
+}
 
 int main(int argc, char* argv[]) {
     (void)argc;
@@ -32,7 +44,7 @@ int main(int argc, char* argv[]) {
     }
 
     AnnTimer wall;
-#pragma omp parallel for schedule(static)
+#pragma omp parallel for schedule(runtime)
     for (int i = 0; i < static_cast<int>(test_number); ++i) {
         const unsigned long Converter = 1000 * 1000;
         struct timeval val, newVal;
@@ -73,9 +85,10 @@ int main(int argc, char* argv[]) {
     std::cout << "threads: " << threads << "\n";
 
     CsvWriter csv;
+    const std::string schedule = OmpScheduleName();
     csv.append({"flat_simd",
                 "omp", "inter", "n/a",
-                threads, "static", 0,
+                threads, schedule, ScheduleChunkSize(schedule),
                 0, static_cast<int>(base_number),
                 avg_recall, avg_latency, total_wall});
 

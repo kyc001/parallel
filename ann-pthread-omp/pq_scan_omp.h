@@ -33,7 +33,7 @@ pq_search_omp_intra(float* base, float* query, size_t base_number, size_t vecdim
 #pragma omp parallel num_threads(nthreads)
     {
         CoarseHeap& coarse_q = local_heaps[omp_get_thread_num()];
-#pragma omp for schedule(static)
+#pragma omp for schedule(runtime)
         for (long long i = 0; i < static_cast<long long>(base_number); ++i) {
             const float dis = adc_distance(
                 lut.data(),

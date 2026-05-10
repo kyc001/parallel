@@ -12,7 +12,7 @@ CXXFLAGS = -O3 -std=c++17 -Wall $(ARCHFLAGS)
 OMPFLAGS = -fopenmp
 PTFLAGS = -pthread
 
-.PHONY: all clean run run_omp_inter run_omp_intra run_pthread_inter run_pthread_intra
+.PHONY: all clean run run_omp_inter run_omp_intra run_pthread_inter run_pthread_intra run_local_sweep
 
 all: baseline flatsimd sqsimd pqsimd fastscan \
      omp_inter_flat omp_inter_sq omp_inter_pq omp_inter_fastscan \
@@ -212,6 +212,9 @@ run_pthread_intra: pthread_dynamic_intra_flat pthread_dynamic_intra_sq pthread_d
 	    done; \
 	  done; \
 	done
+
+run_local_sweep:
+	powershell -ExecutionPolicy Bypass -File run_local_sweep.ps1
 
 clean:
 	rm -f baseline baseline.exe flatsimd flatsimd.exe sqsimd sqsimd.exe

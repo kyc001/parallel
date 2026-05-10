@@ -8,6 +8,14 @@
 #include <sys/time.h>
 #include <vector>
 
+static size_t PoolChunkSize(const char* name, size_t fallback) {
+    const char* env = std::getenv(name);
+    if (!env || !env[0]) return fallback;
+    char* end = nullptr;
+    const unsigned long value = std::strtoul(env, &end, 10);
+    return (end == env || value == 0) ? fallback : static_cast<size_t>(value);
+}
+
 int main(int argc, char* argv[]) {
     (void)argc; (void)argv;
     size_t test_number = 0, base_number = 0, test_gt_d = 0, vecdim = 0;
@@ -16,7 +24,8 @@ int main(int argc, char* argv[]) {
     auto test_gt = LoadDataRaw<int>(data_path + ANN_FILE_GT, test_number, test_gt_d);
     auto base = LoadDataRaw<float>(data_path + ANN_FILE_BASE, base_number, vecdim);
     test_number = 2000;
-    const size_t k = 10, chunk_size = 64;
+    const size_t k = 10;
+    const size_t chunk_size = PoolChunkSize("PTHREAD_POOL_CHUNK_INTER", 64);
     std::vector<SearchResult> results(test_number);
     int threads = 1;
     if (const char* env = std::getenv("PTHREAD_NUM_THREADS")) threads = std::atoi(env);

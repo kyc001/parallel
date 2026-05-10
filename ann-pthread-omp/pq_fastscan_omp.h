@@ -48,7 +48,7 @@ fastscan_search_omp_intra(const FastScanIndex& idx, const float* base,
     {
         std::vector<uint8_t> block_dis(static_cast<size_t>(block_size), 0);
         CoarseHeap& coarse_q = local_heaps[omp_get_thread_num()];
-#pragma omp for schedule(static)
+#pragma omp for schedule(runtime)
         for (int blk = 0; blk < idx.nblk; ++blk) {
             fastscan_omp_batch(idx, lut_u8.data(), blk, block_dis.data());
             const int base_i = blk * block_size;
