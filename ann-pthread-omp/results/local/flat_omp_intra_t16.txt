@@ -1,0 +1,3 @@
+flat_omp_static_intra, nthreads=16
+average recall: 0.99995
+average latency (us): 1726.08815

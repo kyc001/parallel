@@ -1,0 +1,3 @@
+flat_pthread_dynamic_intra, nthreads=16
+average recall: 0.99995
+average latency (us): 4582.82680

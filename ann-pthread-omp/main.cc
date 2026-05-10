@@ -1,7 +1,7 @@
-#include "ivf/ivf_pq_pthread.h"
-#include "mains/ivfpq_bench_common.h"
+#include "ivf/ivf_scan_pthread.h"
+#include "mains/ivf_bench_common.h"
 
 int main(int argc, char** argv) {
-    return ann_ivfpq_main::RunIntra(argc, argv, "ivfpq_pthread_dynamic_intra",
-                                    ivf_pq_search_intra_dynamic);
+    return ann_ivf_main::RunInter(argc, argv, "ivf_pthread_static_inter",
+                                  ivf_search_inter_static);
 }
