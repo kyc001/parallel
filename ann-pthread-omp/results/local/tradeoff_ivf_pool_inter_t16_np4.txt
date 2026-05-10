@@ -1,0 +1,6 @@
+﻿ivf_pthread_pool_inter, nthreads=16, nlist=16, nprobe=4
+average recall: 0.96225
+average latency (us): 131.53560
+[IVF] Building index: nlist=16, niter=8
+[IVF] Index built.
+

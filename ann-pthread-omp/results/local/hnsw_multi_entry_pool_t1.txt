@@ -1,0 +1,4 @@
+﻿hnsw_multi_entry_pool, nthreads=1, ef=50, nlist=0, nprobe=0
+average recall: 0.96825
+average latency (us): 1221.50035
+

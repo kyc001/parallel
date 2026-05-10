@@ -1,7 +1,7 @@
 \documentclass[a4paper,11pt,UTF8]{ctexart}
 
 \usepackage{fontspec}
-\usepackage[a4paper,left=2.4cm,right=2.4cm,top=2.55cm,bottom=2.55cm]{geometry}
+\usepackage[a4paper,left=2.35cm,right=2.35cm,top=2.45cm,bottom=2.45cm]{geometry}
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{booktabs}
@@ -13,31 +13,24 @@
 \usepackage{listings}
 \usepackage{fancyhdr}
 \usepackage{xcolor}
-\usepackage{multirow}
-\usepackage{longtable}
 \usepackage{array}
+\usepackage{longtable}
 \usepackage{tikz}
-\usetikzlibrary{positioning,arrows.meta,patterns,shapes.geometric,fit,matrix}
+\usetikzlibrary{positioning,arrows.meta,fit}
 
-\graphicspath{{./}{fig/}{../bench_results/windows_i9_13900h/plots/}{../bench_results/android_termux_proot_ubuntu/}}
+\graphicspath{{./}{fig/}}
 \hypersetup{colorlinks=true,linkcolor=black,urlcolor=black}
-\linespread{1.12}
+\linespread{1.10}
 \renewcommand{\today}{\number\year 年 \number\month 月 \number\day 日}
 \renewcommand{\contentsname}{目录}
 \renewcommand{\figurename}{图}
 \renewcommand{\tablename}{表}
 \captionsetup{font=small,labelsep=quad}
 \setlist{leftmargin=1.8em,itemsep=2pt,topsep=3pt}
-\setlength{\textfloatsep}{11pt plus 2pt minus 2pt}
-\setlength{\intextsep}{9pt plus 2pt minus 2pt}
-\setlength{\abovecaptionskip}{5pt}
-\setlength{\belowcaptionskip}{3pt}
 \setlength{\parindent}{2em}
 \setlength{\parskip}{2pt}
-\setlength{\abovedisplayskip}{7pt}
-\setlength{\belowdisplayskip}{7pt}
-\setcounter{tocdepth}{1}
-\newcommand{\HRule}{\rule{\linewidth}{0.45mm}}
+\setlength{\textfloatsep}{10pt plus 2pt minus 2pt}
+\setcounter{tocdepth}{2}
 
 \lstset{
   basicstyle=\ttfamily\footnotesize,
@@ -47,29 +40,19 @@
   numberstyle=\tiny,
   frame=single,
   breaklines=true,
-  aboveskip=7pt,
-  belowskip=7pt
+  aboveskip=6pt,
+  belowskip=6pt
 }
 
 \pagestyle{fancy}
 \fancyhf{}
 \lhead{\kaishu ANN 近似最近邻搜索}
-\rhead{\kaishu 并行程序设计实验报告}
-\cfoot{}
+\rhead{\kaishu Pthread / OpenMP 并行优化实验报告}
+\cfoot{\thepage}
 \setlength{\headheight}{14pt}
 \renewcommand{\headrulewidth}{0.1pt}
-\fancypagestyle{tocstyle}{
-  \fancyhf{}
-  \lhead{\kaishu 目录}
-  \rhead{\kaishu 并行程序设计实验报告}
-  \cfoot{\thepage}
-  \renewcommand{\headrulewidth}{0.1pt}
-  \renewcommand{\footrulewidth}{0pt}
-}
 
 \begin{document}
-
-\pagestyle{empty}
 
 \begin{titlepage}
   \begin{center}
@@ -77,13 +60,15 @@
     \vspace{18mm}
     {\huge\kaishu 计算机学院\par}
     \vspace{0.5cm}
-    {\huge\kaishu 并行程序设计实验报告\par}
+    {\huge\kaishu 并行程序设计期末报告\par}
     \vspace{2.0cm}
-    {\Huge\kaishu Lab2 SIMD 编程\par}
+    {\Huge\kaishu Lab3 Pthread + OpenMP 编程\par}
     \vspace{0.35cm}
     {\Huge\kaishu ANN 近似最近邻搜索\par}
     \vspace{0.55cm}
-    {\Large\kaishu AVX2 / NEON 向量化、量化检索与 FastScan 扩展\par}
+    {\Large\kaishu Flat / SQ / PQ / FastScan / IVF / IVF-PQ / HNSW\par}
+    \vspace{0.3cm}
+    {\Large\kaishu 多线程并行化与调度策略对比\par}
 
     \vspace{\fill}
     {\LARGE\kaishu 姓名：柯云超\par}
@@ -97,810 +82,546 @@
   \end{center}
 \end{titlepage}
 
-\clearpage
-
-\begingroup
-\pagestyle{tocstyle}
-\thispagestyle{tocstyle}
-\setlength{\parskip}{2pt}
 \tableofcontents
-\endgroup
-
 \clearpage
-\pagenumbering{arabic}
-
-\renewcommand{\thefigure}{\thesection{}.\arabic{figure}}
-\renewcommand{\thetable}{\thesection{}.\arabic{table}}
-\pagestyle{fancy}
-\cfoot{正文 \thepage\ /\ \pageref{LastBodyPage}}
 
 \section*{摘要}
 \addcontentsline{toc}{section}{摘要}
-\markboth{摘要}{}
 
-本文围绕 ANN（Approximate Nearest Neighbor）选题完成 SIMD 编程实验，在 ARM NEON 与 x86 AVX2 平台上实现并比较串行 Flat、Flat-SIMD、SQ-SIMD、PQ-SIMD 与 4-bit PQ-FastScan，并以 Xeon AVX-512 Flat-SIMD 作为 512-bit SIMD 对照。报告重点说明距离计算向量化、两阶段量化检索、PQ 查表累加、SoA/blocking 数据布局、手写 SIMD 与自动向量化差异，并结合 VTune、汇编输出和微基准解释性能瓶颈。实验使用 DEEP100K 数据集 \cite{babenko2016efficient}（$N=100000$，$d=96$，IP 距离），统一以前 2000 个查询、$k=10$ 进行评测。
+本实验围绕 DEEP100K 上的近似最近邻搜索（ANNS）实现了一个 header-only 的多算法并行框架。系统以 SIMD 距离计算为底层公共内核，在此基础上实现 Flat-SIMD、SQ-SIMD、PQ-SIMD、PQ-FastScan、IVF-SIMD、IVF-PQ-SIMD 与 HNSW 图索引，并分别给出 Pthread 与 OpenMP 版本。Pthread 侧实现了 static、dynamic 与 pool 三类调度；并行粒度覆盖 query 级并行（inter-query）与单 query 内部的 base/list 划分（intra-query）。实验在本机 i9-13900H 平台完成 278 组核心矩阵结果，并补充 15 组 IVF / IVF-PQ 的 \texttt{nprobe} 与构建模式 trade-off 结果。
 
-\noindent\textbf{主要结论。} Flat-AVX2 相对串行基线取得 $2.60\times$ 加速，但很快受内存带宽限制；SQ-AVX2 在 $p=100$ 时以近乎无损召回达到 427.01 $\mu$s，是低延迟配置中最稳定的一组；PQ-AVX2 与 PQ-FastScan 进一步体现 latency / recall trade-off，其中 FastScan 通过 4-bit LUT 与寄存器内查表显著降低 ADC 粗排开销；在代表性配置 $p=1000$ 下相对标准 PQ 于 i9 / 鲲鹏分别提升 $1.41\times$ / $1.48\times$，更大 $p$ 的 sweep 中最高分别达到 $4.51\times$ / $2.34\times$。整体结果说明，ANN 场景中的 SIMD 优化必须与量化压缩、数据布局和微体系结构特性联合设计。
+实验结果显示，query 级并行是本数据集和批量查询场景下最稳健的并行粒度。Flat、SQ、PQ、FastScan、IVF 与 IVF-PQ 的最优点均来自 inter-query；其中 Flat、SQ、PQ、FastScan、IVF 与 IVF-PQ 的本地最优延迟分别为 298.95、86.53、73.06、125.81、104.67 与 27.44 $\mu$s。Pthread dynamic 在多数规则扫描类算法上表现最好，Pthread pool 在 IVF inter-query 上略优，说明线程创建开销、尾部不均衡与 inverted list 不均匀性都会影响最终表现。HNSW 的内部并行更复杂：原始 baseline 延迟最低但召回较低，多入口点和边划分能提升召回，但同步和路径依赖使其不适合作为默认最快路径。
 
-\noindent\textbf{关键词：} ANN，SIMD，AVX2，NEON，标量量化，乘积量化，FastScan，自动向量化
+\noindent\textbf{关键词：} ANN，Pthread，OpenMP，SIMD，IVF，IVF-PQ，HNSW，FastScan，负载均衡
 
-\section{问题描述与实验目标}
+\section{问题定义与目标}
 
-本次 SIMD 编程实验选择 ANN 近似最近邻搜索任务。给定基向量集合
+给定基向量集合
 \[
-\mathcal{B}=\{x_0,x_1,\dots,x_{N-1}\},\quad x_i\in \mathbb{R}^{96},
+X=\{x_1,x_2,\ldots,x_N\}\subset\mathbb{R}^d
 \]
-以及查询向量 $q$，实验目标是在 IP（Inner Product）度量下寻找 top-$k$ 最相近的基向量。串行 Flat 的距离定义为
+以及查询向量 $q\in\mathbb{R}^d$，$k$ 近邻搜索希望找到 $X$ 中与 $q$ 距离最近的 $k$ 个向量。本文使用的距离形式沿用课程框架中的内积距离：
 \[
-d_{\mathrm{IP}}(x,q)=1-\sum_{j=0}^{d-1}x_jq_j.
+\delta(x,q)=1-\sum_{i=1}^{d}x_iq_i .
+\]
+近似最近邻搜索不要求每次完全返回真实 top-$k$，因此用 Recall@$k$ 衡量准确率：
+\[
+\mathrm{Recall@}k = \frac{|KNN(q)\cap KANN(q)|}{k}.
 \]
 
-直接全扫描的理论复杂度为 $O(Nd)$。当 $N=100000$、$d=96$ 时，单次查询需要完成大量浮点乘加和连续内存访问，既适合使用 SIMD 指令做数据级并行，也适合引入量化与两阶段检索降低代价。因此，本文将大问题拆成以下子问题：
+本次作业的核心目标不是单独做 SIMD，而是在已经具备 SIMD 距离内核的基础上，系统实现 Pthread / OpenMP 多线程并行，并从以下方面进行评估：
 \begin{enumerate}
-  \item 对最基础的 Flat 全扫描进行手写 SIMD 并行化；
-  \item 基于标量量化（SQ）和乘积量化（PQ）构造``粗排 + 精排''两阶段检索；
-  \item 对比不同编程策略，包括内存对齐、软件预取和自动向量化；
-  \item 在 x86 与 ARM 平台上比较 SIMD 并行化效果；
-  \item 使用 VTune、编译器向量化报告和汇编输出来分析性能差异的根本原因；
-  \item 在基础方法之外，引入 4-bit PQ FastScan 作为进一步的结构化优化。
+  \item 对 Flat、SQ、PQ、FastScan、IVF、IVF-PQ 与 HNSW 进行统一实现和测试；
+  \item 比较 Pthread static、dynamic、pool 与 OpenMP 的任务划分和调度开销；
+  \item 比较 inter-query 与 intra-query 两种并行粒度；
+  \item 分析线程数、负载均衡、top-$k$ reduce、cache / 内存访问和负优化现象；
+  \item 对 IVF / IVF-PQ 给出 \texttt{nprobe} 与构建模式对 latency-recall 的影响。
 \end{enumerate}
 
-Git 项目链接为：\url{https://github.com/kyc001/parallel/tree/master/ann}。
+\section{系统设计}
 
-\section{实验平台、数据集与测量方法}
+\subsection{目录与模块}
 
-\subsection{平台与软件环境}
-
-本文主要在四个平台上完成实验：Windows i9-13900H（AVX2，主开发与 VTune 平台）、鲲鹏 920 服务器（NEON，正式 ARM 提交平台）、Xeon Platinum 8358 容器（AVX-512，512-bit SIMD 对照平台），以及历史平板 Termux 数据（NEON，保留用于对齐 / 预取实验与横向对照）。实验环境如表 \ref{tab:env} 所示。
+实现按功能拆分为公共 SIMD 内核、Pthread 并行层、OpenMP 并行层、IVF 系列、HNSW 系列和独立 main 程序。所有新增算法均采用 header-only 方式，满足课程框架只编译 \texttt{main.cc} 的约束。
 
 \begin{table}[H]
   \centering\small
-  \begin{tabular}{p{2.7cm}p{2.3cm}p{3.2cm}p{4.7cm}}
+  \begin{tabular}{p{3.0cm}p{9.6cm}}
     \toprule
-    平台 & ISA / SIMD & 编译器与工具 & 主要用途 \\
+    模块 & 作用 \\
     \midrule
-    Windows 11, i9-13900H & x86\_64, AVX2 + FMA (256-bit) & MSYS2 MinGW-w64 g++ 14.2.0, VTune 2025 & AVX2 实现、P-core 绑核测速、VTune 与汇编分析 \\
-    鲲鹏 920 服务器 & AArch64, NEON asimd / asimddp (128-bit) & openEuler 22.03 (LTS-SP4), GCC/G++ 10.3.1，以 \texttt{bash test.sh 1 1} 提交运行 & ARM 正式实验数据采集（无 perf 权限，PMU 计数器不可访问）\\
-    Xeon Platinum 8358 容器 & x86\_64, AVX-512F + BW + DQ (512-bit) & Ubuntu 20.04.3 LTS，内核 5.15.0-60-generic，64 核 / 128 线程，g++ -O3 -mavx512f & 512-bit SIMD 对照实验（无 perf 权限） \\
-    Android 平板 Termux 历史环境 & AArch64, NEON asimd / asimddp & Termux + PRoot Ubuntu & 对齐、prefetch、规模实验与历史交叉验证 \\
+    \path{simd/} & 统一存放 Flat、SQ、PQ、FastScan 的 SIMD 距离计算和查表扫描内核，例如 \path{flat_scan_simd.h}、\path{pq_fastscan_simd.h}。 \\
+    \path{pthread/} & Flat、SQ、PQ、FastScan 的 Pthread 并行实现，以及公共线程池 \path{thread_pool.h}。 \\
+    \path{omp/} & Flat、SQ、PQ、FastScan 的 OpenMP 并行实现。 \\
+    \path{ivf/} & IVF 索引、IVF-SIMD、IVF-PQ 以及对应 Pthread / OpenMP 并行搜索。 \\
+    \path{hnsw/} & 基于 hnswlib 的多入口点、边划分、Layer0 划分与 IVF-HNSW 嵌套搜索。 \\
+    \path{mains/} & 71 个可独立编译的实验入口，用于不同算法、调度策略和并行粒度的测试。 \\
+    \path{results/local/} & 本地实验原始输出文件。每个文件包含 label、Recall@10 与平均查询延迟。 \\
     \bottomrule
   \end{tabular}
-  \caption{实验平台与用途}
-  \label{tab:env}
+  \caption{代码模块划分}
+  \label{tab:modules}
 \end{table}
 
-\subsection{数据集与评测指标}
+\subsection{并行框架}
 
-实验使用 DEEP100K 数据集：100K 条 96 维 float32 基向量、10K 条查询向量，以及对应 top-100 ground truth。所有正式速度实验统一取前 2000 个查询，$k=10$。性能评价采用平均单查询时延（$\mu$s）与 Recall@10。Recall@$k$ 定义为 $|\text{retrieved}_k \cap \text{gt}_k| / k$，即返回的 top-$k$ 中命中 ground truth top-$k$ 的比例（当 $k=10$ 时等价于 Precision@10，下文统一记作 Recall@10）。
+本文实现了两类并行粒度。
 
-\subsection{测量方式}
+\textbf{Inter-query 并行。} 每个线程处理一批完整 query。线程间不共享搜索状态，只写入结果数组中的不同位置，因此同步开销最低。对于批量查询，inter-query 通常能获得最好的吞吐和延迟表现。
 
-Windows 平台的主要 AVX2 实验均在单线程下运行；FastScan 结果采用 PowerShell 设置处理器亲和性到 P-core 进行校正。鲲鹏结果通过远程 \texttt{test.sh} 脚本提交得到。对于自动向量化对比实验，本文构造了 96 维点积微基准并重复调用 200 万次，以纳秒级平均耗时评估标量、自动向量化与手写 SIMD 三种版本。
+\textbf{Intra-query 并行。} 对单条 query，将 base 向量集合、候选集合或 IVF inverted list 分给多个线程。每个线程维护局部 top-$k$ 或 top-$p$ 堆，最后由主线程 merge。这种方式适合单 query 延迟优化，但会引入局部堆维护、线程同步和 top-$k$ reduce 成本。
 
-\noindent\textbf{性能剖析工具说明。} Windows i9 平台使用 VTune 2025 进行 Top-Down 微体系结构分析，并以 \texttt{objdump -Cd -Mintel} 导出内循环反汇编进行指令级核对。鲲鹏 920 服务器环境因用户无 \texttt{perf\_event\_paranoid} 修改权限，无法使用 \texttt{perf stat} 或 \texttt{perf record} 采集 PMU 计数器；ARM 侧的瓶颈分析改为基于跨平台时延比例、编译器向量化报告与汇编输出间接推断，在 \ref{sec:arch} 节统一讨论。
-
-\noindent\textbf{结果文件可追溯性。} 为保证报告中的性能数字均可复核，正文中的时延、recall、VTune 指标和微基准均对应到结果文件，主要来源列于表 \ref{tab:data_sources}。其中图表由脚本根据同一批 CSV / Markdown 结果重新绘制，正文引用数值时以这些结果文件为准。
-
-\begin{table}[H]
-  \centering\footnotesize
-  \begin{tabular}{p{2.8cm}p{7.1cm}p{4.0cm}}
-    \toprule
-    数据类别 & 结果文件 & 报告位置 \\
-    \midrule
-    i9 核心与 $p$-sweep &
-    \path{bench_results/windows_i9_13900h/baseline_flat.csv},
-    \path{sq_avx2.csv},
-    \path{pq_avx2.csv},
-    \path{RESULTS.md} &
-    表 \ref{tab:core_compare}、图 \ref{fig:tradeoff_i9} \\
-    鲲鹏 NEON 与 FastScan &
-    \path{bench_results/kunpeng_server/baseline_flat.csv},
-    \path{sq_simd.csv},
-    \path{pq_simd.csv},
-    \path{bench_results/kunpeng_server/RESULTS.md} &
-    表 \ref{tab:core_compare}、表 \ref{tab:fastscan_kunpeng} \\
-    Xeon AVX-512 &
-    \path{bench_results/server_3090_xeon_8358/flat_avx512.csv},
-    \path{RESULTS.md} &
-    AVX-512 结果段落 \\
-    i9 FastScan &
-    \path{bench_results/windows_i9_13900h/fastscan/RESULTS_FASTSCAN.md} &
-    表 \ref{tab:fastscan}、图 \ref{fig:fastscan_tradeoff} \\
-    规模与微基准 &
-    \path{bench_results/windows_i9_13900h/full_score/scale_*_N*.csv},
-    \path{soa_vs_aos_pinned.csv},
-    \path{gather_vs_shuffle_pinned.csv},
-    \path{recall_*_k*.csv} &
-    表 \ref{tab:scale_sweep}、\ref{tab:soa_vs_aos}、\ref{tab:gather_vs_shuffle}、\ref{tab:recall_at_k} \\
-    VTune / 汇编 / 自动向量化 &
-    \path{vtune_uarch_*.txt},
-    \path{vtune_mem_flat_pcore.txt},
-    \path{full_score/asm/kernel_summary.txt},
-    \path{local_results/manual_vs_autovec/results.txt} &
-    表 \ref{tab:vtune}、\ref{tab:asm_summary}、\ref{tab:autovec} \\
-    对齐与预取 &
-    \path{bench_results/android_termux_proot_ubuntu/E1_alignment.csv},
-    \path{E2_prefetch.csv} &
-    表 \ref{tab:align_prefetch} \\
-    \bottomrule
-  \end{tabular}
-  \caption{正文数据的主要结果来源}
-  \label{tab:data_sources}
-\end{table}
-
-\section{算法设计与实现}
-
-\subsection{总体架构与两阶段检索模型}
-
-本文实现不是把同一个距离函数简单替换成 SIMD 版本，而是按 ANN 检索流水线拆成三层：底层是可复用的 SIMD 距离内核，中层是 Flat / SQ / PQ / FastScan 四类检索结构，上层用统一的 top-$p$ 候选池与 top-$k$ 精排接口评测 latency 和 recall。整体结构如图 \ref{fig:overall_arch} 所示。
-
-\begin{figure}[H]
-  \centering
-  \begin{tikzpicture}[font=\scriptsize,
-      box/.style={draw,rounded corners=1pt,align=center,minimum height=0.65cm,inner sep=3pt,fill=blue!5},
-      opt/.style={draw,rounded corners=1pt,align=center,minimum height=0.65cm,inner sep=3pt,fill=orange!12},
-      data/.style={draw,rounded corners=1pt,align=center,minimum height=0.65cm,inner sep=3pt,fill=green!10},
-      arr/.style={-Latex,thick}]
-    \node[data] (base) at (0,2.0) {DEEP100K\\float32 base/query};
-    \node[box] (flat) at (3.0,2.0) {Flat\\float32 IP};
-    \node[box] (sq) at (3.0,0.8) {SQ\\uint8 coarse};
-    \node[box] (pq) at (3.0,-0.4) {PQ\\code + LUT};
-    \node[opt] (fs) at (3.0,-1.6) {FastScan\\4-bit packed LUT};
-    \node[box] (simd) at (6.2,1.3) {SIMD distance kernel\\AVX2 / NEON / AVX-512};
-    \node[box] (coarse) at (6.2,-0.4) {coarse top-$p$\\compressed space};
-    \node[box] (rerank) at (9.2,0.45) {float32 exact\\top-$k$ / rerank};
-    \node[data] (metric) at (9.2,-1.1) {latency\\Recall@10};
-    \foreach \src in {flat,sq,pq,fs} {
-      \draw[arr] (base.east) -- ++(0.45,0) |- (\src.west);
-    }
-    \draw[arr] (flat.east) -- (simd.west);
-    \draw[arr] (sq.east) -- (coarse.west);
-    \draw[arr] (pq.east) -- (coarse.west);
-    \draw[arr] (fs.east) -- (coarse.west);
-    \draw[arr] (simd.east) -- (rerank.west);
-    \draw[arr] (coarse.east) -- (rerank.west);
-    \draw[arr] (rerank.south) -- (metric.north);
-  \end{tikzpicture}
-  \caption{ANN-SIMD 实现架构：Flat 直接复用 float32 SIMD 距离内核完成 exact top-$k$；SQ、PQ 与 FastScan 先在压缩空间粗排，再对 top-$p$ 候选使用同一精确内核 rerank。}
-  \label{fig:overall_arch}
-\end{figure}
-
-其中 Flat 是精确全扫描，召回率由 ground truth 决定；SQ、PQ 和 FastScan 都属于两阶段检索。设粗排代价为 $C_{\mathrm{coarse}}$，精排候选数为 $p$，则单查询时间可概括为
-\[
-T(p)=C_{\mathrm{coarse}} + O(p d).
-\]
-$p$ 越大，精排越接近精确 Flat，recall 越高，但 rerank 时延也越高；$p$ 越小，粗排速度优势越明显，但量化误差更容易把真实近邻排除在候选池外。后文所有 latency-recall 曲线本质上都在观察这个 $p$ 控制的 trade-off。
-
-\subsection{串行 Flat 与 Flat-SIMD}
-
-串行 Flat 的核心是对每个基向量执行一次 96 维点积，复杂度为 $O(Nd)$。它完全精确、实现直接，但每个查询都要顺序读取 $N\times d\times 4$ Byte 的原始 float32 数据；在 DEEP100K 上约为 36.6 MB/query，因此很容易从计算瓶颈转向带宽瓶颈。
-
-Flat-SIMD 的设计重点是把点积拆成 ``向量加载、逐 lane 乘加、延迟归约'' 三步。AVX2 的 256-bit 寄存器一次处理 8 个 float，NEON 的 128-bit 寄存器一次处理 4 个 float；两者都使用多累加器展开，使连续 FMA 之间不存在单一长依赖链。以 AVX2 为例，每轮处理 32 个 float，正好覆盖 96 维向量的 3 个循环块：
-\begin{lstlisting}[language=C++,caption=Flat-AVX2 的四累加器点积结构（示意）]
-for (; i + 32 <= d; i += 32) {
-    sum0 = _mm256_fmadd_ps(load(x + i),      load(y + i),      sum0);
-    sum1 = _mm256_fmadd_ps(load(x + i + 8),  load(y + i + 8),  sum1);
-    sum2 = _mm256_fmadd_ps(load(x + i + 16), load(y + i + 16), sum2);
-    sum3 = _mm256_fmadd_ps(load(x + i + 24), load(y + i + 24), sum3);
-}
-\end{lstlisting}
-其中 \texttt{load(...)} 是 \texttt{\_mm256\_loadu\_ps} 的简写。循环内只做独立累加，水平归约推迟到 96 维点积结束之后，避免每 8 个元素就插入 shuffle / add 归约链。理论复杂度仍为 $O(Nd)$，但每周期可发射的浮点工作量显著增加；其上限由 FMA 端口、load 端口和内存带宽共同决定。
-
-\begin{figure}[H]
-  \centering
-  \begin{tikzpicture}[font=\scriptsize,node distance=3pt,
-      lane/.style={draw,rounded corners=1pt,minimum width=1.1cm,minimum height=0.42cm,align=center,inner sep=1pt,fill=blue!6},
-      fma/.style={draw,rounded corners=1pt,minimum width=1.1cm,minimum height=0.42cm,align=center,inner sep=1pt,fill=orange!15},
-      acc/.style={draw,circle,minimum size=0.5cm,inner sep=0pt,fill=green!10},
-      arr/.style={-Latex,shorten >=1pt}]
-    \foreach \i/\lab in {0/0{:}7,1/8{:}15,2/16{:}23,3/24{:}31} {
-      \node[lane] (x\i) at (\i*1.35, 2) {$x_{\lab}$};
-      \node[lane] (y\i) at (\i*1.35, 1.3) {$y_{\lab}$};
-      \node[fma]  (f\i) at (\i*1.35, 0.6) {FMA};
-      \node[acc]  (a\i) at (\i*1.35, -0.1) {s$_\i$};
-      \draw[arr] (x\i) -- (f\i);
-      \draw[arr] (y\i) -- (f\i);
-      \draw[arr] (f\i) -- (a\i);
-    }
-    \node[right=4pt of a3] (loop) {repeat};
-    \draw[arr,bend right=30] (loop.east) to ++(0.5,-0.3) to ++(-6.3, -0.3) -| (x0.south west);
-    \node[below=1pt of a1] (sum) {$\Sigma = s_0 + s_1 + s_2 + s_3$};
-    \draw[arr] (a0) to[out=-80,in=180] (sum.west);
-    \draw[arr] (a3) to[out=-100,in=0] (sum.east);
-    \node[below=2pt of sum,align=center,text width=12cm] {32 floats / iter, 4 independent FMAs feeding 4 independent accumulators --- reduction is deferred to the end of the loop so the two FMA ports stay saturated.};
-  \end{tikzpicture}
-  \caption{Flat-AVX2 四累加器点积的数据流：每组 8-float 向量块的 FMA 与累加器彼此独立，循环内无跨块依赖，归约推迟到循环结束后}
-  \label{fig:flat_dataflow}
-\end{figure}
-
-\subsection{SQ-SIMD：标量量化 + 两阶段检索}
-
-SQ（Scalar Quantization）对每一维分别统计最小值和最大值，并将 float32 量化到 uint8：
-\[
-\hat{x}_j = \mathrm{clip}\left(\mathrm{round}\left((x_j-v_{\min,j})\cdot \frac{255}{v_{\max,j}-v_{\min,j}}\right)\right).
-\]
-
-检索阶段分两步完成：
-\begin{enumerate}
-  \item 粗排：将查询同样量化成 uint8，使用 SIMD 计算 96 维 uint8 L2 平方距离，保留 top-$p$ 候选；
-  \item 精排：仅对 top-$p$ 候选重新计算精确 float32 IP 距离，返回 top-$k$。
-\end{enumerate}
-这里 uint8 L2 仅作为压缩空间中的候选筛选 surrogate，最终 top-$k$ 排序完全由原始 float32 IP rerank 决定；因此 recall 以最终 rerank 结果评价，粗排度量选择不影响正确性。
-
-因此 SQ 的复杂度可写为
-\[
-T_{\mathrm{SQ}} = O(Nd_{\mathrm{u8}}) + O(pd_{\mathrm{f32}}),
-\]
-其中第一项由粗排主导，第二项由 rerank 主导。SQ 的关键假设是：每一维的线性量化误差不会显著打乱近邻相对顺序，因此可以先用低精度空间快速筛掉绝大多数向量，再只对少量候选恢复精确 IP。
-
-实现上，粗排内核不再做 float32 FMA，而是对 uint8 差值进行扩展、平方与累加。AVX2 路径将 32 个 uint8 分批扩展到 16-bit，用 \texttt{vpmaddwd} 完成 ``平方 + 相邻对加''，再做向量累加；NEON 路径使用 \texttt{vmovl\_u8} / \texttt{vmlal\_u16} 完成同样的数据流。这样 SQ 的 SIMD 收益来自两部分：一是数据宽度从 32 bit 降到 8 bit，cache 中能容纳更多向量；二是整数 SIMD 一次能处理更多 lane。由于本实验数据集中 SQ 的量化误差较小，其粗排顺序与原始 IP 顺序高度一致，因此较小 $p$ 下即可保持很高 recall。
-
-\subsection{PQ-SIMD：乘积量化 + ADC 检索}
-
-PQ（Product Quantization）将 96 维向量分为 $M=8$ 个子段，每段维度 $d_{\text{sub}}=12$。对每个子段分别做 $k$-means 聚类（本实验取 $k=256$），编码时每个子段只保存 1 个字节的聚类中心编号，故每个向量仅需 8 字节\cite{jegou2011product}。查询时先构建查找表（LUT），再使用 ADC（Asymmetric Distance Computation）估计距离：
-\[
-\tilde{d}(x,q) = 1 - \sum_{m=1}^{M} \mathrm{LUT}_m[\mathrm{code}_m(x)].
-\]
-
-PQ 的粗排复杂度约为 $O(NM)$，比 SQ 的 $O(Nd)$ 更低；但由于量化更激进，小 $p$ 时 recall 会明显下降。PQ 的优势在于：粗排极快、内存压缩率高、适合在更大规模数据上扩展。
-
-从数据结构看，PQ 把每个向量分成 $M$ 个子空间，每个子空间用一个独立 codebook 近似原始子向量。离线阶段保存的是 code 而不是 centroid 本身；在线查询时，LUT$_m[c]$ 表示查询第 $m$ 个子向量与第 $c$ 个 centroid 的距离。这样一次 ADC 扫描只需读取 $M$ 个 code 和 $M$ 个 LUT 项，不再读取 96 个 float。代价是 LUT 索引由 code 决定，访问模式从连续 FMA 变成小表随机查找，后续优化的重点也随之从 ``算得快'' 转为 ``查得快''。
-
-在当前实现中，标准 PQ 的 SIMD 化主要落在两个连续访存的阶段。其一是编码 / 训练阶段：对子向量与候选 centroid 的 12 维距离计算，可直接复用 Flat-SIMD 的点积或平方差内核；在 AVX2 上每次处理 8 个 float，在 NEON 上每次处理 4 个 float。其二是 LUT 构建阶段：\texttt{pq\_scan\_simd.h} 中的 \texttt{dot\_sub\_simd} 直接用于计算 $\mathrm{LUT}_m[c]$。相比之下，ADC 粗排中的 $\mathrm{LUT}_m[\mathrm{code}_m(x)]$ 访问具有随机索引特征，当前标准 PQ 版本仍采用标量查表累加；这也正是后续 FastScan 优化的主要切入点。
-
-\begin{figure}[H]
-  \centering
-  \begin{tikzpicture}[font=\scriptsize,node distance=2pt,
-      seg/.style={draw,rounded corners=1pt,minimum width=1.3cm,minimum height=0.4cm,fill=blue!6,align=center,inner sep=1pt},
-      lut/.style={draw,rounded corners=1pt,minimum width=1.3cm,minimum height=0.7cm,fill=orange!10,align=center,inner sep=1pt},
-      code/.style={draw,rounded corners=1pt,minimum width=0.55cm,minimum height=0.4cm,fill=green!12,align=center,inner sep=1pt,font=\tiny},
-      arr/.style={-Latex,shorten >=1pt,thick}]
-    \node (qlab) at (-0.3, 2.6) {$q\in\mathbb{R}^{96}$};
-    \foreach \i/\lab in {0/$u_0$,1/$u_1$,2/$u_2$,3/$u_3$} {
-      \node[seg] (q\i) at (\i*1.5, 2.2) {\lab};
-      \draw[arr] (qlab.east) to[out=0,in=140] (q0.north west);
-    }
-    \node at (6.6, 2.2) {$\cdots\!u_7$};
-    \foreach \i in {0,1,2,3} {
-      \node[lut] (L\i) at (\i*1.5, 1.2) {LUT$_\i$\\$256 \times 4$B};
-      \draw[arr] (q\i) -- (L\i);
-    }
-    \node at (6.6, 1.2) {$\cdots$};
-    \node[text width=9.5cm,align=center] at (3, 0.3) {\small database vector $x$: 8 bytes (one code per segment)};
-    \foreach \i/\c in {0/23,1/78,2/192,3/41} {
-      \node[code] (c\i) at (\i*0.8 + 0.3, -0.2) {\c};
-    }
-    \node[code] (c4) at (3.5, -0.2) {105};
-    \node[code] (c5) at (4.3, -0.2) {7};
-    \node[code] (c6) at (5.1, -0.2) {220};
-    \node[code] (c7) at (5.9, -0.2) {58};
-    \foreach \i in {0,1,2,3} {
-      \draw[arr,dashed] (c\i.north) -- ++(0,0.3) to[out=90,in=-80] (L\i.south);
-    }
-    \node[draw,rounded corners=1pt,fill=red!8,minimum width=3cm,minimum height=0.4cm,align=center] (d) at (7.5, -0.2) {$\hat d = 1 - \sum_{m} \mathrm{LUT}_m[\mathrm{code}_m(x)]$};
-    \draw[arr] (c7.east) -- (d.west);
-  \end{tikzpicture}
-  \caption{PQ 编码 + ADC 查表示意：查询被切成 $M=8$ 个 12 维子段 $u_m$，每段构建一个 $256\times 4$ 字节的 LUT；数据库向量压成 $M$ 个 1-字节 code，在线扫描时按 code 对每段 LUT 做间接索引并累加。LUT 构建阶段可 SIMD 化，但 code 索引是随机访问（本图右端的虚线），标准 PQ 只能标量累加。}
-  \label{fig:pq_adc}
-\end{figure}
-
-\subsection{PQ 编码与 LUT 构建的 SIMD 化设计}
-
-PQ 编码阶段在整体时延中占比不大，但从体系结构角度看仍值得说明。若进一步优化，PQ 编码与 LUT 构建都可以统一看作"子向量 $\times$ centroid" 的小矩阵距离计算。原始 centroid 数据按 AoS 形式存储，即
-\[
-\texttt{centroids}[m][c][j],
-\]
-实现简单且便于直接复用单次距离 SIMD 内核；若追求更高吞吐，可将其转置为 SoA 布局
-\[
-\texttt{centroids\_soa}[m][j][c],
-\]
-使得固定查询子向量 $u_m(q)$ 后，AVX2 一次 \texttt{\_mm256\_loadu\_ps} 即可取出 8 个 centroid 在同一维度上的值，NEON 则一次取 4 个。此时每个查询维度通过 broadcast 与 FMA 累加，就能把“单 centroid 向量化”进一步提升为“跨 centroid 并行”。最终代码中，这一路径已经以头文件辅助模块的方式落地在 PQ 与 FastScan 的编码 / 训练阶段：每一轮 centroid 分配都先把 AoS 码本重排为 SoA，再以 tile 方式扫描 centroid 块完成最近中心搜索。
-
-进一步地，可在 centroid 维度上做 blocking，例如以 32 个 centroid 为一个 tile，使当前 centroid 块尽量驻留在 L1 中，减少反复装载；若进行批量离线编码，还可在子向量批次方向外层分块。LUT 构建本质上是编码阶段的 $n=1$ 特例：只需固定一个查询子向量，对全部 centroid 计算距离并写入 $M\times K_s$ 的查找表。因此，跨 centroid 并行、SoA 重排和 tile 化既适用于离线编码，也适用于在线 LUT 构建。考虑到最终查询热路径的常数项，本文在标准 PQ 与 FastScan 的在线 LUT 构建上仍保留了更轻量的单 centroid SIMD / 标量量化实现，而把 SoA + blocking 主要用于编码与训练阶段，从而兼顾结构化优化的覆盖面与端到端查询性能。
-
-上述三条优化可以对应三种不同层面的性能提升路径：AoS$\to$SoA 重排属于\emph{数据布局优化}，以 32 个 centroid 为一组的 tile 属于 \emph{block + cache 优化}，固定查询子向量、对 8 个 centroid 并行 FMA 属于 \emph{跨 centroid 并行}。三条并列路线在 \texttt{pq\_blocked\_avx2.h} 的 \texttt{argmin\_l2\_blocked} 中统一落地，其核心结构可概括为清单 \ref{lst:blocked_soa}。NEON 版本 \texttt{pq\_blocked\_neon.h} 以 \texttt{vdupq\_n\_f32} + \texttt{vmlaq\_f32} 重现相同拓扑，每轮处理 4 个 centroid。
-\begin{lstlisting}[language=C++,caption=SoA + blocking 的跨 centroid AVX2 最近中心搜索（要点）,label={lst:blocked_soa}]
-for (int block = 0; block < ksub; block += tile) {        // block: cache tile
-  for (int c = block; c < block_end; c += 8) {            // c: 8 centroids/lane
-    __m256 acc = _mm256_setzero_ps();
-    for (int j = 0; j < dsub; ++j) {                       // 固定查询子向量维度
-      __m256 xv = _mm256_set1_ps(x[j]);                    // broadcast 1 -> 8
-      __m256 cv = _mm256_loadu_ps(soa + j*padded + c);     // SoA: 同维 8 centroid
-      __m256 diff = _mm256_sub_ps(cv, xv);
-      acc = _mm256_fmadd_ps(diff, diff, acc);              // 跨 centroid FMA
-    }
-    /* horizontal compare with best_dist ... */
-  }
-}
-\end{lstlisting}
-
-\begin{figure}[H]
-  \centering
-  \begin{tikzpicture}[font=\scriptsize,node distance=1pt,
-      cell/.style={draw,minimum width=0.45cm,minimum height=0.35cm,inner sep=0pt,font=\tiny},
-      arr/.style={-Latex,thick}]
-    % AoS side
-    \node[font=\small] at (0, 2.4) {AoS \texttt{centroids[c][j]}};
-    \foreach \c in {0,1,2,3} {
-      \foreach \j in {0,1,2,3,4} {
-        \node[cell,fill=blue!6] at (\j*0.45, 2 - \c*0.35) {};
-      }
-      \node[font=\tiny,anchor=west] at (2.3, 2 - \c*0.35) {c=\c};
-    }
-    % Arrow
-    \draw[arr] (3.3, 1) -- (4.5, 1) node[midway,above,font=\tiny] {SoA};
-    % SoA side
-    \node[font=\small] at (5.8, 2.4) {SoA \texttt{centroids\_soa[j][c]}};
-    \foreach \j in {0,1,2,3,4} {
-      \foreach \c in {0,1,2,3} {
-        \node[cell,fill=orange!12] at (4.8 + \c*0.45, 2 - \j*0.35) {};
-      }
-      \node[font=\tiny,anchor=west] at (7.0, 2 - \j*0.35) {j=\j};
-    }
-    % Query sub-vector
-    \node[font=\small] at (9.4, 2.4) {query $u_m$};
-    \foreach \j in {0,1,2,3,4} {
-      \node[cell,fill=green!12] at (9.4, 2 - \j*0.35) {};
-    }
-    % Annotation
-    \node[align=left,text width=10cm] at (4.8, -0.2) {%
-      For a fixed query dim $j$, \texttt{loadu\_ps(soa[j])} pulls \textbf{8 centroids on the same axis} into one \texttt{ymm}; \texttt{broadcast\_ps(u[j])} spreads the query scalar; one \texttt{fmadd\_ps} updates all 8 lanes' accumulated squared-distance. The outer tile scans 32 centroids at a time to keep the active block cache-resident.};
-  \end{tikzpicture}
-  \caption{AoS $\to$ SoA 数据重排示意：按维度索引后，每次 SIMD 加载取 8 个 centroid 在\emph{同一维度}的值，配合查询 broadcast 做跨 centroid 的并行 FMA}
-  \label{fig:soa_layout}
-\end{figure}
-
-\subsection{FastScan 扩展：4-bit PQ 与查表打包}
-
-为了进一步降低 PQ 的粗排常数项，本文在 Windows AVX2 上实现了 FastScan 扩展，并实现了可在 AArch64 NEON 上编译的版本。该方法直接对应 André 等人在 PQ Fast Scan 中提出的"寄存器内查表"路线 \cite{andre2015fastscan}，即 shuffle / fast scan 风格的查表累加。作为延伸阅读，ScaNN 的 AVQ 路线 \cite{guo2020avq} 与 RaBitQ \cite{gao2024rabitq} 也都表明，低比特量化、查表结构重排与 SIMD 友好的数据布局仍是高性能 ANN 的重要方向。本文采用 $M=16$、$K_s=16$ 的 4-bit PQ，将每两个子段的 code 打包进一个字节，并把 LUT 量化到 0--15 的小整数。需要注意，这并不是在标准 PQ 的 $M=8, K_s=256$ 码本上仅替换 ADC 内核，而是在相同 8 B/code 压缩预算下改用另一组 4-bit 码本配置；因此后文与标准 PQ 的比较应理解为两种端到端量化设计的 trade-off 对比，而不是固定码本下只更换查表方式。粗排阶段不再使用 float LUT，而是使用 4-bit 量化 LUT、nibble 拆分、寄存器内查表，并通过 uint8 饱和加法累加；由于每段 LUT 值不超过 15、$M=16$ 时总和不超过 240，实际不会触发 8-bit 饱和：
+Pthread 侧实现三种调度方式：
 \begin{itemize}
-  \item AVX2 路径使用 \texttt{\_mm256\_shuffle\_epi8}；
-  \item NEON 路径使用 \texttt{vqtbl1q\_u8}。
+  \item static：静态等分任务，适合 Flat 这类计算量规则的扫描；
+  \item dynamic：用原子计数器动态抢任务，适合 query 耗时或 list 长度不均匀的场景；
+  \item pool：预创建线程池和任务队列，减少反复创建 / 销毁线程的开销。
 \end{itemize}
 
-这样做的直接收益有两点：其一，LUT 从标准 PQ 的 $M\times 256 \times 4$ Byte 缩小为 $M\times 16$ Byte；其二，批量扫描时可显著提升 cache 友好性和查表吞吐。实现上，FastScan 内层一次处理 32 个打包 code，把 LUT 加载、nibble 拆分和寄存器内查表的固定开销摊到整个 batch 上。FastScan 的总复杂度仍可写成
-\[
-T_{\mathrm{FS}} = O(NM) + O(pd),
-\]
-但其中粗排部分的常数显著小于标准 PQ。本文也考虑过使用 gather 指令直接实现标准 ADC 的随机查表：在 x86 上，这一路线会受到随机访问延迟和吞吐不足的限制；而在 AArch64 NEON 上也缺少同等级别、可移植的通用 gather 支持。因此最终选择了更符合两平台硬件特点的 shuffle / table-lookup FastScan 路线；\ref{sec:gather_vs_shuffle} 节会给出这一选择的实测依据。
+OpenMP 侧主要使用 \texttt{parallel for}，query 级循环使用 dynamic schedule，base/list 扫描使用局部堆加串行 merge。
 
 \begin{figure}[H]
   \centering
-  \begin{tikzpicture}[font=\scriptsize,
-      lutcell/.style={draw,minimum width=0.35cm,minimum height=0.35cm,inner sep=0pt,font=\tiny,fill=orange!12},
-      code/.style={draw,rounded corners=1pt,minimum width=0.55cm,minimum height=0.4cm,fill=green!12,font=\tiny,inner sep=1pt},
-      arr/.style={-Latex,thick},
-      dash/.style={-Latex,dashed,gray}]
-    % LUT (16 entries)
-    \node[font=\small] at (0, 1.7) {LUT (16 entries, 8-bit)};
-    \foreach \i in {0,...,15} {
-      \node[lutcell] (L\i) at (\i*0.36 - 0.2, 1.2) {};
-    }
-    \node[font=\tiny,anchor=north] at (-0.2, 1.05) {0};
-    \node[font=\tiny,anchor=north] at (15*0.36 - 0.2, 1.05) {15};
-    % codes packed nibbles (double-nibble byte)
-    \node[font=\small] at (0, 0.3) {32 codes packed as 16 bytes (2 nibbles / byte)};
-    \foreach \i in {0,...,15} {
-      \node[code] (C\i) at (\i*0.45, -0.2) {};
-    }
-    % Highlight one lookup: code = 7
-    \node[code,fill=red!15] (Cx) at (4*0.45, -0.2) {7};
-    \draw[arr,red] (Cx) to[bend left=28] (L7);
-    % register-internal shuffle annotation
-    \node[draw,rounded corners=3pt,fill=blue!5,text width=12.2cm,align=center,font=\scriptsize] at (2.8, -1.4) {%
-      AVX2 broadcasts each 16-entry LUT into both 128-bit halves, then \texttt{\_mm256\_shuffle\_epi8(lut\_ymm, code\_ymm)} performs a register lookup: one instruction returns 32 byte scores for one subsegment, with no data-dependent L1 lookup. NEON uses \texttt{vqtbl1q\_u8} for 16 lanes.};
-    % FastScan saving annotation
-    \node[font=\tiny,align=right,anchor=west] at (6.3, 1.25) {LUT size: $M\times 16$B\\[-1pt](std PQ: $M\times 1$KB)};
+  \begin{tikzpicture}[
+    scale=0.82,
+    transform shape,
+    node distance=1.0cm,
+    box/.style={draw, rounded corners=2pt, align=center, minimum width=2.8cm, minimum height=0.8cm},
+    arrow/.style={-Latex, thick}
+  ]
+    \node[box] (data) {DEEP100K\\base/query/gt};
+    \node[box, right=0.8cm of data] (index) {离线索引\\SQ/PQ/IVF/HNSW};
+    \node[box, right=0.8cm of index] (sched) {并行调度\\Pthread / OpenMP};
+    \node[box, below=1.0cm of sched] (simd) {SIMD 距离内核\\IP / L2 / ADC};
+    \node[box, right=0.8cm of sched] (topk) {局部 top-$k$\\merge};
+    \node[box, right=0.8cm of topk] (eval) {Recall@10\\Latency};
+    \draw[arrow] (data) -- (index);
+    \draw[arrow] (index) -- (sched);
+    \draw[arrow] (sched) -- (topk);
+    \draw[arrow] (topk) -- (eval);
+    \draw[arrow] (simd) -- (sched);
   \end{tikzpicture}
-  \caption{FastScan 的 4-bit 打包 code + 寄存器内 shuffle 查表示意：LUT 缩小到 16 项，码本每 2 段打包为 1 字节；每条 AVX2 \texttt{shuffle\_epi8} 对一个子段完成 32 路 4-bit 查表，NEON 版本按 16 路表查同构实现，绕开了 gather 的随机访存代价}
-  \label{fig:fastscan_shuffle}
+  \caption{ANN 多线程并行框架}
+  \label{fig:framework}
 \end{figure}
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[
+    scale=0.85,
+    transform shape,
+    box/.style={draw, rounded corners=1.5pt, align=center, minimum width=2.4cm, minimum height=0.65cm, font=\footnotesize},
+    tbox/.style={draw, fill=blue!8, rounded corners=1.5pt, align=center, minimum width=1.5cm, minimum height=0.55cm, font=\footnotesize},
+    arrow/.style={-Latex, thick}
+  ]
+    % Inter-query
+    \node[box, fill=green!5] (inter_title) at (0, -0.2) {\textbf{Inter-query 并行}};
+    \node[tbox] (q1) at (-2.5, -1.3) {$q_0$};
+    \node[tbox] (q2) at (-0.8, -1.3) {$q_1$};
+    \node[tbox] (q3) at (0.9, -1.3) {$q_2$};
+    \node[tbox] (q4) at (2.6, -1.3) {$q_3$};
+    \node[tbox] (t1) at (-2.5, -2.2) {线程 0};
+    \node[tbox] (t2) at (-0.8, -2.2) {线程 1};
+    \node[tbox] (t3) at (0.9, -2.2) {线程 2};
+    \node[tbox] (t4) at (2.6, -2.2) {线程 3};
+    \node[align=center, font=\footnotesize] (r1) at (-2.5, -3.0) {完整搜索\\top-$k$};
+    \node[align=center, font=\footnotesize] (r2) at (-0.8, -3.0) {完整搜索\\top-$k$};
+    \node[align=center, font=\footnotesize] (r3) at (0.9, -3.0) {完整搜索\\top-$k$};
+    \node[align=center, font=\footnotesize] (r4) at (2.6, -3.0) {完整搜索\\top-$k$};
+    \draw[arrow] (q1) -- (t1); \draw[arrow] (t1) -- (r1);
+    \draw[arrow] (q2) -- (t2); \draw[arrow] (t2) -- (r2);
+    \draw[arrow] (q3) -- (t3); \draw[arrow] (t3) -- (r3);
+    \draw[arrow] (q4) -- (t4); \draw[arrow] (t4) -- (r4);
+
+    % Intra-query
+    \node[box, fill=orange!5] (intra_title) at (7.5, -0.2) {\textbf{Intra-query 并行}};
+    \node[tbox, minimum width=2.8cm] (query) at (7.5, -1.3) {单条 query $q$};
+    \node[tbox] (b1) at (5.0, -2.2) {base[0:N/4)};
+    \node[tbox] (b2) at (6.7, -2.2) {base[N/4:N/2)};
+    \node[tbox] (b3) at (8.4, -2.2) {base[N/2:3N/4)};
+    \node[tbox] (b4) at (10.1, -2.2) {base[3N/4:N)};
+    \node[tbox] (w1) at (5.0, -3.0) {线程 0};
+    \node[tbox] (w2) at (6.7, -3.0) {线程 1};
+    \node[tbox] (w3) at (8.4, -3.0) {线程 2};
+    \node[tbox] (w4) at (10.1, -3.0) {线程 3};
+    \node[align=center, font=\footnotesize] (h1) at (5.0, -3.8) {局部 heap};
+    \node[align=center, font=\footnotesize] (h2) at (6.7, -3.8) {局部 heap};
+    \node[align=center, font=\footnotesize] (h3) at (8.4, -3.8) {局部 heap};
+    \node[align=center, font=\footnotesize] (h4) at (10.1, -3.8) {局部 heap};
+    \node[box, fill=yellow!5] (merge) at (7.5, -4.7) {merge → 全局 top-$k$};
+    \draw[arrow] (query) -- (b1); \draw[arrow] (query) -- (b2);
+    \draw[arrow] (query) -- (b3); \draw[arrow] (query) -- (b4);
+    \draw[arrow] (b1) -- (w1); \draw[arrow] (w1) -- (h1);
+    \draw[arrow] (b2) -- (w2); \draw[arrow] (w2) -- (h2);
+    \draw[arrow] (b3) -- (w3); \draw[arrow] (w3) -- (h3);
+    \draw[arrow] (b4) -- (w4); \draw[arrow] (w4) -- (h4);
+    \draw[arrow] (h1) -- (merge); \draw[arrow] (h2) -- (merge);
+    \draw[arrow] (h3) -- (merge); \draw[arrow] (h4) -- (merge);
+  \end{tikzpicture}
+  \caption{Inter-query 与 Intra-query 并行粒度对比}
+  \label{fig:granularity}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[
+    scale=0.85,
+    transform shape,
+    box/.style={draw, rounded corners=1.5pt, align=center, minimum width=1.8cm, minimum height=0.6cm, font=\footnotesize},
+    task/.style={draw, fill=blue!5, minimum width=0.7cm, minimum height=0.5cm, font=\tiny},
+    arrow/.style={-Latex, thick}
+  ]
+    % Static
+    \node[box, fill=green!5] (stitle) at (0, 0) {Static 静态划分};
+    \foreach \i in {0,...,7} {
+      \node[task] (s\i) at ({-2.1+\i*0.6}, -0.9) {\tiny T\i};
+    }
+    \node[draw, dashed, fit=(s0)(s1), inner sep=1pt] (sg0) {};
+    \node[draw, dashed, fit=(s2)(s3), inner sep=1pt] (sg1) {};
+    \node[draw, dashed, fit=(s4)(s5), inner sep=1pt] (sg2) {};
+    \node[draw, dashed, fit=(s6)(s7), inner sep=1pt] (sg3) {};
+    \node[font=\footnotesize] at (sg0.south) [yshift=-0.7cm] {线程 0};
+    \node[font=\footnotesize] at (sg1.south) [yshift=-0.7cm] {线程 1};
+    \node[font=\footnotesize] at (sg2.south) [yshift=-0.7cm] {线程 2};
+    \node[font=\footnotesize] at (sg3.south) [yshift=-0.7cm] {线程 3};
+    \draw[arrow] (sg0.south) -- ++(0,-0.35); \draw[arrow] (sg1.south) -- ++(0,-0.35);
+    \draw[arrow] (sg2.south) -- ++(0,-0.35); \draw[arrow] (sg3.south) -- ++(0,-0.35);
+
+    % Dynamic
+    \node[box, fill=orange!5] (dtitle) at (5.0, 0) {Dynamic 原子抢夺};
+    \node[task, fill=red!5] (counter) at (5.0, -0.9) {\texttt{atomic} 计数器};
+    \foreach \i in {0,...,7} {
+      \node[task] (d\i) at ({2.9+\i*0.6}, -1.7) {\tiny T\i};
+    }
+    \node[font=\footnotesize] (dw1) at (3.5, -2.5) {线程 0};
+    \node[font=\footnotesize] (dw2) at (4.7, -2.5) {线程 1};
+    \node[font=\footnotesize] (dw3) at (5.9, -2.5) {线程 2};
+    \node[font=\footnotesize] (dw4) at (7.1, -2.5) {线程 3};
+    \draw[arrow] (counter) -- (d0); \draw[arrow] (counter) -- (d2);
+    \draw[arrow] (counter) -- (d4); \draw[arrow] (counter) -- (d6);
+    \draw[arrow] (d0) -- (dw1); \draw[arrow] (d1) -- (dw2);
+    \draw[arrow] (d3) -- (dw3); \draw[arrow] (d5) -- (dw4);
+
+    % Pool
+    \node[box, fill=blue!5] (ptitle) at (10.0, 0) {Pool 线程池};
+    \node[task, fill=cyan!5, minimum width=2.2cm] (queue) at (10.0, -0.9) {\texttt{mutex+cond} 任务队列};
+    \node[task, minimum width=1.0cm] (pw1) at (8.2, -1.8) {线程 0};
+    \node[task, minimum width=1.0cm] (pw2) at (9.4, -1.8) {线程 1};
+    \node[task, minimum width=1.0cm] (pw3) at (10.6, -1.8) {线程 2};
+    \node[task, minimum width=1.0cm] (pw4) at (11.8, -1.8) {线程 3};
+    \draw[arrow, dashed] (queue) -- (pw1); \draw[arrow, dashed] (queue) -- (pw2);
+    \draw[arrow, dashed] (queue) -- (pw3); \draw[arrow, dashed] (queue) -- (pw4);
+  \end{tikzpicture}
+  \caption{Pthread 三种调度方式对比}
+  \label{fig:schedulers}
+\end{figure}
+
+\section{算法实现}
+
+\subsection{Flat-SIMD}
+
+Flat 是精确全量扫描。每个 query 需要访问全部 $N$ 个 base 向量并维护 top-$k$ 堆。距离计算复用 \path{simd/flat_scan_simd.h}，在 x86 上使用 AVX2，在 ARM 上保留 NEON 路径。
+
+Flat 的计算量规则，因此理论上 static 划分也应较强。但在本机 Windows 混合核调度环境下，dynamic query 抢任务可以减轻尾部等待和系统噪声，实际取得最优结果。Intra-query 版本需要每个线程维护局部堆并在单 query 结束后 merge，因此固定开销显著。
+
+\subsection{SQ-SIMD}
+
+SQ 将 float32 向量逐维量化为 uint8，查询阶段采用两阶段流程：第一阶段在 uint8 空间快速粗排得到 top-$p$ 候选，第二阶段对候选使用原始 float32 内积进行 rerank。本文在 Pthread 与 OpenMP 中都实现了 query 级整条流水线并行，以及单 query 内粗排阶段 base 划分并行。由于精排候选集合较小，精排阶段主要保持单线程执行，避免额外同步开销。
+
+\subsection{PQ-SIMD 与 FastScan}
+
+PQ 将 96 维向量切分为 $M=8$ 个子空间，每个子空间训练 256 个中心。查询时对每个子空间构建 LUT，并用 ADC 对 base 的 PQ code 查表累加。Pthread / OpenMP 版本分别对 query 循环或 base code 扫描进行并行化。
+
+FastScan 是 PQ 的进一步压缩实现，使用 4-bit code 和更小 LUT，将查表过程转为寄存器内 shuffle。FastScan 的 ADC 阶段更偏 memory-bound，线程数过多可能更早触及带宽上限。因此本文重点比较 inter-query 与 intra-query 的差异，并在报告中保留负优化结果。
+
+\subsection{IVF-SIMD}
+
+IVF 在离线阶段用 KMeans 将 base 聚为 \texttt{nlist} 个簇。查询时先计算 query 到各簇中心的距离，选择最近的 \texttt{nprobe} 个簇，再扫描这些 inverted list 并用 SIMD 原始距离 rerank。实现中保留簇内连续存储信息，减少精排阶段的随机访问。
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[
+    scale=0.88,
+    transform shape,
+    box/.style={draw, rounded corners=2pt, align=center, minimum width=2.4cm, minimum height=0.7cm, font=\footnotesize},
+    sbox/.style={draw, fill=blue!3, rounded corners=1.5pt, align=center, minimum width=1.6cm, minimum height=0.55cm, font=\footnotesize},
+    arrow/.style={-Latex, thick}
+  ]
+    \node[box, fill=green!5] (query) at (0, 0) {查询向量 $q$};
+    \node[box, fill=yellow!5] (coarse) at (3.5, 0) {粗排阶段\\计算 $q$ 到 $K$ 个质心距离};
+    \node[box, fill=orange!5] (nprobe) at (7.0, 0) {取 top-\texttt{nprobe}\\选择候选簇};
+    \node[box, fill=blue!5] (fine) at (10.5, 0) {精排阶段\\SIMD 扫描 inverted lists};
+    \node[box, fill=red!5] (rerank) at (14.0, 0) {top-$k$ 堆\\输出结果};
+
+    \draw[arrow] (query) -- (coarse);
+    \draw[arrow] (coarse) -- (nprobe);
+    \draw[arrow] (nprobe) -- (fine);
+    \draw[arrow] (fine) -- (rerank);
+
+    \node[sbox] (c1) at (3.5, -1.3) {簇 0};
+    \node[sbox] (c2) at (5.2, -1.3) {簇 1};
+    \node[sbox] (c3) at (6.9, -1.3) {簇 2};
+    \node[sbox, draw=red!70, thick] (c4) at (8.6, -1.3) {簇 3 $\checkmark$};
+    \node[sbox] (ck) at (10.5, -1.3) {$\cdots$};
+
+    \draw[arrow, gray] (coarse) -- (c1); \draw[arrow, gray] (coarse) -- (c2);
+    \draw[arrow, gray] (coarse) -- (c3); \draw[arrow, red!70] (coarse) -- (c4);
+    \draw[arrow, gray] (coarse) -- (ck);
+
+    \node[align=center, font=\footnotesize, text width=4cm] at (10.5, -2.0) {扫描选中簇内向量\\$\delta(x,q)=1-\sum x_iq_i$ (SIMD)};
+    \draw[arrow, red!70] (c4) -- (fine);
+  \end{tikzpicture}
+  \caption{IVF 两阶段搜索流程}
+  \label{fig:ivf_pipeline}
+\end{figure}
+
+IVF 粗排计算量小，真正适合并行的是精排阶段。由于不同 inverted list 长度不均匀，dynamic 和 pool 调度更有意义。本文实现：
+\begin{itemize}
+  \item IVF-SIMD baseline；
+  \item query 级 Pthread / OpenMP 并行；
+  \item 单 query 内按 list 或候选段划分并行；
+  \item \texttt{nprobe} sweep，用于展示 latency-recall trade-off。
+\end{itemize}
+
+\subsection{IVF-PQ-SIMD}
+
+IVF-PQ 将 IVF 的候选缩减与 PQ 的压缩距离计算叠加。本文实现两种构建方式：
+\begin{enumerate}
+  \item global-PQ-first：先对所有 base 做全局 PQ 编码，再构建 IVF；
+  \item IVF-local-PQ：先构建 IVF，再在簇内维护局部 PQ 编码。
+\end{enumerate}
+
+查询时先 IVF 粗排选择 \texttt{nprobe} 个簇，再在选中簇内用 PQ ADC 得到候选并 rerank。由于 PQ 显著减少单次距离计算量，IVF-PQ 更容易转为内存访问和调度开销主导，线程数并非越多越好。
+
+\subsection{HNSW 进阶}
+
+HNSW 基于 hnswlib 实现。本文不修改 hnswlib 源码，而是通过封装访问底层图结构，实现以下并行策略：
+\begin{itemize}
+  \item baseline：原始 \texttt{searchKnn}；
+  \item 多入口点并行：多个线程从不同入口出发，最后 merge top-$k$；
+  \item 边划分并行：并行计算当前节点邻居距离；
+  \item Layer0 点划分：按节点 ID 范围切分底层图扫描；
+  \item IVF-HNSW 嵌套：先 IVF 粗排，再并行搜索多个小 HNSW。
+\end{itemize}
+图搜索路径依赖强，内部并行容易被同步和候选队列更新开销抵消，因此 HNSW 部分重点如实分析正优化与负优化。
+
+\section{实验设计}
+
+\subsection{平台与数据集}
+
+本地实验平台为 Intel Core i9-13900H，14 核 20 逻辑线程；编译器为 MSYS2 GCC 14.2.0。核心编译选项为：
+\[
+\texttt{-O2 -mavx2 -mfma -fopenmp -lpthread -std=c++17 -I.}
+\]
+数据集为 DEEP100K：100K 条 96 维 base 向量，10K 条 query，ground truth 为 top-100。所有正式本地实验取前 2000 条 query，$k=10$。报告中的平均延迟均为查询阶段平均延迟，不包含离线索引构建时间。
+
+\subsection{结果文件与参数}
+
+核心矩阵结果位于 \path{results/local/}，汇总文件为 \path{results/local_summary.csv}。补充 trade-off 结果为 \path{results/local_tradeoff.csv}。表 \ref{tab:coverage} 给出有效结果数量。
 
 \begin{table}[H]
   \centering\small
-  \begin{tabular}{p{3.0cm}p{1.9cm}p{4.4cm}p{3.2cm}}
+  \begin{tabular}{lrrl}
     \toprule
-    方法 & 每向量存储 & 粗排主要代价 & 备注 \\
+    算法族 & 核心矩阵结果 & 补充 trade-off & 线程集合 \\
     \midrule
-    Flat / Flat-SIMD & 384 B & $O(Nd)$ float32 点积 & 精确检索 \\
-    SQ-SIMD & 96 B & $O(Nd)$ uint8 L2 & 4$\times$ 压缩，recall 很稳 \\
-    PQ-SIMD ($M=8$) & 8 B & $O(NM)$ ADC 查表 & 48$\times$ 压缩 \\
-    FastScan ($M=16$, 4-bit) & 8 B & $O(NM)$ 小 LUT 查表 + 打包累加 & LUT 更小；非同码本对比 \\
+    Flat & 40 & 0 & 1,2,4,8,16 \\
+    SQ & 32 & 0 & 1,4,8,16 \\
+    PQ & 40 & 0 & 1,2,4,8,16 \\
+    FastScan & 32 & 0 & 1,4,8,16 \\
+    IVF & 45 & 5 & 1,2,4,8,16 \\
+    IVF-PQ & 45 & 10 & 1,2,4,8,16 \\
+    HNSW & 44 & 0 & 1,4,8,16 \\
+    \midrule
+    合计 & 278 & 15 & -- \\
     \bottomrule
   \end{tabular}
-  \caption{几种方法的复杂度与存储开销比较}
-  \label{tab:method_memory}
+  \caption{本地实验结果覆盖范围}
+  \label{tab:coverage}
 \end{table}
+
+核心矩阵的固定参数如下：
+\begin{itemize}
+  \item SQ/PQ 取 $p=100$，FastScan 取 $p=1000$；
+  \item IVF 取 \texttt{nlist=16,nprobe=4}；
+  \item IVF-PQ 取 \texttt{nlist=16,nprobe=4,p=100,mode=global}；
+  \item HNSW 取 \texttt{ef=50}，IVF-HNSW 嵌套取 \texttt{nlist=16,nprobe=4}。
+\end{itemize}
 
 \section{实验结果与分析}
 
-\subsection{核心方法对比：Windows AVX2 与鲲鹏 NEON}
+\subsection{核心矩阵最优结果}
 
-表 \ref{tab:core_compare} 汇总了当前最具有代表性的两组核心对比结果：Windows i9-13900H AVX2 与鲲鹏 920 NEON。为了保证 recall 与延迟的平衡，SQ 取 $p=100$，PQ 与 FastScan 均取 $p=1000$。表中 Recall@10 列取 i9 对应配置；鲲鹏上的 PQ / FastScan recall 在后文平台表中单列给出，与 i9 仅有 $10^{-4}$ 量级差异。
+表 \ref{tab:best} 汇总每个算法族的最优时延配置。加速比以同一算法族最快的 1 线程结果为基准，因此反映多线程扩展能力，而不是相对最朴素串行程序的总加速。
 
 \begin{table}[H]
-  \centering\small
+  \centering\scriptsize
+  \begin{tabular}{llrrrr}
+    \toprule
+    算法族 & 最优变体 & 线程 & Recall@10 & 延迟 / $\mu$s & 相对最快 1 线程 \\
+    \midrule
+    Flat & \texttt{flat\_pthread\_dynamic\_inter} & 16 & 0.99995 & 298.95 & $10.67\times$ \\
+    SQ & \texttt{sq\_pthread\_dynamic\_inter} & 16 & 0.99995 & 86.53 & $8.53\times$ \\
+    PQ & \texttt{pq\_pthread\_dynamic\_inter} & 16 & 0.70860 & 73.06 & $9.37\times$ \\
+    FastScan & \texttt{fastscan\_pthread\_dynamic\_inter} & 16 & 0.97525 & 125.81 & $10.51\times$ \\
+    IVF & \texttt{ivf\_pthread\_pool\_inter} & 16 & 0.96225 & 104.67 & $7.25\times$ \\
+    IVF-PQ & \texttt{ivfpq\_pthread\_dynamic\_inter} & 16 & 0.69180 & 27.44 & $8.71\times$ \\
+    HNSW & \texttt{hnsw\_baseline} & 1 & 0.96865 & 65.48 & $1.00\times$ \\
+    \bottomrule
+  \end{tabular}
+  \caption{各算法族核心矩阵最优点}
+  \label{tab:best}
+\end{table}
+
+Flat 与 SQ 都能达到接近精确搜索的召回。PQ 和 IVF-PQ 在 $p=100$ 下速度很快但 recall 较低，说明 PQ 的候选数需要与召回目标联动调节。FastScan 在 $p=1000$ 下保持 0.97525 的 recall，并且 inter-query 多线程能把平均延迟压到 125.81 $\mu$s。IVF 的 recall 与速度介于 Flat 和 PQ 系列之间，\texttt{nprobe=4} 时达到 0.96225。
+
+\subsection{Inter-query 与 Intra-query}
+
+表 \ref{tab:granularity} 对比每个算法族最优的 inter-query 与 intra-query 结果。除 HNSW 外，所有扫描类算法的最佳结果均来自 inter-query。
+
+\begin{table}[H]
+  \centering\scriptsize
+  \begin{tabular}{lrrrr}
+    \toprule
+    算法族 & 最优 inter 延迟 / $\mu$s & inter 线程 & 最优 intra 延迟 / $\mu$s & intra 线程 \\
+    \midrule
+    Flat & 298.95 & 16 & 1726.09 & 16 \\
+    SQ & 86.53 & 16 & 704.31 & 4 \\
+    PQ & 73.06 & 16 & 528.97 & 2 \\
+    FastScan & 125.81 & 16 & 1322.76 & 1 \\
+    IVF & 104.67 & 16 & 628.62 & 2 \\
+    IVF-PQ & 27.44 & 16 & 410.31 & 4 \\
+    \bottomrule
+  \end{tabular}
+  \caption{query 级并行与 query 内并行的最优结果对比}
+  \label{tab:granularity}
+\end{table}
+
+原因主要有三点。第一，DEEP100K 实验使用 2000 条 query，query 级并行天然有足够任务数，线程间几乎没有共享状态。第二，intra-query 需要多个局部 top-$k$ 堆和最终 merge，固定开销在每条 query 上重复出现。第三，PQ、FastScan 和 IVF-PQ 的单 query 内部计算已经被量化压缩，继续切分会更快遇到 cache、内存带宽和同步瓶颈。
+
+\subsection{Pthread 与 OpenMP 调度}
+
+表 \ref{tab:scheduler} 给出 16 线程下若干代表性 inter-query 结果。Pthread dynamic 在多数算法中优于 OpenMP，Pthread pool 在 IVF 中表现最好。
+
+\begin{table}[H]
+  \centering\scriptsize
+  \begin{tabular}{lrrrr}
+    \toprule
+    算法 & OMP inter & Pthread static & Pthread dynamic & Pthread pool \\
+    \midrule
+    Flat & 341.55 & 340.96 & \textbf{298.95} & 347.41 \\
+    SQ & 118.30 & 126.12 & \textbf{86.53} & 92.42 \\
+    PQ & 119.30 & 75.67 & \textbf{73.06} & 252.03 \\
+    FastScan & 139.26 & 137.33 & \textbf{125.81} & 126.73 \\
+    IVF & 113.90 & 132.08 & 116.94 & \textbf{104.67} \\
+    IVF-PQ & 106.84 & 29.81 & \textbf{27.44} & 55.08 \\
+    \bottomrule
+  \end{tabular}
+  \caption{16 线程 inter-query 下的调度策略对比，单位为 $\mu$s}
+  \label{tab:scheduler}
+\end{table}
+
+Dynamic 的优势来自更好的尾部负载均衡。虽然每次抢任务需要原子操作，但 query 数量足够多，单个 query 的计算量也远大于一次 \texttt{fetch\_add}。IVF 的 pool 结果略优，说明 inverted list 扫描和索引对象访问使线程复用收益更明显。OpenMP 写法简洁，但在本机运行环境中调度常数和 runtime 行为不总是最优。
+
+\subsection{Flat 线程伸缩性}
+
+Flat 的 inter-query 线程伸缩性如表 \ref{tab:flat_scaling}。从 1 到 16 线程，三类 Pthread 变体均有明显加速，但 8 到 16 线程收益已经下降，说明全量扫描逐渐接近内存带宽上限。
+
+\begin{table}[H]
+  \centering\scriptsize
   \begin{tabular}{lrrrrr}
     \toprule
-    方法 & Recall@10 (i9) & i9 AVX2 ($\mu$s) & 鲲鹏 NEON ($\mu$s) & i9 vs base & 鲲鹏 vs base \\
+    变体 & 1 线程 & 2 线程 & 4 线程 & 8 线程 & 16 线程 \\
     \midrule
-    Baseline Flat & 0.99995 & 4571.62 & 16120.74 & 1.00$\times$ & 1.00$\times$ \\
-    Flat-SIMD & 0.99995 & 1756.11 & 5821.16 & 2.60$\times$ & 2.77$\times$ \\
-    SQ-SIMD ($p=100$) & 0.99995 & 427.01 & 2422.68 & 10.71$\times$ & 6.65$\times$ \\
-    PQ-SIMD ($p=1000$) & 0.98330 & 761.99 & 1984.35 & 6.00$\times$ & 8.12$\times$ \\
-    FastScan ($p=1000$) & 0.97535 & 541.69 & 1339.75 & 8.44$\times$ & 12.03$\times$ \\
+    OMP inter & 6769.48 & 1737.01 & 634.21 & 433.47 & 341.55 \\
+    Pthread static inter & 5160.16 & 2214.15 & 675.36 & 436.45 & 340.96 \\
+    Pthread dynamic inter & 3312.96 & 1407.33 & 563.03 & 388.78 & \textbf{298.95} \\
+    Pthread pool inter & 3188.90 & 1542.36 & 578.00 & 398.82 & 347.41 \\
     \bottomrule
   \end{tabular}
-  \caption{核心方法在 Windows i9 AVX2 (256-bit) 与鲲鹏 920 NEON (128-bit) 上的对比}
-  \label{tab:core_compare}
+  \caption{Flat inter-query 不同线程数延迟，单位为 $\mu$s}
+  \label{tab:flat_scaling}
 \end{table}
 
-\noindent\textbf{AVX-512 结果。} Xeon Platinum 8358 上的 Flat-AVX-512 为 1865.11 $\mu$s，相对本机串行 7208.06 $\mu$s 加速 $3.86\times$。由于该容器禁止 perf/VTune 采样，该组结果仅作为 512-bit SIMD 的时延参考，不与 i9 / 鲲鹏的相对加速直接横比。
+\subsection{IVF / IVF-PQ 的 Latency-Recall Trade-off}
 
-核心结论很直接：Flat-SIMD 只降低点积常数，仍受全扫描带宽限制；SQ 在 $p=100$ 时保持 Recall@10 近乎无损并取得最低时延；PQ 需要较大 $p$ 才恢复 recall；FastScan 在 $p=1000$ 时同时优于标准 PQ（i9: 761.99 $\to$ 541.69 $\mu$s；鲲鹏: 1984.35 $\to$ 1339.75 $\mu$s）。
-
-\noindent\textbf{关于表 \ref{tab:core_compare} 与表 \ref{tab:scale_sweep} 绝对值差异的说明。} 前者为默认调度下的核心正式结果，后者在 P-core 绑核、独立 ground truth 条件下测得，绝对时延不可直接比较；规模实验重在观察增长趋势。$N=10$K$\to25$K 时 Flat-AVX2 跳增 7.9$\times$（$N$ 仅增 2.5$\times$），推测 $10$K 子集可驻留 L3 cache 而 $25$K 已触发主存访问，侧面印证 Flat 的带宽敏感性。
-
-\subsection{SQ / PQ 的时延-召回率权衡}
-
-Windows i9 AVX2 的 $p$-sweep 如图 \ref{fig:tradeoff_i9}。SQ 的 recall 基本稳定，延迟主要随 rerank 候选数 $p$ 增长；PQ 更依赖 $p$，小 $p$ 很快但 recall 明显下降。
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.78\textwidth]{sq_vs_pq_i9.png}
-  \caption{i9-13900H 上 SQ-AVX2 与 PQ-AVX2 的时延-召回率权衡（横轴 = Recall@10，纵轴 = latency）}
-  \label{fig:tradeoff_i9}
-\end{figure}
-
-关键点是：SQ-AVX2 在 $p=100$ 时为 427.01 $\mu$s、Recall@10 = 0.99995；PQ-AVX2 在 $p=100$ 时虽有 398.53 $\mu$s，但 Recall@10 只有 0.70860；提高到 $p=1000$ 后 PQ 达到 761.99 $\mu$s、Recall@10 = 0.98330。三平台曲线见图 \ref{fig:sq_3plat}，形状基本一致，纵轴差距主要来自 SIMD 宽度、频率和带宽。
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.49\textwidth]{sq_tradeoff_3platforms.png}\hfill
-  \includegraphics[width=0.49\textwidth]{pq_tradeoff_3platforms.png}
-  \caption{三平台 tradeoff：左 = SQ，右 = PQ。曲线形状跨平台一致；纵轴差距来自 SIMD 宽度 + 频率 + 带宽}
-  \label{fig:sq_3plat}
-\end{figure}
-
-\subsection{对齐、软件预取与问题规模}
-
-本节用三组补充实验覆盖对齐、预取和问题规模。
-
-\paragraph{对齐与非对齐。}
-E1 使用 64B 对齐、默认 \texttt{new[]} 和 1 字节偏移三种分配方式。表 \ref{tab:align_prefetch} 显示，AArch64 NEON 能执行非对齐访问，但 1B 偏移仍带来约 6.45\% 损失，说明 cache line split 仍有代价。
-
-\paragraph{软件预取。}
-E2 在 Flat-SIMD 流式扫描上尝试多种预取距离。所有显式预取都没有超过无预取基线，说明该访问模式足够顺序，硬件预取器已经覆盖主要需求。需要指出的是，该结论仅针对 Flat 的顺序扫描访问模式成立；对于 PQ ADC 粗排中 LUT 的随机索引访问（见 3.4 节），其访问模式不可预测，硬件预取器同样难以发挥作用，这也是后文选择 FastScan 寄存器内查表路线而非继续在标准 PQ 上优化预取的原因之一。
+表 \ref{tab:ivf_tradeoff} 展示 IVF 在 16 线程 Pthread pool inter-query 下调整 \texttt{nprobe} 的结果。随着 \texttt{nprobe} 增大，扫描簇数增加，recall 单调上升，延迟也总体上升。\texttt{nprobe=4} 是本地核心矩阵中使用的折中点，Recall@10 为 0.96225。
 
 \begin{table}[H]
   \centering\small
-  \begin{tabular}{lrr}
+  \begin{tabular}{rrrr}
     \toprule
-    实验项 & 中位总时延（2000 queries, $\mu$s） & 相对基线比值（>1 更快） \\
+    \texttt{nprobe} & Recall@10 & 延迟 / $\mu$s & 说明 \\
     \midrule
-    E1: 64B 对齐 & 6238505 & 1.0000$\times$ \\
-    E1: 默认 \texttt{new[]} & 6143142 & 1.0155$\times$ \\
-    E1: 1B 偏移非对齐 & 6668860 & 0.9355$\times$ \\
-    \midrule
-    E2: 无预取 & 6219560 & 1.0000$\times$ \\
-    E2: 预取距离 4 & 6220804 & 0.9998$\times$ \\
-    E2: 预取距离 8 & 6752636 & 0.9211$\times$ \\
-    E2: 预取距离 16 & 6485157 & 0.9591$\times$ \\
-    E2: 预取距离 32 & 6477509 & 0.9602$\times$ \\
+    1 & 0.73665 & 61.47 & 最低延迟，召回不足 \\
+    2 & 0.87870 & 93.41 & 召回明显提升 \\
+    4 & 0.96225 & 131.54 & 较好折中点 \\
+    8 & 0.99430 & 210.35 & 接近精确召回 \\
+    16 & 0.99995 & 455.89 & 几乎退化为更大范围扫描 \\
     \bottomrule
   \end{tabular}
-  \caption{ARM 历史环境中的对齐 / 预取实验结果}
-  \label{tab:align_prefetch}
+  \caption{IVF 的 \texttt{nprobe} trade-off，\texttt{nlist=16}，16 线程}
+  \label{tab:ivf_tradeoff}
 \end{table}
 
-\paragraph{问题规模。}
-规模实验在 Windows i9-13900H (P-core 绑核) 上取 10K、25K、50K、100K 四个子集，每个规模独立重算 ground truth。结果见表 \ref{tab:scale_sweep} 与图 \ref{fig:scale_sweep}。
+表 \ref{tab:ivfpq_tradeoff} 对比 IVF-PQ 的 global-PQ-first 与 IVF-local-PQ 两种构建方式。Local-PQ 在本地数据上 recall 更高，尤其在低 \texttt{nprobe} 下优势明显，因为每个簇内单独量化能减少局部误差；但簇内 PQ 结构更复杂，构建与内存布局成本更高。Global-PQ-first 实现简单、存储统一，但在 $p=100$ 时 recall 上限明显较低。
 
 \begin{table}[H]
-  \centering\small
+  \centering\scriptsize
   \begin{tabular}{rrrrr}
     \toprule
-    $N$ & Baseline ($\mu$s) & Flat-AVX2 ($\mu$s) & SQ ($p=100$) & PQ ($p=1000$) \\
+    \texttt{nprobe} & Global recall & Global 延迟 / $\mu$s & Local recall & Local 延迟 / $\mu$s \\
     \midrule
-    10\,000  & 485.76   & 104.00  & 111.09  & 529.60 \\
-    25\,000  & 4\,096.51 & 822.34  & 335.90  & 1\,757.78 \\
-    50\,000  & 9\,620.94 & 4\,066.99 & 1\,592.38 & 3\,457.70 \\
-    100\,000 & 17\,313.80 & 9\,972.43 & 783.31 & 4\,746.57 \\
+    1 & 0.56240 & 49.73 & 0.65885 & 12.74 \\
+    2 & 0.64840 & 59.39 & 0.76480 & 21.08 \\
+    4 & 0.69180 & 85.08 & 0.82035 & 28.99 \\
+    8 & 0.70725 & 47.24 & 0.83760 & 48.15 \\
+    16 & 0.70870 & 81.43 & 0.84010 & 92.65 \\
     \bottomrule
   \end{tabular}
-  \caption{Windows i9-13900H 上的规模扫描（单查询平均时延，P-core 绑核，per-$N$ 独立 ground truth）}
-  \label{tab:scale_sweep}
+  \caption{IVF-PQ 两种构建方式的 \texttt{nprobe} trade-off，\texttt{p=100}，16 线程}
+  \label{tab:ivfpq_tradeoff}
 \end{table}
 
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.6\textwidth]{scale_sweep.png}
-  \caption{规模实验的 log-log 曲线：Baseline 与 Flat-AVX2 接近 $O(N)$ 线性增长，SQ / PQ 时延对 $N$ 增长较不敏感，但不宜据此断言严格亚线性（固定 $p$ 下粗排仍须扫描 $N$ 条）}
-  \label{fig:scale_sweep}
-\end{figure}
+需要说明的是，IVF-PQ 的多线程结果存在一定运行噪声，尤其是在延迟已经降到几十微秒时，线程调度、缓存状态和系统后台负载都会造成非单调波动。因此表 \ref{tab:ivfpq_tradeoff} 更适合观察 recall 趋势和两种构建方式差异，而非把每一个延迟点解释为严格单调曲线。
 
-Baseline 与 Flat-AVX2 随 $N$ 近似线性增长，符合全扫描 $O(Nd)$。SQ / PQ 在固定 $p$ 下粗排仍须扫描全部 $N$ 条向量，理论上不应严格亚线性；表 \ref{tab:scale_sweep} 中二者的曲线波动（如 SQ 在 $N=100$K 反而低于 $N=50$K）更多反映缓存状态、候选维护开销和绑核测量噪声的综合影响。本文据此仅得出定性结论：量化方法显著降低了全量 float32 扫描成本，使端到端时延对 $N$ 更不敏感。
+\subsection{HNSW 图搜索}
 
-\subsection{手写 SIMD 与自动向量化对比}
-
-根据自动向量化与手写 SIMD 对比的研究惯例，本文构造了 96 维点积微基准，对比三种实现：禁用自动向量化的标量版本、允许编译器自动向量化的版本，以及手写 AVX2 版本。表 \ref{tab:autovec} 给出结果。
+HNSW 的结果见表 \ref{tab:hnsw}。baseline 最快，但 Recall@10 只有 0.96865。多入口点和边划分能提升召回，其中 \texttt{hnsw\_edge\_omp} 在 0.99915 recall 下延迟为 390.91 $\mu$s，\texttt{hnsw\_multi\_entry\_omp} 在 4 线程下达到 1.00000 recall，延迟为 464.85 $\mu$s。Layer0 点划分接近底层全扫描，召回高但延迟很大。
 
 \begin{table}[H]
-  \centering\small
-  \begin{tabular}{lrr}
+  \centering\scriptsize
+  \begin{tabular}{lrrp{5.8cm}}
     \toprule
-    版本 & 单次调用耗时（ns） & 相对标量加速比 \\
+    变体 & 线程 & Recall@10 & 延迟 / $\mu$s 与分析 \\
     \midrule
-    标量禁向量化 & 26.7075 & 1.00$\times$ \\
-    自动向量化 & 20.9218 & 1.28$\times$ \\
-    手写 AVX2 & 3.16265 & 8.44$\times$ \\
+    \texttt{hnsw\_baseline} & 1 & 0.96865 & 65.48，最快，但召回低于高精度要求 \\
+    \texttt{hnsw\_ivf\_nested\_static} & 16 & 0.94705 & 221.90，速度较快但召回下降 \\
+    \texttt{hnsw\_edge\_omp} & 1 & 0.99915 & 390.91，高召回代表点 \\
+    \texttt{hnsw\_multi\_entry\_omp} & 4 & 1.00000 & 464.85，多入口点提高覆盖面 \\
+    \texttt{hnsw\_layer0\_static} & 4 & 0.99995 & 3400.41，接近底层点划分扫描，代价过高 \\
     \bottomrule
   \end{tabular}
-  \caption{Windows i9-13900H 上手写 SIMD 与自动向量化对比}
-  \label{tab:autovec}
+  \caption{HNSW 代表性结果}
+  \label{tab:hnsw}
 \end{table}
 
-编译器向量化报告中出现了``loop vectorized using 32 byte vectors''，说明 autovec 确实使用了 256-bit 向量指令；但其加速只有 1.28$\times$。原因是它在循环内做水平归约，形成 \texttt{vaddss}/\texttt{vshufps} 长依赖链。手写 AVX2 把归约推迟到循环结束，并使用 4 个独立 FMA 累加器，因此相对 autovec 仍快 6.62$\times$。
+图搜索与向量扫描的差别在于搜索路径强依赖当前候选队列。线程越多，并不意味着能均匀拆分出更多独立工作。边划分在邻居数较小时无法摊薄同步成本，多入口点更像用额外计算换 recall，Layer0 点划分则牺牲了 HNSW 本身减少访问点的优势。因此 HNSW 的并行优化目标应是 recall-latency 折中，而不是单纯追求线程加速比。
 
-\begin{table}[H]
-  \centering\small
-  \begin{tabular}{p{2.6cm}p{4.4cm}p{4.9cm}}
-    \toprule
-    版本 & 反汇编关键形态 & 性能含义 \\
-    \midrule
-    scalar\_novec & \texttt{vmulss} + \texttt{vaddss}，每轮 1 float & 未使用 256-bit lane，吞吐最低 \\
-    autovec & \texttt{vmulps ymm} 后立即插入多条 \texttt{vshufps}/\texttt{vaddss} & 有向量乘法，但归约链限制 ILP \\
-    manual AVX2 & 4 路 \texttt{vfmadd231ps ymm} 独立累加，循环后归约 & 同时利用 FMA 端口与乱序窗口 \\
-    \bottomrule
-  \end{tabular}
-  \caption{手写 SIMD 与自动向量化的内循环形态差异（由 \texttt{objdump -Cd -Mintel} 摘要得到）}
-  \label{tab:asm_summary}
-\end{table}
+\section{要求覆盖情况}
 
-\subsection{VTune 与汇编层面的性能剖析}
+表 \ref{tab:req} 对照作业要求列出完成情况。
 
-Windows i9-13900H 上的 VTune 结果进一步解释了三类方法的瓶颈差异。表 \ref{tab:vtune} 汇总最关键的 Top-Down 指标。
+\begin{longtable}{p{4.1cm}p{9.2cm}}
+  \toprule
+  要求项 & 完成情况 \\
+  \midrule
+  Pthread 基础并行 & Flat、SQ、PQ、FastScan、IVF、IVF-PQ 均实现 static / dynamic / pool 的 inter 和 intra 版本；HNSW 实现 static / dynamic / pool 相关策略。 \\
+  OpenMP 基础并行 & 对 Flat、SQ、PQ、FastScan、IVF、IVF-PQ 和 HNSW 主要策略实现 OpenMP 版本，编译使用 \texttt{-fopenmp}。 \\
+  与 SIMD 结合 & 所有扫描类方法统一调用 \path{simd/} 下的 AVX2 / NEON 距离或查表内核。 \\
+  Flat-SIMD 多线程 & 完成 query 级并行与 base 划分并行，比较不同线程数和调度方式。 \\
+  PQ-SIMD 多线程 & 完成 PQ ADC 的 inter / intra 并行，分析 LUT 查表后 memory-bound 对扩展性的影响。 \\
+  FastScan 进阶 & 实现 4-bit PQ FastScan 的 Pthread / OpenMP 并行版本，并给出补充矩阵。 \\
+  IVF-SIMD baseline 与多线程 & 实现 IVF 索引、SIMD 搜索、Pthread / OpenMP 并行，并补充 \texttt{nprobe} trade-off。 \\
+  IVF-PQ-SIMD baseline 与多线程 & 实现 IVF-PQ、两种构建模式、Pthread / OpenMP 并行，并比较 global/local 构建差异。 \\
+  HNSW 进阶 & 基于 hnswlib 实现 baseline、多入口点、边划分、Layer0 点划分与 IVF-HNSW 嵌套结构。 \\
+  性能测试与报告分析 & 本地收集 278 组核心矩阵结果和 15 组补充 trade-off 结果，分析线程数、调度、负载均衡、cache / 内存访问和负优化。 \\
+  \bottomrule
+  \caption{作业要求覆盖情况}
+  \label{tab:req}
+\end{longtable}
 
-\begin{table}[H]
-  \centering\small
-  \begin{tabular}{p{2.5cm}ccccc>{\raggedright\arraybackslash}p{2.6cm}}
-    \toprule
-    版本 & CPI & Retiring & Front-End & Back-End & \shortstack{Memory Bound\\{\scriptsize($\subseteq$ Back-End)}} & 关键特征 \\
-    \midrule
-    Flat-AVX2 (P-core bound) & 0.904 & 19.5\% & 1.5\% & 71.4\% & 56.3\% & 256-bit FP uOps 33.8\% \\
-    SQ-AVX2 ($p=100$, default sched) & 0.307 & 47.5\% & 5.9\% & 23.0\% & 8.7\% & 256-bit Int SIMD 28.6\% \\
-    PQ-AVX2 ($p=1000$, default sched) & 0.270 & 68.5\% & 8.0\% & 16.7\% & 0.6\% & 3+ ports 85.9\% \\
-    \bottomrule
-  \end{tabular}
-  \caption{Windows i9-13900H 上的 VTune 微体系结构结果}
-  \label{tab:vtune}
-\end{table}
+\section{总结}
 
-需要说明的是：表中 Flat-AVX2 采用 P-core 绑核采样，而 SQ / PQ 取自同一台机器上的默认 Windows 单线程调度样本；因此此表主要用于识别三类方法的\emph{瓶颈类型}，不直接比较三行的绝对频率或 CPI 高低。
+本实验从单一 SIMD 内核扩展为完整 ANN 并行检索框架。最重要的结论是：在批量 query 场景中，query 级并行比单 query 内切分更稳健。它避免了局部 top-$k$ merge 和频繁同步，并能自然复用 SIMD 内核。Pthread dynamic 对尾部负载和系统调度噪声更宽容，线程池在 IVF 这类索引结构复用场景下也有优势。OpenMP 开发成本低，但 runtime 调度不一定总能取得最低延迟。
 
-结论集中在瓶颈类型：Flat-AVX2 已明显带宽受限（Memory Bandwidth 占 91.9\% 时钟），继续优化 FMA 本身收益有限；SQ-AVX2 同时使用整数 SIMD 粗排和较小 rerank 窗口，是当前最均衡的单点；PQ-AVX2 的 Retiring 比例最高，说明查询阶段较高效，后续主要改 ADC 查表常数。
+从算法角度看，Flat 提供高召回但受内存带宽限制；SQ 在本实验中取得近乎无损 recall 和较低延迟；PQ 与 IVF-PQ 速度很快但需要更大的 $p$ 或更好的构建方式提高 recall；FastScan 说明数据布局和查表方式会改变瓶颈；IVF 通过 \texttt{nprobe} 提供清晰的 latency-recall 旋钮；HNSW 则体现了图搜索并行化的挑战，内部并行更多是为高召回服务，而不是默认提升速度。
 
-\subsection{SoA + blocking 的编码阶段实测加速}
-\label{sec:soa_speedup}
+后续可以继续完善三点：第一，在鲲鹏平台用 \texttt{test.sh 2 1} 复跑完整矩阵，补齐 ARM NEON 与 x86 AVX2 的多线程对比；第二，对 SQ/PQ/FastScan 做更系统的 $p$ sweep，形成更完整的 latency-recall 曲线；第三，对 HNSW 尝试更细粒度的共享候选队列和无锁 visited 标记，验证是否能降低图搜索并行的同步成本。
 
-为量化 3.5 节 SoA + blocking 的收益，本文对 100\,000 条 12 维子向量、$K_s=256$ 的一次 k-means \texttt{argmin} 分配做微基准。结果如表 \ref{tab:soa_vs_aos}。
+\section*{AI 辅助说明}
+\addcontentsline{toc}{section}{AI 辅助说明}
 
-\begin{table}[H]
-  \centering\small
-  \begin{tabular}{lrr}
-    \toprule
-    实现 & 单次 argmin 全扫 (ms) & 加速比 \\
-    \midrule
-    AoS baseline（标量逐 centroid） & $146.83 \pm 15.30$ & 1.00$\times$ \\
-    SoA + 32-tile blocking（跨 centroid AVX2 FMA） & $42.44 \pm 2.16$ & \textbf{3.46}$\times$ \\
-    \bottomrule
-  \end{tabular}
-  \caption{PQ 编码阶段 argmin（$N=100K$，$d_{sub}=12$，$K_s=256$）的 AoS 与 SoA+blocking 对比（i9-13900H AVX2，P-core 绑核）}
-  \label{tab:soa_vs_aos}
-\end{table}
-
-SoA + blocking 加速 $3.46\times$。主要原因是同一维度的 8 个 centroid 可一次装入 SIMD 寄存器，$32$-tile 又能让 centroid 窗口驻留 L1；同时跨 centroid FMA 消除了单 centroid 标量链的长依赖。
-
-\subsection{Gather vs Shuffle：查表累加的路线选择依据}
-\label{sec:gather_vs_shuffle}
-
-为验证 FastScan 路线选择，本文对 100\,000 条 $M=8$ PQ code 比较三种 ADC 累加方式：标量查表、AVX2 gather、4-bit shuffle。结果见表 \ref{tab:gather_vs_shuffle}。
-
-\begin{table}[H]
-  \centering\small
-  \begin{tabular}{lrr}
-    \toprule
-    路线 & ns / row & 相对标量 \\
-    \midrule
-    scalar（基线） & $13.33 \pm 0.91$ & 1.00$\times$ \\
-    gather（\texttt{\_mm256\_i32gather\_ps}） & $52.49 \pm 3.21$ & \textbf{0.25}$\times$（慢 3.9$\times$） \\
-    shuffle（FastScan 风格 4-bit LUT） & $13.38 \pm 2.67$ & 1.00$\times$ \\
-    \bottomrule
-  \end{tabular}
-  \caption{ADC 查表累加的三种路线对比（i9-13900H AVX2，P-core 绑核）}
-  \label{tab:gather_vs_shuffle}
-\end{table}
-
-结论：AVX2 gather 比标量查表慢 3.9$\times$，不适合这种随机索引 LUT；shuffle 与标量基本持平，但可配合 4-bit 小 LUT、编码打包和 batch 扫描降低端到端常数。因此本文选择 shuffle/table-lookup 路线。
-
-需要澄清的是，表 \ref{tab:gather_vs_shuffle} 是单条 ADC 查表的微基准（ns/row），shuffle 与标量持平不意味着对端到端无贡献。FastScan 的加速来自三项联合收益：(1) 4-bit LUT 从 $M\times 256\times 4$ B 缩至 $M\times 16$ B，批量扫描时 LUT 可驻留 L1；(2) double-nibble 打包使 $M=16$ 仍保持 8 B/code；(3) shuffle 路线对每个子段批量处理 32 个 code，把多次标量索引替换为少量向量 shuffle 与向量加法，减少标量循环中的分支与地址计算开销。VTune 显示标准 PQ 的 Retiring 占比 68.5\% 而 Memory Bound 仅 0.6\%，印证瓶颈在控制开销而非带宽——shuffle 正好针对此瓶颈。
-
-\subsection{PQ-FastScan 查表累加优化的实测结果}
-\label{sec:fastscan_results}
-
-标准 PQ 的 ADC 查表累加直接决定粗排常数项。FastScan 用寄存器内 4-bit 查表替代随机 LUT 索引，并采用 $M=16,K_s=16$ 的 double-nibble code 打包。表 \ref{tab:fastscan} 比较的是标准 PQ（$M=8,K_s=256$）与 FastScan（$M=16,K_s=16$）两种同为 8 B/code 的端到端量化设计。
-
-\begin{table}[H]
-  \centering\small
-  \begin{tabular}{rrrr}
-    \toprule
-    $p$ & Recall@10 & FastScan ($\mu$s) & 相对标准 PQ 比值（>1 更快） \\
-    \midrule
-    40 & 0.51400 & 536.447 & 1.72$\times$ \\
-    100 & 0.70075 & 529.995 & 0.75$\times$ \\
-    500 & 0.93205 & 526.872 & 1.59$\times$ \\
-    1000 & 0.97535 & 541.689 & 1.41$\times$ \\
-    2000 & 0.99265 & 571.850 & 2.87$\times$ \\
-    5000 & 0.99875 & 674.161 & 4.51$\times$ \\
-    \bottomrule
-  \end{tabular}
-  \caption{Windows i9-13900H 上 PQ-FastScan 的正式结果（P-core 绑核）}
-  \label{tab:fastscan}
-\end{table}
-
-在 i9 上，FastScan 从 $p=40$ 到 $p=1000$ 时延基本保持在 527--542 $\mu$s，Recall@10 从 0.514 提升到 0.975；$p=5000$ 时达到 0.99875 recall，并把标准 PQ 的 3042.08 $\mu$s 降到 674.16 $\mu$s。
-
-需要特别说明 $p=100$ 处的异常数据点：该点 FastScan 相对标准 PQ 仅为 0.75$\times$（即慢于标准 PQ）。由于标准 PQ 与 FastScan 使用不同码本配置（$M=8,K_s=256$ vs $M=16,K_s=16$），且端到端时间同时包含粗排、候选维护与 rerank 三部分，仅凭总时延无法把该点完全归因到某一个内核。本文保守地将其视为小 $p$ 区间的实现常数差异与测量波动共同作用；更可靠的结论来自 $p\ge 500$ 的高 recall 区间，以及 i9 / 鲲鹏两平台上 FastScan 相对 PQ 的整体左下移趋势（图 \ref{fig:fastscan_tradeoff}）。
-
-鲲鹏 920 结果见表 \ref{tab:fastscan_kunpeng}。$p=1000$ 时 FastScan 为 1339.75 $\mu$s、Recall@10 = 0.975253，相对标准 PQ-SIMD 的 1984.35 $\mu$s 提升 1.48$\times$；$p=5000$ 时提升扩大到 2.34$\times$。
-
-\begin{table}[H]
-  \centering\small
-  \begin{tabular}{rrrr}
-    \toprule
-    $p$ & Recall@10 & FastScan ($\mu$s) & 相对标准 PQ 比值（>1 更快） \\
-    \midrule
-    500 & 0.932005 & 1239.10 & 1.26$\times$ \\
-    1000 & 0.975253 & 1339.75 & 1.48$\times$ \\
-    5000 & 0.998700 & 1925.50 & 2.34$\times$ \\
-    \bottomrule
-  \end{tabular}
-  \caption{鲲鹏 920 上 PQ-FastScan 的正式结果（\texttt{test.sh} 提交）}
-  \label{tab:fastscan_kunpeng}
-\end{table}
-
-图 \ref{fig:fastscan_tradeoff} 给出两平台曲线。高 recall 区间 FastScan 均位于 PQ 左下方，即相同 recall 下时延更低。
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.96\textwidth]{fastscan_tradeoff.png}
-  \caption{PQ 与 PQ-FastScan 的时延-召回率权衡（横轴 = Recall@10，纵轴 = latency）：左，Windows i9-13900H AVX2（P-core 绑核）；右，鲲鹏 920 NEON（\texttt{test.sh} 提交）}
-  \label{fig:fastscan_tradeoff}
-\end{figure}
-
-\paragraph{Recall@$k$ 敏感性。}
-考察不同召回深度，本文在 Windows P-core 上测试了 Flat/SQ/PQ/FastScan 四法在 $k\in\{1, 10, 100\}$ 下的 recall，见表 \ref{tab:recall_at_k}。
-
-\begin{table}[H]
-  \centering\small
-  \begin{tabular}{lccc}
-    \toprule
-    方法 & Recall@1 & Recall@10 & Recall@100 \\
-    \midrule
-    Flat-AVX2              & 1.00000 & 0.99995 & 0.99999 \\
-    SQ-AVX2 ($p=100$)       & 1.00000 & 0.99995 & 0.94019 \\
-    PQ-AVX2 ($p=1000$)      & 0.99400 & 0.98315 & 0.92512 \\
-    PQ-FastScan ($p=1000$)  & 0.99350 & 0.97525 & 0.89219 \\
-    \bottomrule
-  \end{tabular}
-  \caption{Recall 在不同 top-$k$ 深度下的敏感性}
-  \label{tab:recall_at_k}
-\end{table}
-
-结论：$k=1$ 时所有方法几乎饱和；$k=100$ 时量化方法下降明显，说明部署时应把 $p$ 与查询 $k$ 联动调节，通常需保证 $p/k$ 足够大。
-
-\subsection{跨平台架构差异分析}
-\label{sec:arch}
-
-跨平台差异主要来自三点。第一，SIMD 宽度不是线性收益：NEON 为 128 bit，AVX2 为 256 bit，AVX-512 为 512 bit，但 Flat-AVX2 已受 DRAM 带宽限制，继续加宽 SIMD 的边际收益会下降。第二，频率、编译器版本和调度环境会共同影响绝对时延；VTune 记录到 i9 P-core 绑核样本的平均频率为 5.086 GHz，而鲲鹏与 Xeon 容器侧没有 PMU / 频率采样权限，只能结合时延比例和汇编间接分析。第三，i9 的 P/E-core 混合调度会引入测量噪声，因此 Windows 关键实验需要绑到 P-core。
-
-\noindent\textbf{关于鲲鹏相对加速比常高于 i9 的讨论。} 表 \ref{tab:core_compare} 中鲲鹏 920（128-bit NEON）在 Flat、PQ 与 FastScan 上的相对基线加速比高于 i9（256-bit AVX2），例如 Flat-SIMD $2.77\times$ vs $2.60\times$，FastScan $12.03\times$ vs $8.44\times$；但 SQ 是例外，i9 上的 $10.71\times$ 高于鲲鹏的 $6.65\times$。这种相对加速比差异首先受各平台串行基线影响：鲲鹏串行基线（$16120.74\,\mu\text{s}$）是 i9 的 $3.53$ 倍，远超频率和 SIMD 宽度的硬件差距——GCC 10.3.1 对标量代码的优化可能弱于 GCC 14.2.0，微架构与 cache 子系统的差异也会共同影响。较慢的基线会放大相对加速比，这是该指标作为跨平台比较的内在局限，因此本文始终同时报告绝对时延。鲲鹏缺少 perf 数据（见 2.3 节），但汇编输出显示其标量内循环以 \texttt{fmla} 单发射为主，未做有效的循环展开或指令重排，为上述推断提供了定性支撑。
-
-FastScan 在 x86 与 ARM 上分别取得 $1.41\times$ / $1.48\times$ 的相对 PQ 增益，说明 4-bit LUT、寄存器内查表和打包布局的收益主要来自算法结构，而不是某个平台独有指令。表 \ref{tab:bottleneck} 总结了各方法的瓶颈与后续优化方向。
-
-\begin{table}[H]
-  \centering\small
-  \begin{tabular}{p{2.3cm}p{2.0cm}p{3.6cm}p{2.5cm}>{\centering\arraybackslash}p{1.9cm}}
-    \toprule
-    方法 & 主要瓶颈 & 证据 & 对应优化路径 & 本实验对照 \\
-    \midrule
-    Flat-AVX2 & DRAM Bandwidth & 91.9\% of clocks, 42.1 GB/s & 量化压缩 / prefetch & SQ/PQ \\
-    SQ-AVX2 ($p=100$) & Balanced & Back-End 23\%, MemBound 8.7\% & 更激进量化 & PQ \\
-    PQ-AVX2 ($p=1000$) & Compute / LUT 串行 & Retiring 68.5\%, 3+ ports 85.9\% & shuffle LUT / SoA & FastScan \\
-    FastScan-AVX2 & LUT + 循环开销 & $p=40\sim1000$ 时延近常数 & 更大 batch / AVX-512 & 待扩展 \\
-    \bottomrule
-  \end{tabular}
-  \caption{三类方法的瓶颈分类、证据与对应优化路径}
-  \label{tab:bottleneck}
-\end{table}
-
-\section{综合讨论}
-
-将上述结果合并起来，可以得到三点认识：
-\begin{enumerate}
-  \item \textbf{Flat-SIMD 受带宽上限限制。} SIMD 降低了点积常数，但全量扫描原始 float32 数据仍需要大量主存带宽。
-  \item \textbf{量化收益主要来自结构变化。} SQ/PQ 把大部分候选提前在压缩空间筛掉，$p$ 成为 latency 与 recall 的核心旋钮。
-  \item \textbf{手写 SIMD 与数据布局仍必要。} 自动向量化只能给出基础收益；FastScan、SoA 和 LUT 打包这类优化必须显式重构数据流。
-\end{enumerate}
-
-\section{结论与后续工作}
-
-本文完成了 Flat-SIMD、SQ-SIMD、PQ-SIMD 与 PQ-FastScan 的实现，并在 AVX2 与 NEON 平台上完成主要 latency / recall 测试，同时以 AVX-512 平台完成 Flat-SIMD 对照。结果显示：SQ-AVX2 ($p=100$) 是本数据集上最稳健的低延迟配置；标准 PQ 在高 recall 下需要较大 $p$；FastScan 通过 4-bit LUT、寄存器内查表和打包扫描，在 $p=1000$ 时相对标准 PQ 于 i9 / 鲲鹏分别提升 $1.41\times$ / $1.48\times$。VTune、反汇编摘要和微基准共同说明，ANN 的 SIMD 优化需要同时考虑指令吞吐、内存带宽、数据布局和量化误差。
-
-后续工作主要是两点：一是在低噪声环境扩展更大 $p$ 的 FastScan 曲线；二是在支持 AVX-512 且允许采样的平台上继续验证更宽寄存器查表指令对 FastScan 的收益。
-
-\label{sec:endbody}
-\label{LastBodyPage}
-
-\clearpage
-\appendix
-\setcounter{page}{1}
-\renewcommand{\thepage}{A-\arabic{page}}
-\cfoot{\thepage}
-\section{开发工具使用说明}
-
-本实验在代码调试、脚本拼接、\LaTeX{} 排版和报告一致性复核过程中使用过在线大语言模型（豆包、OpenAI Codex）做辅助查询，主要用于 AVX2/NEON intrinsic 参数校对、\LaTeX{} 格式修正、PQ/FastScan 优化路线的技术验证，以及表述与实测记录的一致性检查。所有算法设计、参数选择、实验方案、数据采集、性能数据来源与主要结果分析均由本人完成；AI 辅助不用于生成性能数据。下面按``问题 $\to$ 回复要点 $\to$ 复核结论''的结构列出两个代表性片段。
-
-\subsection*{A.1 对话记录一：FastScan shuffle 的 nibble 拆分与累加精度}
-
-\paragraph{提问原文}
-
-> 做 PQ FastScan AVX2 实现，$M=16,K_s=16$，每两段 code 打包为一字节。想用 \texttt{\_mm256\_shuffle\_epi8} 一次查 32 个 code，需先拆 nibble 分别查表。三个问题：
-> 1. 高 nibble 移位是否必须在 shuffle 前？
-> 2. AVX2 \texttt{vpshufb} 控制字节低 4 bit 为索引，bit 7 为 1 才置零——掩码应当 \texttt{\& 0x0F} 清理高 nibble 而非信赖``超 15 置零''，对吗？
-> 3. \texttt{\_mm256\_adds\_epu8} 饱和累加在 $M=16$ 时够用吗？
-
-\paragraph{豆包回复（要点）}
-
-> 1. 是的，用 \texttt{\_mm256\_srli\_epi16} 右移 4 bit 得到高 nibble 对齐副本。
-> 2. 对，AVX2 \texttt{vpshufb} 以控制字节 bit 7 决定置零，低 4 bit 决定索引；\texttt{\& 0x0F} 是为防止高 nibble 低 4 bit 混入索引，NEON \texttt{vqtbl1q\_u8} 语义略有不同（索引 $\ge 16$ 返回 0），移植时需分别处理。
-> 3. \texttt{adds\_epu8} 上限 255，16 段可能溢出。建议用 \texttt{\_mm256\_sad\_epu8}（内部 16-bit 累加）或先将 LUT 缩放到每段 $\le$ 15。
-
-\paragraph{判断、修改与结果复核}
-
-豆包确认了 nibble 拆分流程和 AVX2/NEON 语义差异，最关键的是累加上界提醒——实现初期忽略了 16 段可能溢出 255。最终实现保留 uint8 饱和加法，但在 LUT 量化阶段对每段独立缩放并限制到 $\le$ 15，使 $M=16$ 时总和上界为 240，从而不会实际触发饱和；同时，AVX2 侧显式使用 \texttt{\& 0x0F} 与右移拆分低 / 高 nibble，NEON 侧按 \texttt{vqtbl1q\_u8} 的 16 路表查语义实现。表 \ref{tab:fastscan} 与表 \ref{tab:fastscan_kunpeng} 的端到端结果均为实测结果，nibble 拆分正确性通过与标量 FastScan 查表版本对照进行了验证。
-
-\subsection*{A.2 对话记录二：gather vs shuffle 路线选择}
-
-\paragraph{提问原文}
-
-> PQ ADC 查表两方案：(a) \texttt{\_mm256\_i32gather\_ps} gather 8 个 LUT 值后 FMA；(b) $K_s$ 压到 16，用 \texttt{shuffle\_epi8} 做寄存器内查表。i9-13900H 平台。
-> 1. AVX2 gather 随机索引吞吐如何？是否可能慢于标量？
-> 2. $K_s=16$ 对 recall 影响多大？
-> 3. NEON \texttt{vqtbl1q\_u8} 与 \texttt{pshufb} 语义是否可移植？
-
-\paragraph{豆包回复（要点）}
-
-> 1. Intel 优化手册指出 \texttt{VGATHERDPS} 每 2 周期约 1 元素，完全随机索引下慢于标量是常见现象。
-> 2. FastScan 原论文提及 4-bit 低比特变体可行；建议你以 DEEP100K 实测为准，先 Python 验证量化误差。
-> 3. NEON \texttt{vqtbl1q\_u8} 为 128-bit 宽度（16 路查表），AVX2 \texttt{pshufb} 为 256-bit 内两条独立 128-bit lane。AVX2 侧需处理 lane 交叉。
-
-\paragraph{判断、修改与结果复核}
-
-豆包关于 gather 吞吐的提醒与 Intel 手册一致，支持了放弃 gather 的路线。NEON 128-bit lane vs AVX2 256-bit lane 的差异是实现中需要注意的关键点；但 $K_s=16$ 是否可接受仍必须由 DEEP100K 实测决定。最终路线（$K_s=16$ + shuffle）由实验设计确定并实现。表 \ref{tab:gather_vs_shuffle} 的微基准显示 gather 慢于标量 3.9$\times$，表 \ref{tab:fastscan} 显示 FastScan 在 $p=1000$ 时取得 Recall@10 = 0.97535、541.689 $\mu$s，并在 $p=5000$ 时达到 0.99875 recall；这些端到端结果均来自结果文件，而非 AI 生成。
-
-\medskip
-\subsection*{A.3 使用边界总结}
-
-AI 辅助在本实验中的作用更接近``技术资料索引器''和``一致性检查器''：它可以提示 intrinsic 的语义边界、不同 ISA 的移植差异、LaTeX{} 表格是否易读，以及某段文字是否和结果文件矛盾；但不能替代实验设计和数据采集。所有关键路线选择均经过复核，例如放弃 gather 是由表 \ref{tab:gather_vs_shuffle} 的微基准确认，选择 FastScan 是由表 \ref{tab:fastscan} 与表 \ref{tab:fastscan_kunpeng} 的端到端 latency / recall 共同确认，跨平台分析则以 i9 与鲲鹏的结果文件为准。
-
-\noindent 综上，AI 辅助限于 intrinsic 语法核对、手册速查、跨平台差异提示和报告一致性复核；所有关键技术决策、实验设计、数据采集与主要数据分析均来源于本人工作，未使用 AI 生成任何性能数据，图表也均由脚本根据实测数据绘制。
-
-\clearpage
-\setcounter{page}{1}
-\renewcommand{\thepage}{R-\arabic{page}}
-\cfoot{\thepage}
-\bibliographystyle{plain}
-\bibliography{reference.bib}
+本项目使用 Codex 辅助完成代码结构梳理、实验脚本编排、结果汇总和报告一致性检查。所有性能数据均来自本地程序输出文件，未使用 AI 生成或伪造实验数据。关键结果可由 \path{results/local/}、\path{results/local_summary.csv} 和 \path{results/local_tradeoff.csv} 复核。
 
 \end{document}

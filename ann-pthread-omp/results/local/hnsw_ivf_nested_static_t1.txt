@@ -1,0 +1,6 @@
+﻿hnsw_ivf_nested_static, nthreads=1, ef=50, nlist=16, nprobe=4
+average recall: 0.94705
+average latency (us): 354.44695
+[IVF] Building index: nlist=16, niter=6
+[IVF] Index built.
+

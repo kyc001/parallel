@@ -1,0 +1,4 @@
+﻿sq_pthread_dynamic_intra, nthreads=16, p=100
+average recall: 0.99995
+average latency (us): 8018.84585
+

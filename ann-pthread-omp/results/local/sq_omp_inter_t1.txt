@@ -1,0 +1,4 @@
+﻿sq_omp_static_inter, nthreads=1, p=100
+average recall: 0.99995
+average latency (us): 1138.98170
+

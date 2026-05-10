@@ -1,0 +1,6 @@
+﻿hnsw_ivf_nested_omp, nthreads=16, ef=50, nlist=16, nprobe=4
+average recall: 0.94705
+average latency (us): 443.69395
+[IVF] Building index: nlist=16, niter=6
+[IVF] Index built.
+

@@ -1,0 +1,4 @@
+﻿fastscan_pthread_static_inter, nthreads=16, p=1000
+average recall: 0.97525
+average latency (us): 137.33475
+

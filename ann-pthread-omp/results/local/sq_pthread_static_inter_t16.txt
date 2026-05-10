@@ -1,0 +1,4 @@
+﻿sq_pthread_static_inter, nthreads=16, p=100
+average recall: 0.99995
+average latency (us): 126.11820
+

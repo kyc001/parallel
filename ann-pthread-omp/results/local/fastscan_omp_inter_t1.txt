@@ -1,0 +1,4 @@
+﻿fastscan_omp_static_inter, nthreads=1, p=1000
+average recall: 0.97525
+average latency (us): 1984.78580
+

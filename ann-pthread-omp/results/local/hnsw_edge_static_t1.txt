@@ -1,0 +1,4 @@
+﻿hnsw_edge_static, nthreads=1, ef=50, nlist=0, nprobe=0
+average recall: 0.99915
+average latency (us): 1181.84460
+
