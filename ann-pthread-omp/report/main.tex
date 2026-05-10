@@ -1,3 +1,16 @@
+% ===========================================================================
+% ANN Pthread + OpenMP 并行优化实验报告
+%
+% 数据路径:
+%   本机 Windows: ../files/  (D:\Study\26sp\parallel\files\)
+%   鲲鹏服务器:   /anndata/
+%
+% 实验结果:
+%   本地: results/local/  → 汇总 results/local_summary.csv + local_tradeoff.csv
+%   鲲鹏: 待跑
+%
+% 编译: xelatex main.tex
+% ===========================================================================
 \documentclass[a4paper,11pt,UTF8]{ctexart}
 
 \usepackage{fontspec}
@@ -623,5 +636,50 @@ HNSW 的结果见表 \ref{tab:hnsw}。baseline 最快，但 Recall@10 只有 0.9
 \addcontentsline{toc}{section}{AI 辅助说明}
 
 本项目使用 Codex 辅助完成代码结构梳理、实验脚本编排、结果汇总和报告一致性检查。所有性能数据均来自本地程序输出文件，未使用 AI 生成或伪造实验数据。关键结果可由 \path{results/local/}、\path{results/local_summary.csv} 和 \path{results/local_tradeoff.csv} 复核。
+
+% ===========================================================================
+% 实验上下文（供后续维护参考）
+% ===========================================================================
+%
+% 实验参数:
+%   数据集:    DEEP100K (d=96, N=100K, 10K queries, IP 距离)
+%   评测 query: 前 2000 条
+%   k:         10
+%   SQ/PQ p:   100 (核心矩阵), FastScan p: 1000
+%   IVF nlist: 16, nprobe: 4 (核心矩阵)
+%   IVF-PQ:    nlist=16, nprobe=4, p=100, mode=global (核心矩阵)
+%   HNSW ef:   50, IVF-HNSW nlist=16, nprobe=4
+%
+% 平台:
+%   本机: i9-13900H (6P+8E/20T), Win11, MSYS2 GCC 14.2.0
+%   编译: -O2 -mavx2 -mfma -fopenmp -lpthread -std=c++17 -I.
+%   鲲鹏: 待跑 (bash test.sh 2 1)
+%
+% 数据文件来源:
+%   本机: ../files/DEEP100K.{base.100k,query,gt.query.100k.top100}.{fbin,bin}
+%   鲲鹏: /anndata/DEEP100K.{base.100k,query,gt.query.100k.top100}.{fbin,bin}
+%
+% 关键实验文件:
+%   results/local/            — 278 组核心矩阵 + 15 组 trade-off 原始输出
+%   results/local_summary.csv — 核心矩阵汇总
+%   results/local_tradeoff.csv — nprobe/mode sweep 汇总
+%
+% 提交命令:
+%   本实验序号为 2 (SIMD 为 1)，单节点:
+%     bash test.sh 2 1
+%
+% 已知问题:
+%   - IVF-PQ 低延迟区间 (~几十 us) 存在运行噪声，数据有非单调波动
+%   - OMP 1 线程有明显 runtime 开销 (~2x vs pthread 1 线程)
+%   - HNSW intra-query 并行基本为负优化（图搜索路径依赖强）
+%   - 本机混合核 (P-core/E-core) 可能影响 8+ 线程的伸缩性
+%
+% 待完成:
+%   - 鲲鹏 ARM NEON 全矩阵实验
+%   - SQ/PQ/FastScan p-sweep 完整 latency-recall 曲线
+%   - VTune / perf 分析 (cache miss, 内存带宽, 线程同步热点)
+%   - 汇编对比 (x86 AVX2 vs ARM NEON 关键内核)
+%
+% ===========================================================================
 
 \end{document}
