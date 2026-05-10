@@ -8,7 +8,12 @@ echo "==> 复制统一实验入口到 main.cc"
 cp mains/unified_bench.cc main.cc
 
 echo "==> 编译 (仅编译，不在登录节点运行)"
-g++ main.cc -o main -O2 -fopenmp -lpthread -std=c++17 -I.
+if ! g++ main.cc -o main -O2 -fopenmp -lpthread -std=c++17 -I. ; then
+    echo "FATAL: 编译失败，不提交 qsub" >&2
+    exit 1
+fi
+echo "==> 编译成功"
+echo "==> 确认 simd/ 子目录: $(ls simd/*.h 2>&1 | wc -l) 个头文件"
 
 echo "==> 提交 qsub 作业 (bash test.sh 2 1)"
 bash test.sh 2 1

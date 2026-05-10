@@ -1,7 +1,6 @@
 #pragma once
 
 #include <algorithm>
-#include <arm_neon.h>
 #include <cfloat>
 #include <cmath>
 #include <cstdint>
@@ -11,32 +10,10 @@
 #include <queue>
 #include <vector>
 
+#include "simd/neon_common.h"
 #include "simd/pq_blocked_neon.h"
 
-inline float horizontal_sum_f32(float32x4_t v) {
-    const float32x2_t sum2 = vadd_f32(vget_low_f32(v), vget_high_f32(v));
-    const float32x2_t sum1 = vpadd_f32(sum2, sum2);
-    return vget_lane_f32(sum1, 0);
-}
-
-inline float ip_distance_simd(const float* x, const float* y, int d) {
-    float32x4_t sum0 = vdupq_n_f32(0.0f);
-    float32x4_t sum1 = vdupq_n_f32(0.0f);
-    float32x4_t sum2 = vdupq_n_f32(0.0f);
-    float32x4_t sum3 = vdupq_n_f32(0.0f);
-    int i = 0;
-    for (; i + 16 <= d; i += 16) {
-        sum0 = vmlaq_f32(sum0, vld1q_f32(x + i),      vld1q_f32(y + i));
-        sum1 = vmlaq_f32(sum1, vld1q_f32(x + i + 4),  vld1q_f32(y + i + 4));
-        sum2 = vmlaq_f32(sum2, vld1q_f32(x + i + 8),  vld1q_f32(y + i + 8));
-        sum3 = vmlaq_f32(sum3, vld1q_f32(x + i + 12), vld1q_f32(y + i + 12));
-    }
-    for (; i + 4 <= d; i += 4) {
-        sum0 = vmlaq_f32(sum0, vld1q_f32(x + i), vld1q_f32(y + i));
-    }
-    const float32x4_t s = vaddq_f32(vaddq_f32(sum0, sum1), vaddq_f32(sum2, sum3));
-    return 1.0f - horizontal_sum_f32(s);
-}
+// (horizontal_sum_f32 / ip_distance_simd / l2_distance_simd 在 neon_common.h 中统一定义)
 
 inline float l2_dist_sub_simd(const float* x, const float* y, int dsub) {
     float32x4_t sum = vdupq_n_f32(0.0f);
