@@ -12,14 +12,17 @@ CXXFLAGS = -O3 -std=c++17 -Wall $(ARCHFLAGS)
 OMPFLAGS = -fopenmp
 PTFLAGS = -pthread
 
-.PHONY: all clean run run_omp_inter run_omp_intra run_pthread_inter
+.PHONY: all clean run run_omp_inter run_omp_intra run_pthread_inter run_pthread_intra
 
 all: baseline flatsimd sqsimd pqsimd fastscan \
      omp_inter_flat omp_inter_sq omp_inter_pq omp_inter_fastscan \
      omp_intra_flat omp_intra_sq omp_intra_pq omp_intra_fastscan \
      pthread_dynamic_inter_flat pthread_dynamic_inter_sq pthread_dynamic_inter_pq pthread_dynamic_inter_fastscan \
      pthread_barrier_inter_flat pthread_barrier_inter_sq pthread_barrier_inter_pq pthread_barrier_inter_fastscan \
-     pthread_pool_inter_flat pthread_pool_inter_sq pthread_pool_inter_pq pthread_pool_inter_fastscan
+     pthread_pool_inter_flat pthread_pool_inter_sq pthread_pool_inter_pq pthread_pool_inter_fastscan \
+     pthread_dynamic_intra_flat pthread_dynamic_intra_sq pthread_dynamic_intra_pq pthread_dynamic_intra_fastscan \
+     pthread_barrier_intra_flat pthread_barrier_intra_sq pthread_barrier_intra_pq pthread_barrier_intra_fastscan \
+     pthread_pool_intra_flat pthread_pool_intra_sq pthread_pool_intra_pq pthread_pool_intra_fastscan
 
 baseline: main_baseline.cc ann_bench_common.h flat_scan.h
 	$(CXX) $(CXXFLAGS) -o $@ $<
@@ -96,6 +99,42 @@ pthread_pool_inter_pq: main_pthread_pool_inter_pq.cc ann_bench_common.h pthread_
 pthread_pool_inter_fastscan: main_pthread_pool_inter_fastscan.cc ann_bench_common.h pthread_inter_pool.h pq_fastscan_simd.h pq_fastscan_avx2_safe.h pq_fastscan_neon.h
 	$(CXX) $(CXXFLAGS) $(PTFLAGS) -o $@ $<
 
+pthread_dynamic_intra_flat: main_pthread_dynamic_intra_flat.cc ann_bench_common.h pthread_intra_dynamic.h flat_intra_kernel.h flat_scan_dispatch.h flat_scan_avx2.h flat_scan_simd.h
+	$(CXX) $(CXXFLAGS) $(PTFLAGS) -o $@ $<
+
+pthread_dynamic_intra_sq: main_pthread_dynamic_intra_sq.cc ann_bench_common.h pthread_intra_dynamic.h sq_intra_kernel.h sq_scan_dispatch.h sq_scan_avx2.h sq_scan_simd.h
+	$(CXX) $(CXXFLAGS) $(PTFLAGS) -o $@ $<
+
+pthread_dynamic_intra_pq: main_pthread_dynamic_intra_pq.cc ann_bench_common.h pthread_intra_dynamic.h pq_intra_kernel.h pq_scan_dispatch.h pq_scan_avx2.h pq_scan_simd.h
+	$(CXX) $(CXXFLAGS) $(PTFLAGS) -o $@ $<
+
+pthread_dynamic_intra_fastscan: main_pthread_dynamic_intra_fastscan.cc ann_bench_common.h pthread_intra_dynamic.h pq_fastscan_intra_kernel.h pq_fastscan_simd.h pq_fastscan_avx2_safe.h pq_fastscan_neon.h
+	$(CXX) $(CXXFLAGS) $(PTFLAGS) -o $@ $<
+
+pthread_barrier_intra_flat: main_pthread_barrier_intra_flat.cc ann_bench_common.h pthread_intra_barrier.h flat_intra_kernel.h flat_scan_dispatch.h flat_scan_avx2.h flat_scan_simd.h
+	$(CXX) $(CXXFLAGS) $(PTFLAGS) -o $@ $<
+
+pthread_barrier_intra_sq: main_pthread_barrier_intra_sq.cc ann_bench_common.h pthread_intra_barrier.h sq_intra_kernel.h sq_scan_dispatch.h sq_scan_avx2.h sq_scan_simd.h
+	$(CXX) $(CXXFLAGS) $(PTFLAGS) -o $@ $<
+
+pthread_barrier_intra_pq: main_pthread_barrier_intra_pq.cc ann_bench_common.h pthread_intra_barrier.h pq_intra_kernel.h pq_scan_dispatch.h pq_scan_avx2.h pq_scan_simd.h
+	$(CXX) $(CXXFLAGS) $(PTFLAGS) -o $@ $<
+
+pthread_barrier_intra_fastscan: main_pthread_barrier_intra_fastscan.cc ann_bench_common.h pthread_intra_barrier.h pq_fastscan_intra_kernel.h pq_fastscan_simd.h pq_fastscan_avx2_safe.h pq_fastscan_neon.h
+	$(CXX) $(CXXFLAGS) $(PTFLAGS) -o $@ $<
+
+pthread_pool_intra_flat: main_pthread_pool_intra_flat.cc ann_bench_common.h pthread_intra_pool.h flat_intra_kernel.h flat_scan_dispatch.h flat_scan_avx2.h flat_scan_simd.h
+	$(CXX) $(CXXFLAGS) $(PTFLAGS) -o $@ $<
+
+pthread_pool_intra_sq: main_pthread_pool_intra_sq.cc ann_bench_common.h pthread_intra_pool.h sq_intra_kernel.h sq_scan_dispatch.h sq_scan_avx2.h sq_scan_simd.h
+	$(CXX) $(CXXFLAGS) $(PTFLAGS) -o $@ $<
+
+pthread_pool_intra_pq: main_pthread_pool_intra_pq.cc ann_bench_common.h pthread_intra_pool.h pq_intra_kernel.h pq_scan_dispatch.h pq_scan_avx2.h pq_scan_simd.h
+	$(CXX) $(CXXFLAGS) $(PTFLAGS) -o $@ $<
+
+pthread_pool_intra_fastscan: main_pthread_pool_intra_fastscan.cc ann_bench_common.h pthread_intra_pool.h pq_fastscan_intra_kernel.h pq_fastscan_simd.h pq_fastscan_avx2_safe.h pq_fastscan_neon.h
+	$(CXX) $(CXXFLAGS) $(PTFLAGS) -o $@ $<
+
 run: all
 	mkdir -p results/i9
 	./baseline > results/i9/serial_flat_baseline.log
@@ -162,6 +201,18 @@ run_pthread_inter: pthread_dynamic_inter_flat pthread_dynamic_inter_sq pthread_d
 	  done; \
 	done
 
+run_pthread_intra: pthread_dynamic_intra_flat pthread_dynamic_intra_sq pthread_dynamic_intra_pq pthread_dynamic_intra_fastscan \
+                   pthread_barrier_intra_flat pthread_barrier_intra_sq pthread_barrier_intra_pq pthread_barrier_intra_fastscan \
+                   pthread_pool_intra_flat pthread_pool_intra_sq pthread_pool_intra_pq pthread_pool_intra_fastscan
+	mkdir -p results/i9
+	for paradigm in dynamic barrier pool; do \
+	  for method in flat sq pq fastscan; do \
+	    for t in 1 2 4 8 12; do \
+	      PTHREAD_NUM_THREADS=$$t ./pthread_$${paradigm}_intra_$${method} > results/i9/pthread_$${paradigm}_intra_$${method}_t$${t}.log; \
+	    done; \
+	  done; \
+	done
+
 clean:
 	rm -f baseline baseline.exe flatsimd flatsimd.exe sqsimd sqsimd.exe
 	rm -f pqsimd pqsimd.exe fastscan fastscan.exe
@@ -175,3 +226,9 @@ clean:
 	rm -f pthread_barrier_inter_pq pthread_barrier_inter_pq.exe pthread_barrier_inter_fastscan pthread_barrier_inter_fastscan.exe
 	rm -f pthread_pool_inter_flat pthread_pool_inter_flat.exe pthread_pool_inter_sq pthread_pool_inter_sq.exe
 	rm -f pthread_pool_inter_pq pthread_pool_inter_pq.exe pthread_pool_inter_fastscan pthread_pool_inter_fastscan.exe
+	rm -f pthread_dynamic_intra_flat pthread_dynamic_intra_flat.exe pthread_dynamic_intra_sq pthread_dynamic_intra_sq.exe
+	rm -f pthread_dynamic_intra_pq pthread_dynamic_intra_pq.exe pthread_dynamic_intra_fastscan pthread_dynamic_intra_fastscan.exe
+	rm -f pthread_barrier_intra_flat pthread_barrier_intra_flat.exe pthread_barrier_intra_sq pthread_barrier_intra_sq.exe
+	rm -f pthread_barrier_intra_pq pthread_barrier_intra_pq.exe pthread_barrier_intra_fastscan pthread_barrier_intra_fastscan.exe
+	rm -f pthread_pool_intra_flat pthread_pool_intra_flat.exe pthread_pool_intra_sq pthread_pool_intra_sq.exe
+	rm -f pthread_pool_intra_pq pthread_pool_intra_pq.exe pthread_pool_intra_fastscan pthread_pool_intra_fastscan.exe

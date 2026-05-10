@@ -34,8 +34,8 @@ inline void merge_into(CoarseHeap& dst, CoarseHeap src, size_t p) {
 }
 
 // Extracted from pq_search_omp_intra coarse ADC base loop.
-inline CoarseHeap chunk_coarse(const PQIndex& pq_index, const float* lut,
-                               size_t lo, size_t hi, size_t p) {
+inline CoarseHeap chunk_coarse_lut(const PQIndex& pq_index, const float* lut,
+                                   size_t lo, size_t hi, size_t p) {
     CoarseHeap coarse;
     for (size_t i = lo; i < hi; ++i) {
         const float dis = adc_distance(
@@ -54,7 +54,7 @@ inline CoarseHeap chunk_coarse(const PQIndex& pq_index, const float* query,
                                size_t lo, size_t hi, size_t p) {
     std::vector<float> lut(static_cast<size_t>(pq_index.M) * 256);
     pq_index.build_lut(query, lut.data());
-    return chunk_coarse(pq_index, lut.data(), lo, hi, p);
+    return chunk_coarse_lut(pq_index, lut.data(), lo, hi, p);
 }
 
 inline CoarseHeap merge_topp(std::vector<CoarseHeap>& locals, size_t p) {
