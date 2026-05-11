@@ -718,7 +718,7 @@ HNSW 的结果见表 \ref{tab:hnsw}。baseline 最快，但 Recall@10 只有 0.9
   IVF-SIMD baseline 与多线程 & 实现 IVF 索引、SIMD 搜索、Pthread / OpenMP 并行，并补充 \texttt{nprobe} trade-off。 \\
   IVF-PQ-SIMD baseline 与多线程 & 实现 IVF-PQ、两种构建模式、Pthread / OpenMP 并行，并比较 global/local 构建差异。 \\
   HNSW 进阶 & 基于 hnswlib 实现 baseline、多入口点、边划分、Layer0 点划分与 IVF-HNSW 嵌套结构。 \\
-  性能测试与报告分析 & 本地收集 278 组核心矩阵结果和 15 组补充 trade-off 结果；鲲鹏 ARM NEON 收集 295 组完整矩阵结果。分析线程数、调度、负载均衡、cache / 内存访问和负优化。 \\
+  性能测试与报告分析 & 本地收集 278 组核心矩阵结果和 15 组补充 trade-off 结果；鲲鹏 ARM NEON 收集 319 组完整矩阵结果。分析线程数、调度、负载均衡、cache / 内存访问和负优化。 \\
   \bottomrule
   \caption{作业要求覆盖情况}
   \label{tab:req}
