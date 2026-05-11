@@ -6,6 +6,7 @@
 #include <chrono>
 #include <cstdint>
 #include <cstdlib>
+#include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <memory>
@@ -116,6 +117,27 @@ static double RecallAtK_HNSW(std::vector<HNSWHeap>& results, const int* gt,
     return total / static_cast<double>(query_n);
 }
 
+// ---- 续跑 checkpoint ----
+static const char* kCkptFile = "results/kunpeng_checkpoint.txt";
+static void CkptWrite(const char* phase) {
+    std::ofstream of(kCkptFile, std::ios::trunc);
+    of << phase << "\n";
+}
+static bool CkptDone(const char* phase) {
+    std::ifstream in(kCkptFile);
+    std::string last;
+    std::getline(in, last);
+    if (last.empty()) return false;
+    // 简单字典序比较：phase 名字按执行顺序排列
+    const char* order[] = {"flat","sq","pq","fastscan","ivf","ivfpq_global","ivfpq_local","hnsw","hnsw_nested",nullptr};
+    int idx_last = -1, idx_cur = -1;
+    for (int i = 0; order[i]; ++i) {
+        if (last == order[i]) idx_last = i;
+        if (phase == order[i]) idx_cur = i;
+    }
+    return idx_cur <= idx_last;
+}
+
 static void Print(const char* algo, const char* strat, int nthr,
                   double recall, double lat_us, const char* extra = "") {
     std::cout << std::fixed << std::setprecision(5);
@@ -124,7 +146,7 @@ static void Print(const char* algo, const char* strat, int nthr,
               << " recall=" << recall
               << " latency_us=" << lat_us;
     if (extra[0]) std::cout << " " << extra;
-    std::cout << "\n";
+    std::cout << std::endl;  // flush each line
 }
 
 template<typename F>
@@ -283,95 +305,98 @@ static void RunIVF(const DataCtx& ctx) {
 // IVF-PQ 实验
 // ============================================================
 static void RunIVFPQ(const DataCtx& ctx) {
-    Section("IVF-PQ global");
-    {
-        ann_ivfpq::IVFPQIndex idx;
-        idx.build(ctx.base.get(), ctx.base_n, ctx.d, 16, ann_ivfpq::BuildMode::GlobalPQFirst, 8, 8);
-        for (int nthr : {1, 2, 4, 8, 16}) {
-            { std::vector<IVFHeap> res;
-              double us = TimeOnce_us([&]{ ivf_pq_search_inter_omp(idx,ctx.queries.get(),ctx.query_n,kK,4,100,nthr,res); });
-              Print("ivfpq_global","omp_inter",nthr, RecallAtK_IVF(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "nprobe=4,p=100"); }
-            { std::vector<IVFHeap> res;
-              double us = TimeOnce_us([&]{ ivf_pq_search_inter_static(idx,ctx.queries.get(),ctx.query_n,kK,4,100,nthr,res); });
-              Print("ivfpq_global","pthread_static_inter",nthr, RecallAtK_IVF(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "nprobe=4,p=100"); }
-            { std::vector<IVFHeap> res;
-              double us = TimeOnce_us([&]{ ivf_pq_search_inter_dynamic(idx,ctx.queries.get(),ctx.query_n,kK,4,100,nthr,res); });
-              Print("ivfpq_global","pthread_dynamic_inter",nthr, RecallAtK_IVF(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "nprobe=4,p=100"); }
-            { std::vector<IVFHeap> res;
-              double us = TimeOnce_us([&]{ ivf_pq_search_inter_pool(idx,ctx.queries.get(),ctx.query_n,kK,4,100,nthr,res); });
-              Print("ivfpq_global","pthread_pool_inter",nthr, RecallAtK_IVF(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "nprobe=4,p=100"); }
+    if (!CkptDone("ivfpq_global")) {
+        Section("IVF-PQ global");
+        {
+            ann_ivfpq::IVFPQIndex idx;
+            idx.build(ctx.base.get(), ctx.base_n, ctx.d, 16, ann_ivfpq::BuildMode::GlobalPQFirst, 8, 8);
+            for (int nthr : {1, 2, 4, 8, 16}) {
+                { std::vector<IVFHeap> res;
+                  double us = TimeOnce_us([&]{ ivf_pq_search_inter_omp(idx,ctx.queries.get(),ctx.query_n,kK,4,100,nthr,res); });
+                  Print("ivfpq_global","omp_inter",nthr, RecallAtK_IVF(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "nprobe=4,p=100"); }
+                { std::vector<IVFHeap> res;
+                  double us = TimeOnce_us([&]{ ivf_pq_search_inter_static(idx,ctx.queries.get(),ctx.query_n,kK,4,100,nthr,res); });
+                  Print("ivfpq_global","pthread_static_inter",nthr, RecallAtK_IVF(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "nprobe=4,p=100"); }
+                { std::vector<IVFHeap> res;
+                  double us = TimeOnce_us([&]{ ivf_pq_search_inter_dynamic(idx,ctx.queries.get(),ctx.query_n,kK,4,100,nthr,res); });
+                  Print("ivfpq_global","pthread_dynamic_inter",nthr, RecallAtK_IVF(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "nprobe=4,p=100"); }
+                { std::vector<IVFHeap> res;
+                  double us = TimeOnce_us([&]{ ivf_pq_search_inter_pool(idx,ctx.queries.get(),ctx.query_n,kK,4,100,nthr,res); });
+                  Print("ivfpq_global","pthread_pool_inter",nthr, RecallAtK_IVF(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "nprobe=4,p=100"); }
+            }
         }
-    }
-    Section("IVF-PQ local");
-    {
-        ann_ivfpq::IVFPQIndex idx;
-        idx.build(ctx.base.get(), ctx.base_n, ctx.d, 16, ann_ivfpq::BuildMode::IVFLocalPQ, 8, 8);
-        for (int nthr : {1, 2, 4, 8, 16}) {
-            { std::vector<IVFHeap> res;
-              double us = TimeOnce_us([&]{ ivf_pq_search_inter_omp(idx,ctx.queries.get(),ctx.query_n,kK,4,100,nthr,res); });
-              Print("ivfpq_local","omp_inter",nthr, RecallAtK_IVF(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "nprobe=4,p=100"); }
-            { std::vector<IVFHeap> res;
-              double us = TimeOnce_us([&]{ ivf_pq_search_inter_static(idx,ctx.queries.get(),ctx.query_n,kK,4,100,nthr,res); });
-              Print("ivfpq_local","pthread_static_inter",nthr, RecallAtK_IVF(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "nprobe=4,p=100"); }
-            { std::vector<IVFHeap> res;
-              double us = TimeOnce_us([&]{ ivf_pq_search_inter_dynamic(idx,ctx.queries.get(),ctx.query_n,kK,4,100,nthr,res); });
-              Print("ivfpq_local","pthread_dynamic_inter",nthr, RecallAtK_IVF(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "nprobe=4,p=100"); }
+        CkptWrite("ivfpq_global");
+    } else { std::cerr << "[skip] ivfpq_global\n"; }
+
+    if (!CkptDone("ivfpq_local")) {
+        Section("IVF-PQ local");
+        {
+            ann_ivfpq::IVFPQIndex idx;
+            idx.build(ctx.base.get(), ctx.base_n, ctx.d, 16, ann_ivfpq::BuildMode::IVFLocalPQ, 8, 8);
+            for (int nthr : {1, 2, 4, 8, 16}) {
+                { std::vector<IVFHeap> res;
+                  double us = TimeOnce_us([&]{ ivf_pq_search_inter_omp(idx,ctx.queries.get(),ctx.query_n,kK,4,100,nthr,res); });
+                  Print("ivfpq_local","omp_inter",nthr, RecallAtK_IVF(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "nprobe=4,p=100"); }
+                { std::vector<IVFHeap> res;
+                  double us = TimeOnce_us([&]{ ivf_pq_search_inter_static(idx,ctx.queries.get(),ctx.query_n,kK,4,100,nthr,res); });
+                  Print("ivfpq_local","pthread_static_inter",nthr, RecallAtK_IVF(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "nprobe=4,p=100"); }
+                { std::vector<IVFHeap> res;
+                  double us = TimeOnce_us([&]{ ivf_pq_search_inter_dynamic(idx,ctx.queries.get(),ctx.query_n,kK,4,100,nthr,res); });
+                  Print("ivfpq_local","pthread_dynamic_inter",nthr, RecallAtK_IVF(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "nprobe=4,p=100"); }
+            }
         }
-    }
+        CkptWrite("ivfpq_local");
+    } else { std::cerr << "[skip] ivfpq_local\n"; }
 }
 
 // ============================================================
 // HNSW 实验
 // ============================================================
 static void RunHNSW(const DataCtx& ctx) {
-    Section("HNSW");
     const size_t ef = 50;
-    ann_hnsw::HnswHolder holder = ann_hnsw::BuildIndex(ctx.base.get(), ctx.base_n, ctx.d, 16, 120, ef);
+    if (!CkptDone("hnsw")) {
+        Section("HNSW");
+        ann_hnsw::HnswHolder holder = ann_hnsw::BuildIndex(ctx.base.get(), ctx.base_n, ctx.d, 16, 120, ef);
+        { std::vector<HNSWHeap> res(ctx.query_n);
+          double us = TimeOnce_us([&]{ for(size_t i=0;i<ctx.query_n;++i) res[i]=ann_hnsw::StandardSearch(*holder.index,ctx.queries.get()+i*ctx.d,kK,ef,1); });
+          Print("hnsw","baseline",1, RecallAtK_HNSW(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "ef=50"); }
+        for (int nthr : {1, 4, 8, 16}) {
+            { std::vector<HNSWHeap> res(ctx.query_n);
+              double us = TimeOnce_us([&]{ for(size_t i=0;i<ctx.query_n;++i) res[i]=hnsw_search_multi_entry_omp(*holder.index,ctx.queries.get()+i*ctx.d,kK,ef,nthr); });
+              Print("hnsw","multi_entry_omp",nthr, RecallAtK_HNSW(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "ef=50"); }
+            { std::vector<HNSWHeap> res(ctx.query_n);
+              double us = TimeOnce_us([&]{ for(size_t i=0;i<ctx.query_n;++i) res[i]=hnsw_search_multi_entry_static(*holder.index,ctx.queries.get()+i*ctx.d,kK,ef,nthr); });
+              Print("hnsw","multi_entry_static",nthr, RecallAtK_HNSW(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "ef=50"); }
+            { std::vector<HNSWHeap> res(ctx.query_n);
+              double us = TimeOnce_us([&]{ for(size_t i=0;i<ctx.query_n;++i) res[i]=hnsw_edge_search_omp(*holder.index,ctx.queries.get()+i*ctx.d,kK,ef,nthr); });
+              Print("hnsw","edge_omp",nthr, RecallAtK_HNSW(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "ef=50"); }
+            { std::vector<HNSWHeap> res(ctx.query_n);
+              double us = TimeOnce_us([&]{ for(size_t i=0;i<ctx.query_n;++i) res[i]=hnsw_edge_search_static(*holder.index,ctx.queries.get()+i*ctx.d,kK,ef,nthr); });
+              Print("hnsw","edge_static",nthr, RecallAtK_HNSW(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "ef=50"); }
+            { std::vector<HNSWHeap> res(ctx.query_n);
+              double us = TimeOnce_us([&]{ for(size_t i=0;i<ctx.query_n;++i) res[i]=hnsw_layer0_search_omp(*holder.index,ctx.queries.get()+i*ctx.d,kK,ef,nthr); });
+              Print("hnsw","layer0_omp",nthr, RecallAtK_HNSW(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "ef=50"); }
+            { std::vector<HNSWHeap> res(ctx.query_n);
+              double us = TimeOnce_us([&]{ for(size_t i=0;i<ctx.query_n;++i) res[i]=hnsw_layer0_search_static(*holder.index,ctx.queries.get()+i*ctx.d,kK,ef,nthr); });
+              Print("hnsw","layer0_static",nthr, RecallAtK_HNSW(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "ef=50"); }
+        }
+        CkptWrite("hnsw");
+    } else { std::cerr << "[skip] hnsw\n"; }
 
-    // baseline
-    { std::vector<HNSWHeap> res(ctx.query_n);
-      double us = TimeOnce_us([&]{ for(size_t i=0;i<ctx.query_n;++i) res[i]=ann_hnsw::StandardSearch(*holder.index,ctx.queries.get()+i*ctx.d,kK,ef,1); });
-      Print("hnsw","baseline",1, RecallAtK_HNSW(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "ef=50"); }
-
-    for (int nthr : {1, 4, 8, 16}) {
-        // multi entry OMP
-        { std::vector<HNSWHeap> res(ctx.query_n);
-          double us = TimeOnce_us([&]{ for(size_t i=0;i<ctx.query_n;++i) res[i]=hnsw_search_multi_entry_omp(*holder.index,ctx.queries.get()+i*ctx.d,kK,ef,nthr); });
-          Print("hnsw","multi_entry_omp",nthr, RecallAtK_HNSW(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "ef=50"); }
-        // multi entry static
-        { std::vector<HNSWHeap> res(ctx.query_n);
-          double us = TimeOnce_us([&]{ for(size_t i=0;i<ctx.query_n;++i) res[i]=hnsw_search_multi_entry_static(*holder.index,ctx.queries.get()+i*ctx.d,kK,ef,nthr); });
-          Print("hnsw","multi_entry_static",nthr, RecallAtK_HNSW(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "ef=50"); }
-        // edge OMP
-        { std::vector<HNSWHeap> res(ctx.query_n);
-          double us = TimeOnce_us([&]{ for(size_t i=0;i<ctx.query_n;++i) res[i]=hnsw_edge_search_omp(*holder.index,ctx.queries.get()+i*ctx.d,kK,ef,nthr); });
-          Print("hnsw","edge_omp",nthr, RecallAtK_HNSW(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "ef=50"); }
-        // edge static
-        { std::vector<HNSWHeap> res(ctx.query_n);
-          double us = TimeOnce_us([&]{ for(size_t i=0;i<ctx.query_n;++i) res[i]=hnsw_edge_search_static(*holder.index,ctx.queries.get()+i*ctx.d,kK,ef,nthr); });
-          Print("hnsw","edge_static",nthr, RecallAtK_HNSW(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "ef=50"); }
-        // layer0 OMP
-        { std::vector<HNSWHeap> res(ctx.query_n);
-          double us = TimeOnce_us([&]{ for(size_t i=0;i<ctx.query_n;++i) res[i]=hnsw_layer0_search_omp(*holder.index,ctx.queries.get()+i*ctx.d,kK,ef,nthr); });
-          Print("hnsw","layer0_omp",nthr, RecallAtK_HNSW(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "ef=50"); }
-        // layer0 static
-        { std::vector<HNSWHeap> res(ctx.query_n);
-          double us = TimeOnce_us([&]{ for(size_t i=0;i<ctx.query_n;++i) res[i]=hnsw_layer0_search_static(*holder.index,ctx.queries.get()+i*ctx.d,kK,ef,nthr); });
-          Print("hnsw","layer0_static",nthr, RecallAtK_HNSW(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "ef=50"); }
-    }
-
-    // IVF nested
-    Section("HNSW-IVF-nested");
-    ann_hnsw_nested::NestedIndex nested;
-    nested.build(ctx.base.get(), ctx.base_n, ctx.d, 16, 12, 80, 6);
-    for (int nthr : {1, 4, 8, 16}) {
-        { std::vector<HNSWHeap> res(ctx.query_n);
-          double us = TimeOnce_us([&]{ for(size_t i=0;i<ctx.query_n;++i) res[i]=hnsw_ivf_nested_search_omp(nested,ctx.queries.get()+i*ctx.d,kK,ef,4,nthr); });
-          Print("hnsw_ivf_nested","omp",nthr, RecallAtK_HNSW(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "ef=50,nprobe=4"); }
-        { std::vector<HNSWHeap> res(ctx.query_n);
-          double us = TimeOnce_us([&]{ for(size_t i=0;i<ctx.query_n;++i) res[i]=hnsw_ivf_nested_search_static(nested,ctx.queries.get()+i*ctx.d,kK,ef,4,1); });
-          Print("hnsw_ivf_nested","static",nthr, RecallAtK_HNSW(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "ef=50,nprobe=4"); }
-    }
+    if (!CkptDone("hnsw_nested")) {
+        Section("HNSW-IVF-nested");
+        ann_hnsw_nested::NestedIndex nested;
+        nested.build(ctx.base.get(), ctx.base_n, ctx.d, 16, 12, 80, 6);
+        for (int nthr : {1, 4, 8, 16}) {
+            { std::vector<HNSWHeap> res(ctx.query_n);
+              double us = TimeOnce_us([&]{ for(size_t i=0;i<ctx.query_n;++i) res[i]=hnsw_ivf_nested_search_omp(nested,ctx.queries.get()+i*ctx.d,kK,ef,4,nthr); });
+              Print("hnsw_ivf_nested","omp",nthr, RecallAtK_HNSW(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "ef=50,nprobe=4"); }
+            { std::vector<HNSWHeap> res(ctx.query_n);
+              double us = TimeOnce_us([&]{ for(size_t i=0;i<ctx.query_n;++i) res[i]=hnsw_ivf_nested_search_static(nested,ctx.queries.get()+i*ctx.d,kK,ef,4,1); });
+              Print("hnsw_ivf_nested","static",nthr, RecallAtK_HNSW(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "ef=50,nprobe=4"); }
+        }
+        CkptWrite("hnsw_nested");
+    } else { std::cerr << "[skip] hnsw_nested\n"; }
 }
 
 // ============================================================
@@ -383,13 +408,22 @@ int main() {
     std::cerr << "[unified_bench] base=" << ctx.base_n << " d=" << ctx.d
               << " queries=" << ctx.query_n << "\n";
 
-    RunFlat(ctx);
-    RunSQ(ctx);
-    RunPQ(ctx);
-    RunFastScan(ctx);
-    RunIVF(ctx);
-    RunIVFPQ(ctx);
-    RunHNSW(ctx);
+#define RUN_IF_NEEDED(phase, fn) do {         \
+    if (!CkptDone(phase)) {                     \
+        fn(ctx);                                \
+        CkptWrite(phase);                       \
+    } else {                                    \
+        std::cerr << "[skip] " phase "\n";     \
+    }                                           \
+} while(0)
+
+    RUN_IF_NEEDED("flat",     RunFlat);
+    RUN_IF_NEEDED("sq",       RunSQ);
+    RUN_IF_NEEDED("pq",       RunPQ);
+    RUN_IF_NEEDED("fastscan", RunFastScan);
+    RUN_IF_NEEDED("ivf",      RunIVF);
+    RunIVFPQ(ctx);   // 内部有 checkpoint: ivfpq_global → ivfpq_local
+    RunHNSW(ctx);    // 内部有 checkpoint: hnsw → hnsw_nested
 
     std::cerr << "[unified_bench] Done.\n";
     return 0;
