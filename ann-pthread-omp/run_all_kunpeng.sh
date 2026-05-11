@@ -80,10 +80,4 @@ if [[ -f test.e ]]; then
 fi
 cat test.o
 
-echo "==> part 1 done (unified_bench: 319 results)"
-
-# ---- Part 2: 补跑 unified 历史版本未覆盖的 24 条 ----
-echo "==> part 2: running 24 missing experiments"
-bash run_kunpeng_missing_24.sh
-
-echo "==> all done. 319 (unified) + 24 (missing) = 343 results"
+echo "==> done. unified_bench produces 319 results."
