@@ -1,0 +1,17 @@
+-r
+D:\Study\26sp\parallel\ann-pthread-omp\vtune_results\hotspots
+--stack-stitching
+--data-limit-mb=1000
+--disk-space-limit=0
+--mrte-type=java,dotnet,python
+--stack-unwind-limit=8388608
+--itt-config=frame
+--itt-config=task,event,counter
+--stackwalk=offline
+--mrte-mode=auto
+--type=cpu:stack
+--interval=10
+--platform-type=152
+--app-working-dir=.
+--
+./vtune_bench.exe

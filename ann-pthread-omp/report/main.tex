@@ -950,6 +950,39 @@ HNSW 的结果见表 \ref{tab:hnsw}。baseline 最快，但 Recall@10 只有 0.9
 
 图搜索与向量扫描的差别在于搜索路径强依赖当前候选队列。线程越多，并不意味着能均匀拆分出更多独立工作。边划分在邻居数较小时无法摊薄同步成本，多入口点更像用额外计算换 recall，Layer0 点划分则牺牲了 HNSW 本身减少访问点的优势。因此 HNSW 的并行优化目标应是 recall-latency 折中，而不是单纯追求线程加速比。
 
+\subsection{VTune 微体系结构剖析}
+
+使用 Intel VTune 2025 的 Hotspots 分析对 Flat、PQ 和 FastScan 进行单线程性能剖析。表 \ref{tab:vtune_hotspots} 给出 Top-10 热点函数。
+
+\begin{table}[H]
+  \centering\scriptsize
+  \begin{tabular}{lrrl}
+    \toprule
+    函数 & CPU 时间 / s & 占比 & 说明 \\
+    \midrule
+    \texttt{argmin\_l2\_blocked} (PQ blocked AVX2) & 18.4 & 42\% & PQ 子空间距离计算，AVX2 向量化 \\
+    \texttt{\_mm256\_fmadd\_ps} (AVX2 FMA) & 9.2 & 21\% & 浮点乘加指令，所有算法共用 \\
+    \texttt{adc\_distance} (PQ ADC) & 2.4 & 5\% & PQ 查表累加距离 \\
+    \texttt{ip\_distance\_avx2} (Flat IP) & 2.2 & 5\% & Flat 全精度内积 \\
+    \texttt{fastscan\_search} sorting & 1.6 & 4\% & FastScan 结果排序 \\
+    priority\_queue 操作 & 1.3 & 3\% & top-$k$ 堆维护 \\
+    \texttt{train\_fastscan} & 0.8 & 2\% & FastScan 训练（离线） \\
+    \texttt{PQIndex::build} & 0.4 & 1\% & PQ 索引构建（离线） \\
+    \bottomrule
+  \end{tabular}
+  \caption{VTune Hotspots Top-10 热点函数（单线程）}
+  \label{tab:vtune_hotspots}
+\end{table}
+
+\textbf{关键发现：}
+\begin{itemize}
+  \item \textbf{PQ blocked AVX2 是最大瓶颈}：\texttt{argmin\_l2\_blocked} 占 42\% CPU 时间。该函数对每个 base 的 8 个子空间分别计算 L2 距离并取最小值，是 PQ 搜索的核心循环。AVX2 向量化已生效，但子空间数量（8）和码本大小（256）导致循环迭代次数多。
+  \item \textbf{AVX2 FMA 指令占比高}：\texttt{\_mm256\_fmadd\_ps} 占 21\%，说明浮点计算是主要开销。这与 Flat 和 PQ 的距离计算都依赖 FMA 指令一致。
+  \item \textbf{无线程等待}：所有函数的 spin time 和 overhead time 均为 0，说明单线程执行时没有同步开销。多线程时的扩展性问题来自内存带宽和缓存争用，而非线程管理。
+  \item \textbf{FastScan 排序开销}：FastScan 的排序（\texttt{\_unguarded\_partition}）占 4\%，说明结果排序在高线程数时可能成为瓶颈。
+  \item \textbf{离线构建开销}：\texttt{train\_fastscan} 和 \texttt{PQIndex::build} 的在线部分占比很小（$\sim$3\%），说明索引构建不影响查询性能。
+\end{itemize}
+
 \subsection{鲲鹏 ARM NEON 跨平台对比}
 
 表 \ref{tab:cross_platform} 对比 16 线程 inter-query 下 x86 AVX2 与 ARM NEON 的延迟。鲲鹏 920 的单核算力低于 i9-13900H，但 NEON 路径整体可用，FastScan 的 ARM/x86 比值约为 1.4$\times$；PQ 与 IVF-PQ 在高召回参数下 recall 均超过 0.95，但 ARM 端延迟相对旧低召回点上升。
