@@ -47,7 +47,7 @@ inline std::string DefaultDataPath() {
 #ifdef _WIN32
     return "../files/";
 #else
-    return "/anndata/";
+    return "files/";   // 登录节点: files -> /anndata 链接; 计算节点: qsub 拷入
 #endif
 }
 

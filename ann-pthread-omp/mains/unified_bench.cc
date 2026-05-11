@@ -10,6 +10,7 @@
 #include <iomanip>
 #include <iostream>
 #include <memory>
+#include <sstream>
 #include <queue>
 #include <set>
 #include <string>
@@ -119,16 +120,24 @@ static double RecallAtK_HNSW(std::vector<HNSWHeap>& results, const int* gt,
 
 // ---- 续跑 checkpoint ----
 static const char* kCkptFile = "results/kunpeng_checkpoint.txt";
+static const char* kResultsFile = "results/kunpeng_results.txt";
+
 static void CkptWrite(const char* phase) {
     std::ofstream of(kCkptFile, std::ios::trunc);
     of << phase << "\n";
 }
+
+static void LogFile(const std::string& line) {
+    std::ofstream of(kResultsFile, std::ios::app);
+    of << line << "\n";
+    of.close();
+}
+
 static bool CkptDone(const char* phase) {
     std::ifstream in(kCkptFile);
     std::string last;
     std::getline(in, last);
     if (last.empty()) return false;
-    // 简单字典序比较：phase 名字按执行顺序排列
     const char* order[] = {"flat","sq","pq","fastscan","ivf","ivfpq_global","ivfpq_local","hnsw","hnsw_nested",nullptr};
     int idx_last = -1, idx_cur = -1;
     for (int i = 0; order[i]; ++i) {
@@ -140,13 +149,16 @@ static bool CkptDone(const char* phase) {
 
 static void Print(const char* algo, const char* strat, int nthr,
                   double recall, double lat_us, const char* extra = "") {
-    std::cout << std::fixed << std::setprecision(5);
-    std::cout << "RESULT " << algo << " " << strat
-              << " t=" << nthr
-              << " recall=" << recall
-              << " latency_us=" << lat_us;
-    if (extra[0]) std::cout << " " << extra;
-    std::cout << std::endl;  // flush each line
+    std::ostringstream oss;
+    oss << std::fixed << std::setprecision(5);
+    oss << "RESULT " << algo << " " << strat
+        << " t=" << nthr
+        << " recall=" << recall
+        << " latency_us=" << lat_us;
+    if (extra[0]) oss << " " << extra;
+    std::string line = oss.str();
+    std::cout << line << std::endl;
+    LogFile(line);  // 同时写入文件，方便实时监控
 }
 
 template<typename F>
@@ -247,9 +259,14 @@ static void RunPQ(const DataCtx& ctx) {
 }
 
 // ============================================================
-// FastScan 实验
+// FastScan 实验（ARM NEON 上有 segfault，待调试，暂时跳过）
 // ============================================================
 static void RunFastScan(const DataCtx& ctx) {
+#if defined(__aarch64__) || defined(__ARM_NEON)
+    std::cerr << "[skip] FastScan (ARM NEON segfault, pending debug)\n";
+    CkptWrite("fastscan");
+    (void)ctx;
+#else
     Section("FastScan");
     ann_fs::FastScanIndex fs_idx;
     ann_fs::train_fastscan(fs_idx, ctx.base.get(), static_cast<int>(ctx.base_n), static_cast<int>(ctx.d));
@@ -267,6 +284,7 @@ static void RunFastScan(const DataCtx& ctx) {
           double us = TimeOnce_us([&]{ fastscan_search_inter_pool(fs_idx,ctx.base.get(),ctx.queries.get(),ctx.query_n,kK,1000,nthr,res); });
           Print("fastscan","pthread_pool_inter",nthr, RecallAtK_Float(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "p=1000"); }
     }
+#endif
 }
 
 // ============================================================
