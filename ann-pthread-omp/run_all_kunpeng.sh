@@ -80,4 +80,10 @@ if [[ -f test.e ]]; then
 fi
 cat test.o
 
-echo "==> done. Re-run this script to resume from the checkpoint if interrupted."
+echo "==> part 1 done (unified_bench: 295 results)"
+
+# ---- Part 2: 补跑 unified 未覆盖的 29 条 ----
+echo "==> part 2: running 29 extra experiments not in unified_bench"
+bash run_extra_28_kunpeng.sh
+
+echo "==> all done. Total: 295 (unified) + 29 (extra) = 324 results"
