@@ -101,7 +101,7 @@
 \section*{摘要}
 \addcontentsline{toc}{section}{摘要}
 
-本实验围绕 DEEP100K 上的近似最近邻搜索（ANNS）实现了一个 header-only 的多算法并行框架。系统以 SIMD 距离计算为底层公共内核，在此基础上实现 Flat-SIMD、SQ-SIMD、PQ-SIMD、PQ-FastScan、IVF-SIMD、IVF-PQ-SIMD 与 HNSW 图索引，并分别给出 Pthread 与 OpenMP 版本。Pthread 侧实现了 static、dynamic 与 pool 三类调度；并行粒度覆盖 query 级并行（inter-query）与单 query 内部的 base/list 划分（intra-query）。实验在本地 i9-13900H（x86 AVX2）和鲲鹏 920（ARM NEON）两个平台完成。两个平台使用相同代码（\texttt{unified\_bench.cc}），产出 295 组等价实验矩阵；本地额外补充 28 组冗余实验（FastScan intra、IVF pool\_intra 等）和 45 组 IVF-PQ global 构建模式结果，共计 323 组核心结果和 15 组补充 trade-off 结果。针对初稿中 PQ/IVF-PQ recall 偏低的问题，额外补充了高召回参数诊断、重跑清单、时钟分析与汇编分析。
+本实验围绕 DEEP100K 上的近似最近邻搜索（ANNS）实现了一个 header-only 的多算法并行框架。系统以 SIMD 距离计算为底层公共内核，在此基础上实现 Flat-SIMD、SQ-SIMD、PQ-SIMD、PQ-FastScan、IVF-SIMD、IVF-PQ-SIMD 与 HNSW 图索引，并分别给出 Pthread 与 OpenMP 版本。Pthread 侧实现了 static、dynamic 与 pool 三类调度；并行粒度覆盖 query 级并行（inter-query）与单 query 内部的 base/list 划分（intra-query）。实验在本地 i9-13900H（x86 AVX2）和鲲鹏 920（ARM NEON）两个平台完成。两个平台使用相同代码（\texttt{unified\_bench.cc}），产出 319 组等价实验矩阵；本地额外 45 组 IVF-PQ global 构建模式结果为补充数据。针对初稿中 PQ/IVF-PQ recall 偏低的问题，额外补充了高召回参数诊断、重跑清单、时钟分析与汇编分析。
 
 实验结果显示，query 级并行是本数据集和批量查询场景下最稳健的并行粒度。Flat、SQ、FastScan、IVF 的本地高召回最优延迟分别为 298.95、86.53、125.81 与 104.67 $\mu$s；PQ 在 $p=1000$ 时达到 0.98335 recall、136.47 $\mu$s，IVF-PQ local 在 \texttt{nprobe=4,p=1000} 时达到 0.95945 recall、61.32 $\mu$s。Pthread dynamic 在多数规则扫描类算法上表现最好，Pthread pool 在 IVF inter-query 上略优，说明线程创建开销、尾部不均衡与 inverted list 不均匀性都会影响最终表现。HNSW 的内部并行更复杂：原始 baseline 延迟最低但召回较低，多入口点和边划分能提升召回，但同步和路径依赖使其不适合作为默认最快路径。
 
@@ -422,22 +422,24 @@ HNSW 基于 hnswlib 实现。本文不修改 hnswlib 源码，而是通过封装
 
 \begin{table}[H]
   \centering\small
-  \begin{tabular}{lrrrrl}
+  \begin{tabular}{lrrrl}
     \toprule
-    算法族 & 等价矩阵 & 本地补充 & 本地合计 & 鲲鹏 & 线程集合 \\
+    算法族 & 统一矩阵 & 本地补充 & 合计 & 线程集合 \\
     \midrule
-    Flat & 40 & 0 & 40 & 40 & 1,2,4,8,16 \\
-    SQ & 32 & 0 & 32 & 32 & 1,4,8,16 \\
-    PQ & 40 & 0 & 40 & 40 & 1,2,4,8,16 \\
-    FastScan & 16 & +16 intra & 32 & 16 & 1,4,8,16 \\
-    IVF & 31 & +9 baseline+pool\_intra & 40 & 36 & 1,2,4,8,16 \\
-    IVF-PQ & 45 & +45 local 模式 & 90 & 90 & 1,2,4,8,16 \\
-    HNSW & 41 & +3 baseline 多线程 & 44 & 41 & 1,4,8,16 \\
+    Flat & 40 & 0 & 40 & 1,2,4,8,16 \\
+    SQ & 32 & 0 & 32 & 1,4,8,16 \\
+    PQ & 40 & 0 & 40 & 1,2,4,8,16 \\
+    FastScan & 32 & 0 & 32 & 1,4,8,16 \\
+    IVF & 41 & 0 & 41 & 1,2,4,8,16 \\
+    IVF-PQ global & 45 & 0 & 45 & 1,2,4,8,16 \\
+    IVF-PQ local & 45 & +45 local 模式 & 90 & 1,2,4,8,16 \\
+    HNSW & 36 & 0 & 36 & 1,4,8,16 \\
+    HNSW nested & 8 & 0 & 8 & 1,4,8,16 \\
     \midrule
-    合计 & 295 & +28 & 323 & 295 & -- \\
+    合计 & 319 & +45 & 364 & -- \\
     \bottomrule
   \end{tabular}
-  \caption{双平台实验结果覆盖范围（等价矩阵 295 条用于跨平台对比）}
+  \caption{双平台实验结果覆盖范围（统一矩阵 319 条，part1+part2 可完全复现）}
   \label{tab:coverage}
 \end{table}
 
