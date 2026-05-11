@@ -12,3 +12,8 @@ RESULT flat pthread_static_inter t=2 recall=0.99995 latency_us=1978.55915
 RESULT flat pthread_dynamic_inter t=2 recall=0.99995 latency_us=2048.72935
 RESULT flat pthread_pool_inter t=2 recall=0.99995 latency_us=1883.40000
 RESULT flat pthread_static_intra t=2 recall=0.99995 latency_us=3419.07165
+RESULT flat omp_inter t=1 recall=0.99995 latency_us=3616.01405
+RESULT flat omp_intra t=1 recall=0.99995 latency_us=5122.87790
+RESULT flat pthread_static_inter t=1 recall=0.99995 latency_us=8050.34355
+RESULT flat pthread_dynamic_inter t=1 recall=0.99995 latency_us=8728.65795
+RESULT flat pthread_pool_inter t=1 recall=0.99995 latency_us=9162.44385
