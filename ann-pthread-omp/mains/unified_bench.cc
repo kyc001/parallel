@@ -363,6 +363,19 @@ static void RunFastScan(const DataCtx& ctx) {
         { std::vector<FlatHeap> res;
           double us = TimeOnce_us([&]{ fastscan_search_inter_pool(fs_idx,ctx.base.get(),ctx.queries.get(),ctx.query_n,kK,1000,nthr,res); });
           Print("fastscan","pthread_pool_inter",nthr, RecallAtK_Float(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "p=1000"); }
+        // intra
+        { std::vector<FlatHeap> res(ctx.query_n);
+          double us = TimeOnce_us([&]{ for(size_t i=0;i<ctx.query_n;++i) res[i]=fastscan_search_intra_omp(fs_idx,ctx.base.get(),ctx.queries.get()+i*ctx.d,kK,1000,nthr); });
+          Print("fastscan","omp_intra",nthr, RecallAtK_Float(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "p=1000"); }
+        { std::vector<FlatHeap> res(ctx.query_n);
+          double us = TimeOnce_us([&]{ for(size_t i=0;i<ctx.query_n;++i) res[i]=fastscan_search_intra_static(fs_idx,ctx.base.get(),ctx.queries.get()+i*ctx.d,kK,1000,nthr); });
+          Print("fastscan","pthread_static_intra",nthr, RecallAtK_Float(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "p=1000"); }
+        { std::vector<FlatHeap> res(ctx.query_n);
+          double us = TimeOnce_us([&]{ for(size_t i=0;i<ctx.query_n;++i) res[i]=fastscan_search_intra_dynamic(fs_idx,ctx.base.get(),ctx.queries.get()+i*ctx.d,kK,1000,nthr); });
+          Print("fastscan","pthread_dynamic_intra",nthr, RecallAtK_Float(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "p=1000"); }
+        { std::vector<FlatHeap> res(ctx.query_n);
+          double us = TimeOnce_us([&]{ for(size_t i=0;i<ctx.query_n;++i) res[i]=fastscan_search_intra_pool(fs_idx,ctx.base.get(),ctx.queries.get()+i*ctx.d,kK,1000,nthr); });
+          Print("fastscan","pthread_pool_intra",nthr, RecallAtK_Float(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "p=1000"); }
     }
 }
 
@@ -374,11 +387,10 @@ static void RunIVF(const DataCtx& ctx) {
     const size_t nlist = 16, nprobe = 4;
     ann_ivf::IVFIndex ivf_idx; ivf_idx.build(ctx.base.get(), ctx.base_n, ctx.d, nlist, 8);
     for (int nthr : {1, 2, 4, 8, 16}) {
-        // SIMD serial
-        if (nthr == 1) {
-            std::vector<IVFHeap> res(ctx.query_n);
-            double us = TimeOnce_us([&]{ for(size_t i=0;i<ctx.query_n;++i) res[i]=ivf_search(ivf_idx,ctx.queries.get()+i*ctx.d,kK,nprobe); });
-            Print("ivf","simd_serial",1, RecallAtK_IVF(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "nprobe=4"); }
+        // SIMD serial (single-threaded, run at all thread counts for completeness)
+        { std::vector<IVFHeap> res(ctx.query_n);
+          double us = TimeOnce_us([&]{ for(size_t i=0;i<ctx.query_n;++i) res[i]=ivf_search(ivf_idx,ctx.queries.get()+i*ctx.d,kK,nprobe); });
+          Print("ivf","simd_serial",nthr, RecallAtK_IVF(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "nprobe=4"); }
         // OMP inter
         { std::vector<IVFHeap> res;
           double us = TimeOnce_us([&]{ ivf_search_inter_omp(ivf_idx,ctx.queries.get(),ctx.query_n,kK,nprobe,nthr,res); });
@@ -405,6 +417,9 @@ static void RunIVF(const DataCtx& ctx) {
         { std::vector<IVFHeap> res(ctx.query_n);
           double us = TimeOnce_us([&]{ for(size_t i=0;i<ctx.query_n;++i) res[i]=ivf_search_intra_dynamic(ivf_idx,ctx.queries.get()+i*ctx.d,kK,nprobe,nthr); });
           Print("ivf","pthread_dynamic_intra",nthr, RecallAtK_IVF(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "nprobe=4"); }
+        { std::vector<IVFHeap> res(ctx.query_n);
+          double us = TimeOnce_us([&]{ for(size_t i=0;i<ctx.query_n;++i) res[i]=ivf_search_intra_pool(ivf_idx,ctx.queries.get()+i*ctx.d,kK,nprobe,nthr); });
+          Print("ivf","pthread_pool_intra",nthr, RecallAtK_IVF(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "nprobe=4"); }
     }
 }
 
@@ -499,10 +514,10 @@ static void RunHNSW(const DataCtx& ctx) {
     if (PhaseRequested("hnsw") && !CkptDone("hnsw")) {
         Section("HNSW");
         ann_hnsw::HnswHolder holder = ann_hnsw::BuildIndex(ctx.base.get(), ctx.base_n, ctx.d, 16, 120, ef);
-        { std::vector<HNSWHeap> res(ctx.query_n);
-          double us = TimeOnce_us([&]{ for(size_t i=0;i<ctx.query_n;++i) res[i]=ann_hnsw::StandardSearch(*holder.index,ctx.queries.get()+i*ctx.d,kK,ef,1); });
-          Print("hnsw","baseline",1, RecallAtK_HNSW(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "ef=50"); }
         for (int nthr : {1, 4, 8, 16}) {
+            { std::vector<HNSWHeap> res(ctx.query_n);
+              double us = TimeOnce_us([&]{ for(size_t i=0;i<ctx.query_n;++i) res[i]=ann_hnsw::StandardSearch(*holder.index,ctx.queries.get()+i*ctx.d,kK,ef,nthr); });
+              Print("hnsw","baseline",nthr, RecallAtK_HNSW(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "ef=50"); }
             { std::vector<HNSWHeap> res(ctx.query_n);
               double us = TimeOnce_us([&]{ for(size_t i=0;i<ctx.query_n;++i) res[i]=hnsw_search_multi_entry_omp(*holder.index,ctx.queries.get()+i*ctx.d,kK,ef,nthr); });
               Print("hnsw","multi_entry_omp",nthr, RecallAtK_HNSW(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "ef=50"); }
