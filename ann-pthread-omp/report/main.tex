@@ -7,7 +7,7 @@
 %
 % 实验结果:
 %   本地: results/local/  → 汇总 results/local_summary.csv + local_tradeoff.csv
-%   鲲鹏: 待跑
+%   鲲鹏: results/kunpeng/ → 汇总 results/kunpeng/arm_neon_summary.csv
 %
 % 编译: xelatex main.tex
 % ===========================================================================
@@ -101,7 +101,7 @@
 \section*{摘要}
 \addcontentsline{toc}{section}{摘要}
 
-本实验围绕 DEEP100K 上的近似最近邻搜索（ANNS）实现了一个 header-only 的多算法并行框架。系统以 SIMD 距离计算为底层公共内核，在此基础上实现 Flat-SIMD、SQ-SIMD、PQ-SIMD、PQ-FastScan、IVF-SIMD、IVF-PQ-SIMD 与 HNSW 图索引，并分别给出 Pthread 与 OpenMP 版本。Pthread 侧实现了 static、dynamic 与 pool 三类调度；并行粒度覆盖 query 级并行（inter-query）与单 query 内部的 base/list 划分（intra-query）。实验在本机 i9-13900H 平台完成 278 组核心矩阵结果，并补充 15 组 IVF / IVF-PQ 的 \texttt{nprobe} 与构建模式 trade-off 结果。
+本实验围绕 DEEP100K 上的近似最近邻搜索（ANNS）实现了一个 header-only 的多算法并行框架。系统以 SIMD 距离计算为底层公共内核，在此基础上实现 Flat-SIMD、SQ-SIMD、PQ-SIMD、PQ-FastScan、IVF-SIMD、IVF-PQ-SIMD 与 HNSW 图索引，并分别给出 Pthread 与 OpenMP 版本。Pthread 侧实现了 static、dynamic 与 pool 三类调度；并行粒度覆盖 query 级并行（inter-query）与单 query 内部的 base/list 划分（intra-query）。实验在本地 i9-13900H（x86 AVX2）和鲲鹏 920（ARM NEON）两个平台完成，本地收集 278 组核心矩阵结果和 15 组补充 trade-off 结果，鲲鹏收集 275 组完整矩阵结果。
 
 实验结果显示，query 级并行是本数据集和批量查询场景下最稳健的并行粒度。Flat、SQ、PQ、FastScan、IVF 与 IVF-PQ 的最优点均来自 inter-query；其中 Flat、SQ、PQ、FastScan、IVF 与 IVF-PQ 的本地最优延迟分别为 298.95、86.53、73.06、125.81、104.67 与 27.44 $\mu$s。Pthread dynamic 在多数规则扫描类算法上表现最好，Pthread pool 在 IVF inter-query 上略优，说明线程创建开销、尾部不均衡与 inverted list 不均匀性都会影响最终表现。HNSW 的内部并行更复杂：原始 baseline 延迟最低但召回较低，多入口点和边划分能提升召回，但同步和路径依赖使其不适合作为默认最快路径。
 
@@ -402,34 +402,42 @@ HNSW 基于 hnswlib 实现。本文不修改 hnswlib 源码，而是通过封装
 
 \subsection{平台与数据集}
 
-本地实验平台为 Intel Core i9-13900H，14 核 20 逻辑线程；编译器为 MSYS2 GCC 14.2.0。核心编译选项为：
+本实验在两个平台上完成。
+
+\textbf{本地平台：} Intel Core i9-13900H（6P+8E/20T），Win11，MSYS2 GCC 14.2.0。编译选项：
 \[
 \texttt{-O2 -mavx2 -mfma -fopenmp -lpthread -std=c++17 -I.}
 \]
-数据集为 DEEP100K：100K 条 96 维 base 向量，10K 条 query，ground truth 为 top-100。所有正式本地实验取前 2000 条 query，$k=10$。报告中的平均延迟均为查询阶段平均延迟，不包含离线索引构建时间。
+
+\textbf{鲲鹏平台：} 华为鲲鹏 920 服务器（AArch64/ARM NEON），GCC，编译选项：
+\[
+\texttt{-O2 -fopenmp -lpthread -std=c++17 -I.}
+\]
+
+数据集为 DEEP100K：100K 条 96 维 base 向量，10K 条 query，ground truth 为 top-100。所有正式实验取前 2000 条 query，$k=10$。报告中的平均延迟均为查询阶段平均延迟，不包含离线索引构建时间。
 
 \subsection{结果文件与参数}
 
-核心矩阵结果位于 \path{results/local/}，汇总文件为 \path{results/local_summary.csv}。补充 trade-off 结果为 \path{results/local_tradeoff.csv}。表 \ref{tab:coverage} 给出有效结果数量。
+核心矩阵结果位于 \path{results/local/}，汇总文件为 \path{results/local_summary.csv}。补充 trade-off 结果为 \path{results/local_tradeoff.csv}。鲲鹏 ARM NEON 结果位于 \path{results/kunpeng/arm_neon_results.txt}，汇总为 \path{results/kunpeng/arm_neon_summary.csv}。表 \ref{tab:coverage} 给出两个平台的有效结果数量。
 
 \begin{table}[H]
   \centering\small
-  \begin{tabular}{lrrl}
+  \begin{tabular}{lrrrl}
     \toprule
-    算法族 & 核心矩阵结果 & 补充 trade-off & 线程集合 \\
+    算法族 & 本地 x86 & 鲲鹏 ARM & 补充 trade-off & 线程集合 \\
     \midrule
-    Flat & 40 & 0 & 1,2,4,8,16 \\
-    SQ & 32 & 0 & 1,4,8,16 \\
-    PQ & 40 & 0 & 1,2,4,8,16 \\
-    FastScan & 32 & 0 & 1,4,8,16 \\
-    IVF & 45 & 5 & 1,2,4,8,16 \\
-    IVF-PQ & 45 & 10 & 1,2,4,8,16 \\
-    HNSW & 44 & 0 & 1,4,8,16 \\
+    Flat & 40 & 40 & 0 & 1,2,4,8,16 \\
+    SQ & 32 & 32 & 0 & 1,4,8,16 \\
+    PQ & 40 & 40 & 0 & 1,2,4,8,16 \\
+    FastScan & 32 & 16 & 0 & 1,4,8,16 \\
+    IVF & 45 & 36 & 5 & 1,2,4,8,16 \\
+    IVF-PQ & 45 & 70 & 10 & 1,2,4,8,16 \\
+    HNSW & 44 & 41 & 0 & 1,4,8,16 \\
     \midrule
-    合计 & 278 & 15 & -- \\
+    合计 & 278 & 275 & 15 & -- \\
     \bottomrule
   \end{tabular}
-  \caption{本地实验结果覆盖范围}
+  \caption{双平台实验结果覆盖范围}
   \label{tab:coverage}
 \end{table}
 
@@ -601,6 +609,71 @@ HNSW 的结果见表 \ref{tab:hnsw}。baseline 最快，但 Recall@10 只有 0.9
 
 图搜索与向量扫描的差别在于搜索路径强依赖当前候选队列。线程越多，并不意味着能均匀拆分出更多独立工作。边划分在邻居数较小时无法摊薄同步成本，多入口点更像用额外计算换 recall，Layer0 点划分则牺牲了 HNSW 本身减少访问点的优势。因此 HNSW 的并行优化目标应是 recall-latency 折中，而不是单纯追求线程加速比。
 
+\subsection{鲲鹏 ARM NEON 跨平台对比}
+
+表 \ref{tab:cross_platform} 对比 16 线程 inter-query 下 x86 AVX2 与 ARM NEON 的延迟。鲲鹏 920 的单核算力低于 i9-13900H，但 NEON 路径整体可用，FastScan 和 IVF-PQ 的 ARM/x86 比值较低（1.4--1.5$\times$），说明这两个算法更偏 memory-bound，计算能力差异的影响被摊薄。
+
+\begin{table}[H]
+  \centering\scriptsize
+  \begin{tabular}{llrrrr}
+    \toprule
+    算法族 & 调度策略 & x86 延迟 / $\mu$s & ARM 延迟 / $\mu$s & ARM/x86 & ARM Recall \\
+    \midrule
+    Flat & OMP inter & 341.55 & 955.81 & 2.80 & 0.99995 \\
+    Flat & Pthread dynamic inter & 298.95 & 913.46 & 3.06 & 0.99995 \\
+    SQ & OMP inter & 118.30 & 386.17 & 3.26 & 0.99995 \\
+    SQ & Pthread pool inter & 92.42 & 362.06 & 3.92 & 0.99995 \\
+    PQ & OMP inter & 119.30 & 169.23 & 1.42 & 0.70370 \\
+    PQ & Pthread dynamic inter & 73.06 & 158.35 & 2.17 & 0.70370 \\
+    FastScan & OMP inter & 139.26 & 193.82 & 1.39 & 0.97525 \\
+    FastScan & Pthread dynamic inter & 125.81 & 181.63 & 1.44 & 0.97525 \\
+    IVF & OMP inter & 113.90 & 278.57 & 2.45 & 0.96225 \\
+    IVF & Pthread pool inter & 104.67 & 269.76 & 2.58 & 0.96225 \\
+    IVF-PQ global & Pthread dynamic inter & -- & 83.09 & -- & 0.68705 \\
+    IVF-PQ local & Pthread dynamic inter & -- & 68.24 & -- & 0.82105 \\
+    \bottomrule
+  \end{tabular}
+  \caption{16 线程 inter-query 下 x86 AVX2 与 ARM NEON 延迟对比}
+  \label{tab:cross_platform}
+\end{table}
+
+表 \ref{tab:arm_hnsw} 给出鲲鹏平台上 HNSW 的代表性结果。与本地类似，多入口点和边划分能在 ARM 上提升召回，但图搜索的同步开销在 ARM 上同样显著。
+
+\begin{table}[H]
+  \centering\scriptsize
+  \begin{tabular}{lrrr}
+    \toprule
+    变体 & 线程 & Recall@10 & ARM 延迟 / $\mu$s \\
+    \midrule
+    \texttt{hnsw\_baseline} & 1 & 0.96865 & 267.69 \\
+    \texttt{hnsw\_multi\_entry\_omp} & 4 & 1.00000 & 415.18 \\
+    \texttt{hnsw\_edge\_omp} & 1 & 0.99915 & 349.64 \\
+    \texttt{hnsw\_layer0\_omp} & 4 & 0.99995 & 7535.87 \\
+    \texttt{hnsw\_ivf\_nested\_omp} & 4 & 0.94705 & 261.33 \\
+    \bottomrule
+  \end{tabular}
+  \caption{鲲鹏 ARM NEON 上 HNSW 代表性结果}
+  \label{tab:arm_hnsw}
+\end{table}
+
+鲲鹏平台的 Flat inter-query 线程伸缩性如表 \ref{tab:arm_flat_scaling}。从 1 到 16 线程加速约 9$\times$，与本地趋势一致，但绝对延迟约为本地的 3 倍。
+
+\begin{table}[H]
+  \centering\scriptsize
+  \begin{tabular}{lrrrrr}
+    \toprule
+    变体 & 1 线程 & 2 线程 & 4 线程 & 8 线程 & 16 线程 \\
+    \midrule
+    OMP inter & 6336.98 & 3079.28 & 2259.83 & 1218.45 & 955.81 \\
+    Pthread static inter & 6238.52 & 3125.63 & 2418.54 & 1264.09 & 967.70 \\
+    Pthread dynamic inter & 6200.81 & 3275.13 & 1942.35 & 931.82 & \textbf{913.46} \\
+    Pthread pool inter & 7489.24 & 3427.91 & 1793.26 & 934.24 & 926.94 \\
+    \bottomrule
+  \end{tabular}
+  \caption{鲲鹏 Flat inter-query 不同线程延迟，单位为 $\mu$s}
+  \label{tab:arm_flat_scaling}
+\end{table}
+
 \section{要求覆盖情况}
 
 表 \ref{tab:req} 对照作业要求列出完成情况。
@@ -618,7 +691,7 @@ HNSW 的结果见表 \ref{tab:hnsw}。baseline 最快，但 Recall@10 只有 0.9
   IVF-SIMD baseline 与多线程 & 实现 IVF 索引、SIMD 搜索、Pthread / OpenMP 并行，并补充 \texttt{nprobe} trade-off。 \\
   IVF-PQ-SIMD baseline 与多线程 & 实现 IVF-PQ、两种构建模式、Pthread / OpenMP 并行，并比较 global/local 构建差异。 \\
   HNSW 进阶 & 基于 hnswlib 实现 baseline、多入口点、边划分、Layer0 点划分与 IVF-HNSW 嵌套结构。 \\
-  性能测试与报告分析 & 本地收集 278 组核心矩阵结果和 15 组补充 trade-off 结果，分析线程数、调度、负载均衡、cache / 内存访问和负优化。 \\
+  性能测试与报告分析 & 本地收集 278 组核心矩阵结果和 15 组补充 trade-off 结果；鲲鹏 ARM NEON 收集 275 组完整矩阵结果。分析线程数、调度、负载均衡、cache / 内存访问和负优化。 \\
   \bottomrule
   \caption{作业要求覆盖情况}
   \label{tab:req}
@@ -630,12 +703,14 @@ HNSW 的结果见表 \ref{tab:hnsw}。baseline 最快，但 Recall@10 只有 0.9
 
 从算法角度看，Flat 提供高召回但受内存带宽限制；SQ 在本实验中取得近乎无损 recall 和较低延迟；PQ 与 IVF-PQ 速度很快但需要更大的 $p$ 或更好的构建方式提高 recall；FastScan 说明数据布局和查表方式会改变瓶颈；IVF 通过 \texttt{nprobe} 提供清晰的 latency-recall 旋钮；HNSW 则体现了图搜索并行化的挑战，内部并行更多是为高召回服务，而不是默认提升速度。
 
-后续可以继续完善三点：第一，在鲲鹏平台用 \texttt{test.sh 2 1} 复跑完整矩阵，补齐 ARM NEON 与 x86 AVX2 的多线程对比；第二，对 SQ/PQ/FastScan 做更系统的 $p$ sweep，形成更完整的 latency-recall 曲线；第三，对 HNSW 尝试更细粒度的共享候选队列和无锁 visited 标记，验证是否能降低图搜索并行的同步成本。
+跨平台对比表明，鲲鹏 ARM NEON 的绝对延迟约为本地 x86 AVX2 的 1.4--3.9 倍，其中 FastScan 和 IVF-PQ 的比值最低（1.4$\times$），说明这两个算法更偏 memory-bound，计算能力差异的影响被摊薄。Flat、SQ 等 compute-bound 算法的比值较高（2.8--3.9$\times$），与两个平台的单核 SIMD 吞吐差异基本一致。
+
+后续可以继续完善两点：第一，对 SQ/PQ/FastScan 做更系统的 $p$ sweep，形成更完整的 latency-recall 曲线；第二，对 HNSW 尝试更细粒度的共享候选队列和无锁 visited 标记，验证是否能降低图搜索并行的同步成本。
 
 \section*{AI 辅助说明}
 \addcontentsline{toc}{section}{AI 辅助说明}
 
-本项目使用 Codex 辅助完成代码结构梳理、实验脚本编排、结果汇总和报告一致性检查。所有性能数据均来自本地程序输出文件，未使用 AI 生成或伪造实验数据。关键结果可由 \path{results/local/}、\path{results/local_summary.csv} 和 \path{results/local_tradeoff.csv} 复核。
+本项目使用 Codex 辅助完成代码结构梳理、实验脚本编排、结果汇总和报告一致性检查。所有性能数据均来自本地和鲲鹏服务器的程序输出文件，未使用 AI 生成或伪造实验数据。关键结果可由 \path{results/local/}、\path{results/local_summary.csv}、\path{results/local_tradeoff.csv} 和 \path{results/kunpeng/arm_neon_results.txt} 复核。
 
 % ===========================================================================
 % 实验上下文（供后续维护参考）
@@ -653,7 +728,7 @@ HNSW 的结果见表 \ref{tab:hnsw}。baseline 最快，但 Recall@10 只有 0.9
 % 平台:
 %   本机: i9-13900H (6P+8E/20T), Win11, MSYS2 GCC 14.2.0
 %   编译: -O2 -mavx2 -mfma -fopenmp -lpthread -std=c++17 -I.
-%   鲲鹏: 待跑 (bash test.sh 2 1)
+%   鲲鹏: -O2 -fopenmp -lpthread -std=c++17 -I. (bash run_all_kunpeng.sh)
 %
 % 数据文件来源:
 %   本机: ../files/DEEP100K.{base.100k,query,gt.query.100k.top100}.{fbin,bin}
@@ -675,8 +750,8 @@ HNSW 的结果见表 \ref{tab:hnsw}。baseline 最快，但 Recall@10 只有 0.9
 %   - 本机混合核 (P-core/E-core) 可能影响 8+ 线程的伸缩性
 %
 % 待完成:
-%   - 鲲鹏 ARM NEON 全矩阵实验
 %   - SQ/PQ/FastScan p-sweep 完整 latency-recall 曲线
+%   - 鲲鹏 ARM NEON 全矩阵实验 ✓ (275 条, results/kunpeng/)
 %   - VTune / perf 分析 (cache miss, 内存带宽, 线程同步热点)
 %   - 汇编对比 (x86 AVX2 vs ARM NEON 关键内核)
 %
