@@ -73,15 +73,15 @@
     \vspace{18mm}
     {\huge\kaishu 计算机学院\par}
     \vspace{0.5cm}
-    {\huge\kaishu 并行程序设计期末报告\par}
+    {\huge\kaishu 并行程序设计实验报告\par}
     \vspace{2.0cm}
     {\Huge\kaishu Lab3 Pthread + OpenMP 编程\par}
     \vspace{0.35cm}
     {\Huge\kaishu ANN 近似最近邻搜索\par}
     \vspace{0.55cm}
-    {\Large\kaishu Flat / SQ / PQ / FastScan / IVF / IVF-PQ / HNSW\par}
+    {\Large\kaishu 多线程并行化、调度策略与跨平台对比\par}
     \vspace{0.3cm}
-    {\Large\kaishu 多线程并行化与调度策略对比\par}
+    {\Large\kaishu Flat / SQ / PQ / FastScan / IVF / IVF-PQ / HNSW\par}
 
     \vspace{\fill}
     {\LARGE\kaishu 姓名：柯云超\par}
@@ -308,6 +308,240 @@ OpenMP 侧主要使用 \texttt{parallel for}，query 级循环使用 dynamic sch
   \caption{Pthread 三种调度方式对比}
   \label{fig:schedulers}
 \end{figure}
+
+\section{并行原理分析}
+
+本节从系统层面分析多线程并行的核心原理，为后续实验结果提供理论基础。
+
+\subsection{线程生命周期与同步开销}
+
+Pthread 创建线程需要分配栈空间、设置 TLS（Thread-Local Storage）并调用 \texttt{clone} 系统调用。在 Linux 上，单次 \texttt{pthread\_create} 的典型开销为 10--50 $\mu$s。如果每个 query 都创建/销毁线程，线程管理开销会成为短查询场景的瓶颈。
+
+本文的三种调度策略对线程生命周期的处理不同：
+
+\begin{itemize}
+  \item \textbf{Static / Dynamic}：每次调用并行搜索时创建 $T$ 个线程，等待 \texttt{pthread\_join} 后销毁。线程创建开销为 $O(T)$，但每个线程处理的任务量为 $O(Q/T)$（$Q$ 为 query 数），因此当 $Q$ 足够大时，创建开销可被摊薄。
+  \item \textbf{Pool}：线程池在初始化时创建 $T$ 个线程，通过 \texttt{pthread\_mutex\_t} + \texttt{pthread\_cond\_t} 实现任务队列。线程在整个程序生命周期内复用，避免反复创建/销毁。但每次任务分发需要 \texttt{mutex\_lock} + \texttt{cond\_signal} + \texttt{mutex\_unlock}，引入额外同步开销。
+\end{itemize}
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[
+    scale=0.9,
+    transform shape,
+    box/.style={draw, rounded corners=2pt, align=center, minimum width=2.2cm, minimum height=0.6cm, font=\footnotesize},
+    arrow/.style={-Latex, thick},
+    dashed arrow/.style={-Latex, thick, dashed}
+  ]
+    % Thread lifecycle
+    \node[box, fill=green!5] (create) at (0, 0) {pthread\_create};
+    \node[box, fill=blue!5] (work) at (3.5, 0) {执行任务};
+    \node[box, fill=red!5] (join) at (7.0, 0) {pthread\_join};
+    \node[box, fill=gray!10] (destroy) at (10.5, 0) {线程销毁};
+    \draw[arrow] (create) -- (work);
+    \draw[arrow] (work) -- (join);
+    \draw[arrow] (join) -- (destroy);
+
+    % Pool lifecycle
+    \node[box, fill=green!5] (init) at (0, -2) {线程池初始化};
+    \node[box, fill=yellow!5] (wait) at (3.5, -2) {等待任务};
+    \node[box, fill=blue!5] (exec) at (7.0, -2) {执行任务};
+    \node[box, fill=yellow!5] (back) at (10.5, -2) {返回池中};
+    \draw[arrow] (init) -- (wait);
+    \draw[arrow] (wait) -- (exec);
+    \draw[arrow] (exec) -- (back);
+    \draw[dashed arrow] (back) -- (wait);
+
+    \node[font=\footnotesize, anchor=west] at (11.5, -0.0) {每次调用};
+    \node[font=\footnotesize, anchor=west] at (11.5, -2.0) {线程复用};
+  \end{tikzpicture}
+  \caption{线程生命周期：每次创建 vs 线程池复用}
+  \label{fig:thread_lifecycle}
+\end{figure}
+
+\subsection{Cache 行为分析}
+
+DEEP100K 的 base 向量为 100K $\times$ 96 维 $\times$ 4 字节 = 36.8 MB，远超典型 L3 缓存（i9-13900H 的 L3 为 24 MB，鲲鹏 920 的 L3 为 32 MB）。因此全量扫描必然产生大量 cache miss。
+
+\textbf{Inter-query 并行}下，每个线程独立处理一条 query，需要遍历全部 base 向量。多线程同时访问相同的 base 数据（只读），可以利用 L3 共享缓存。但当线程数增加时，L3 带宽成为瓶颈。
+
+\textbf{Intra-query 并行}下，多个线程同时处理同一条 query 的不同 base 子集。每个线程访问的 base 片段不同，L1/L2 缓存利用率更高（因为每个线程的工作集更小）。但需要额外的局部堆维护和最终 merge 操作。
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[
+    scale=0.85,
+    transform shape,
+    box/.style={draw, rounded corners=1.5pt, align=center, minimum width=1.5cm, minimum height=0.5cm, font=\footnotesize},
+    cache/.style={draw, fill=yellow!10, rounded corners=2pt, align=center, minimum width=12cm, minimum height=1.2cm, font=\footnotesize},
+    arrow/.style={-Latex, thick}
+  ]
+    % Cache hierarchy
+    \node[cache, fill=red!5] (l1) at (0, 0) {L1 Cache (32--48 KB/core) $\rightarrow$ 命中率高，延迟 1--4 周期};
+    \node[cache, fill=orange!5] (l2) at (0, -1.5) {L2 Cache (256 KB--1 MB/core) $\rightarrow$ 命中率中等，延迟 10--20 周期};
+    \node[cache, fill=yellow!5] (l3) at (0, -3.0) {L3 Cache (24--32 MB 共享) $\rightarrow$ 命中率低，延迟 30--50 周期};
+    \node[cache, fill=gray!10] (mem) at (0, -4.5) {主存 (DDR4/DDR5) $\rightarrow$ 延迟 100--300 周期};
+
+    \draw[arrow] (l1) -- (l2);
+    \draw[arrow] (l2) -- (l3);
+    \draw[arrow] (l3) -- (mem);
+
+    % Data size annotation
+    \node[font=\scriptsize, anchor=west] at (6.5, 0.0) {每个 core 私有};
+    \node[font=\scriptsize, anchor=west] at (6.5, -1.5) {每个 core 私有};
+    \node[font=\scriptsize, anchor=west] at (6.5, -3.0) {所有 core 共享};
+    \node[font=\scriptsize, anchor=west] at (6.5, -4.5) {DEEP100K base = 36.8 MB};
+  \end{tikzpicture}
+  \caption{缓存层次结构与 DEEP100K 数据规模}
+  \label{fig:cache_hierarchy}
+\end{figure}
+
+\subsection{内存带宽瓶颈}
+
+Flat 全扫描需要读取 36.8 MB base 数据。在 DDR4-3200 双通道下，理论带宽约为 51.2 GB/s，但实际有效带宽通常为 60--80\%。对于单线程，内存带宽已经足够；但当线程数增加到 8--16 时，多线程同时读取 base 数据会迅速饱和内存带宽。
+
+这就是为什么 Flat 从 8 线程到 16 线程的加速比明显下降：不是计算能力不足，而是内存带宽成为瓶颈。PQ 和 FastScan 通过量化压缩（每个 base 从 384 字节压缩到 8--12 字节），显著减少了内存读取量，因此在高线程数下仍能保持较好扩展性。
+
+\begin{table}[H]
+  \centering\small
+  \begin{tabular}{lrrr}
+    \toprule
+    算法 & 每个 base 字节数 & 100K base 总量 & 带宽需求 (单 query) \\
+    \midrule
+    Flat (float32) & 384 & 36.8 MB & $\sim$36.8 MB \\
+    SQ (uint8) & 96 & 9.2 MB & $\sim$9.2 MB \\
+    PQ (8$\times$uint8) & 8 & 0.76 MB & $\sim$0.76 MB \\
+    FastScan (4-bit) & 4 & 0.38 MB & $\sim$0.38 MB \\
+    \bottomrule
+  \end{tabular}
+  \caption{不同算法的内存访问量对比}
+  \label{tab:memory_footprint}
+\end{table}
+
+\subsection{负载均衡分析}
+
+负载均衡是多线程性能的关键因素。理想情况下，每个线程的工作量应该相等，这样所有线程同时完成，总时间等于单线程时间除以线程数。
+
+\textbf{Static 调度}将任务均匀分配给各线程。当任务量规则（如 Flat 的 base 扫描）时效果好；但当任务量不均匀（如 IVF 的不同 inverted list 长度差异大）时，某些线程会提前空闲，等待最慢的线程完成。
+
+\textbf{Dynamic 调度}通过原子计数器实现动态任务分配。每个线程完成当前任务后立即获取下一个任务，自然适应任务量差异。代价是每次获取任务需要一次原子操作（\texttt{fetch\_add}），但在任务粒度足够大时，这个开销可以忽略。
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[
+    scale=0.85,
+    transform shape,
+    box/.style={draw, rounded corners=1.5pt, align=center, minimum width=0.8cm, minimum height=0.5cm, font=\tiny},
+    thread/.style={draw, fill=blue!10, minimum width=0.6cm, minimum height=0.4cm, font=\tiny},
+    arrow/.style={-Latex, thick}
+  ]
+    % Static - uneven workloads
+    \node[font=\footnotesize] (stitle) at (0, 0.5) {\textbf{Static：不均匀负载}};
+    \foreach \i in {0,...,7} {
+      \pgfmathsetmacro{\h}{0.3 + 0.2*mod(\i,3)}
+      \node[box, fill=green!20, minimum height=\h cm] (s\i) at ({-2.8+\i*0.8}, {-0.5-\h/2}) {};
+    }
+    \node[font=\tiny] at (-2.8, -1.8) {T0};
+    \node[font=\tiny] at (-2.0, -1.8) {T1};
+    \node[font=\tiny] at (-1.2, -1.8) {T2};
+    \node[font=\tiny] at (-0.4, -1.8) {T3};
+    % Wait indicator
+    \draw[thick, red] (-2.8, -1.3) -- (-0.4, -1.3);
+    \node[font=\tiny, red] at (-1.6, -1.1) {等待};
+
+    % Dynamic - balanced
+    \node[font=\footnotesize] (dtitle) at (5.0, 0.5) {\textbf{Dynamic：自动均衡}};
+    \foreach \i in {0,...,7} {
+      \pgfmathsetmacro{\h}{0.5}
+      \node[box, fill=blue!20, minimum height=\h cm] (d\i) at ({2.2+\i*0.8}, {-0.5-\h/2}) {};
+    }
+    \node[font=\tiny] at (2.2, -1.8) {T0};
+    \node[font=\tiny] at (3.0, -1.8) {T1};
+    \node[font=\tiny] at (3.8, -1.8) {T2};
+    \node[font=\tiny] at (4.6, -1.8) {T3};
+    \node[font=\tiny] at (5.4, -1.8) {T0};
+    \node[font=\tiny] at (6.2, -1.8) {T1};
+    \node[font=\tiny] at (7.0, -1.8) {T2};
+    \node[font=\tiny] at (7.8, -1.8) {T3};
+  \end{tikzpicture}
+  \caption{Static vs Dynamic 调度的负载均衡对比}
+  \label{fig:load_balance}
+\end{figure}
+
+\subsection{False Sharing 与缓存行冲突}
+
+False sharing 发生在不同线程写入同一缓存行（通常 64 字节）的不同位置时。即使逻辑上不冲突，硬件层面的缓存一致性协议（MESI）仍会导致缓存行在 core 间反复弹跳，严重降低性能。
+
+在 intra-query 并行中，每个线程维护局部 top-$k$ 堆。如果这些堆在内存中紧邻存放，堆的更新操作可能触发 false sharing。解决方案是让每个线程的堆分配在独立的缓存行对齐内存区域。
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[
+    scale=0.9,
+    transform shape,
+    box/.style={draw, rounded corners=1.5pt, align=center, minimum width=2.0cm, minimum height=0.5cm, font=\footnotesize},
+    cache line/.style={draw, fill=yellow!10, rounded corners=2pt, minimum width=8cm, minimum height=0.8cm, font=\footnotesize},
+    arrow/.style={-Latex, thick}
+  ]
+    % False sharing
+    \node[cache line] (line1) at (0, 0) {缓存行 0x00--0x3F (64 字节)};
+    \node[box, fill=red!20] (t0) at (-2, -0.8) {线程 0 写入 [0x00]};
+    \node[box, fill=blue!20] (t1) at (2, -0.8) {线程 1 写入 [0x04]};
+    \draw[arrow, red] (t0) -- (line1);
+    \draw[arrow, blue] (t1) -- (line1);
+    \node[font=\scriptsize] at (0, -1.5) {逻辑不冲突，但硬件缓存行弹跳};
+
+    % Solution
+    \node[cache line] (line2) at (0, -2.8) {线程 0 专用缓存行};
+    \node[cache line] (line3) at (0, -3.8) {线程 1 专用缓存行};
+    \node[font=\scriptsize, green!50!black] at (4, -3.3) {padding 避免 false sharing};
+  \end{tikzpicture}
+  \caption{False Sharing 与解决方案}
+  \label{fig:false_sharing}
+\end{figure}
+
+\subsection{并行归约与 Top-$k$ Merge}
+
+Intra-query 并行的最后一步是将各线程的局部 top-$k$ 堆合并为全局 top-$k$。这是一个归约操作，可以用多种方式实现：
+
+\textbf{串行 Merge}：主线程依次合并各线程的堆。时间复杂度为 $O(T \cdot k \log k)$，其中 $T$ 为线程数。
+
+\textbf{树形归约}：类似蝴蝶网络，线程两两合并，$\log T$ 轮完成。每轮合并 $k$ 个元素，总时间 $O(k \log T)$。但需要额外的同步屏障。
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[
+    scale=0.85,
+    transform shape,
+    box/.style={draw, rounded corners=1.5pt, align=center, minimum width=1.5cm, minimum height=0.5cm, font=\footnotesize, fill=blue!10},
+    merge/.style={draw, rounded corners=1.5pt, align=center, minimum width=1.5cm, minimum height=0.5cm, font=\footnotesize, fill=yellow!20},
+    arrow/.style={-Latex, thick}
+  ]
+    % Butterfly reduction
+    \node[box] (h0) at (0, 0) {Heap$_0$};
+    \node[box] (h1) at (2.5, 0) {Heap$_1$};
+    \node[box] (h2) at (5.0, 0) {Heap$_2$};
+    \node[box] (h3) at (7.5, 0) {Heap$_3$};
+
+    \node[merge] (m01) at (1.25, -1.2) {Merge};
+    \node[merge] (m23) at (6.25, -1.2) {Merge};
+
+    \node[merge] (final) at (3.75, -2.4) {全局 top-$k$};
+
+    \draw[arrow] (h0) -- (m01);
+    \draw[arrow] (h1) -- (m01);
+    \draw[arrow] (h2) -- (m23);
+    \draw[arrow] (h3) -- (m23);
+    \draw[arrow] (m01) -- (final);
+    \draw[arrow] (m23) -- (final);
+
+    \node[font=\scriptsize] at (3.75, -3.2) {树形归约：$\log_2 T$ 轮};
+  \end{tikzpicture}
+  \caption{蝴蝶阵列式 Top-$k$ 归约}
+  \label{fig:butterfly_reduce}
+\end{figure}
+
+本文采用串行 Merge 实现，原因有二：第一，$T$ 通常不超过 16，$k=10$，串行 merge 的绝对时间（$\sim$0.1 $\mu$s）远小于搜索时间；第二，树形归约需要额外的屏障同步，在 $T$ 较小时反而更慢。
 
 \section{算法实现}
 
@@ -724,15 +958,74 @@ HNSW 的结果见表 \ref{tab:hnsw}。baseline 最快，但 Recall@10 只有 0.9
   \label{tab:req}
 \end{longtable}
 
-\section{总结}
+\section{综合讨论}
 
-本实验从单一 SIMD 内核扩展为完整 ANN 并行检索框架。最重要的结论是：在批量 query 场景中，query 级并行比单 query 内切分更稳健。它避免了局部 top-$k$ merge 和频繁同步，并能自然复用 SIMD 内核。Pthread dynamic 对尾部负载和系统调度噪声更宽容，线程池在 IVF 这类索引结构复用场景下也有优势。OpenMP 开发成本低，但 runtime 调度不一定总能取得最低延迟。
+\subsection{并行粒度选择的本质原因}
 
-从算法角度看，Flat 提供高召回但受内存带宽限制；SQ 在本实验中取得近乎无损 recall 和较低延迟；PQ 与 IVF-PQ 速度很快但需要更大的 $p$ 或更好的构建方式提高 recall；FastScan 说明数据布局和查表方式会改变瓶颈；IVF 通过 \texttt{nprobe} 提供清晰的 latency-recall 旋钮；HNSW 则体现了图搜索并行化的挑战，内部并行更多是为高召回服务，而不是默认提升速度。
+实验结果一致表明 inter-query 优于 intra-query。这不仅是本数据集的特性，而是反映了批量搜索场景下的系统层面规律：
 
-跨平台对比表明，鲲鹏 ARM NEON 的绝对延迟约为本地 x86 AVX2 的 1.4--3.9 倍，其中 FastScan 的跨平台比值最低（约 1.4$\times$），说明查表与访存占比较高时计算能力差异会被摊薄；PQ 与 IVF-PQ 高召回重跑后 recall 达标，但延迟相对旧低召回点上升。Flat、SQ 等 compute-bound 算法的比值较高（2.8--3.9$\times$），与两个平台的单核 SIMD 吞吐差异基本一致。
+\begin{enumerate}
+  \item \textbf{任务独立性}：Inter-query 下各 query 搜索完全独立，无需共享状态，同步开销为零。Intra-query 下多线程共享同一条 query 的搜索过程，需要局部堆和 merge 操作。
+  \item \textbf{SIMD 复用}：Inter-query 自然复用已有的 SIMD 距离内核，每个线程调用相同的串行搜索函数。Intra-query 需要修改搜索函数以支持部分 base 扫描，增加了代码复杂度。
+  \item \textbf{Cache 利用}：Inter-query 下每个线程遍历全部 base，L3 共享缓存命中率高。Intra-query 下每个线程访问 base 的不同片段，L1/L2 命中率更高但 L3 利用率下降。
+  \item \textbf{负载均衡}：Inter-query 通过 dynamic 调度自然适应 query 间耗时差异。Intra-query 的负载均衡取决于 base 向量分布，更难预测。
+\end{enumerate}
 
-后续可以继续完善两点：第一，对 SQ/PQ/FastScan 做更系统的 $p$ sweep，形成更完整的 latency-recall 曲线；第二，对 HNSW 尝试更细粒度的共享候选队列和无锁 visited 标记，验证是否能降低图搜索并行的同步成本。
+\subsection{调度策略选择依据}
+
+三种 Pthread 调度策略各有适用场景：
+
+\textbf{Static}适合任务量规则、可预测的场景。Flat 的 base 扫描计算量均匀，static 划分开销最低。但在 Windows 混合核环境下，系统调度噪声会导致尾部线程延迟，实际表现不如 dynamic。
+
+\textbf{Dynamic}适合任务量不均匀或系统噪声较大的场景。通过原子计数器实现的动态任务分配，让快线程自然多做工作，避免慢线程成为瓶颈。代价是每次 \texttt{fetch\_add} 引入一次原子操作，但在任务粒度足够大时可忽略。
+
+\textbf{Pool}适合需要频繁创建/销毁线程的场景。线程池通过 \texttt{mutex+cond} 实现任务队列，线程在整个程序生命周期内复用。IVF 的 inverted list 扫描场景下，pool 略优于其他策略，因为索引对象的访问模式更稳定。
+
+\subsection{算法特性与瓶颈分析}
+
+不同算法的并行扩展性差异显著，根本原因在于计算特性不同：
+
+\begin{itemize}
+  \item \textbf{Flat / SQ}：compute-bound，每个 base 需要 96 次浮点乘加。内存带宽在 8 线程后成为瓶颈，16 线程加速比下降。
+  \item \textbf{PQ / FastScan}：memory-bound，每个 base 只需 8--12 字节查表。线程数增加时仍能保持较好扩展性，因为内存读取量小。
+  \item \textbf{IVF}：混合型，粗排阶段 compute-bound（计算到质心距离），精排阶段 memory-bound（扫描 inverted list）。Pool 调度在精排阶段略优。
+  \item \textbf{IVF-PQ}：memory-bound，PQ 压缩后的 inverted list 极小，搜索几乎完全受内存访问限制。高线程数下延迟接近常数。
+  \item \textbf{HNSW}：同步-bound，图搜索的路径依赖导致并行化困难。多入口点和边划分更多是为了提升 recall，而非降低延迟。
+\end{itemize}
+
+\subsection{跨平台架构差异}
+
+鲲鹏 ARM NEON 与 x86 AVX2 的延迟比值在 1.4--3.9$\times$ 之间。这个差异来自三个层面：
+
+\begin{enumerate}
+  \item \textbf{SIMD 宽度}：AVX2 为 256-bit，NEON 为 128-bit。对于 float32 乘加，AVX2 每周期处理 8 个，NEON 处理 4 个。理论加速比应为 2$\times$，但实际差异受其他因素影响。
+  \item \textbf{单核频率}：i9-13900H 的 P-core 频率（5.4 GHz boost）高于鲲鹏 920（2.6 GHz）。频率差异约 2$\times$，与 SIMD 宽度差异叠加后，理论加速比约 4$\times$。
+  \item \textbf{内存子系统}：i9-13900H 的 DDR5 带宽高于鲲鹏 920 的 DDR4。对于 memory-bound 算法（PQ、FastScan），内存带宽差异的影响大于计算能力差异。
+\end{enumerate}
+
+FastScan 的 ARM/x86 比值最低（1.4$\times$），说明其瓶颈在查表和访存，而非浮点计算。Flat 的比值最高（3.1$\times$），接近理论计算能力差异。
+
+\section{结论与后续工作}
+
+\subsection{主要结论}
+
+\begin{enumerate}
+  \item \textbf{Inter-query 并行是最稳健的并行粒度}：在批量 query 场景中，query 级并行避免了局部 top-$k$ merge 和频繁同步，能自然复用 SIMD 内核，取得最优性能。
+  \item \textbf{Pthread dynamic 在多数场景下表现最好}：原子计数器的动态任务分配适应了 query 耗时差异和系统噪声，代价可忽略。
+  \item \textbf{内存带宽是高线程数的瓶颈}：Flat 和 SQ 在 8 线程后加速比下降，因为 base 数据读取饱和了内存带宽。PQ 和 FastScan 通过量化压缩缓解了这个问题。
+  \item \textbf{HNSW 并行化的核心目标是 recall 而非速度}：多入口点和边划分提升 recall，但同步开销限制了延迟降低。
+  \item \textbf{跨平台差异主要由 SIMD 宽度和频率决定}：memory-bound 算法的跨平台差异小于 compute-bound 算法。
+\end{enumerate}
+
+\subsection{后续工作}
+
+\begin{enumerate}
+  \item \textbf{$p$ sweep 系统化}：对 SQ/PQ/FastScan 做更系统的 $p$ sweep，形成完整的 latency-recall 曲线，为实际部署提供参数选择依据。
+  \item \textbf{HNSW 无锁优化}：尝试无锁 visited 标记（如 atomic bitmap）和更细粒度的共享候选队列，降低图搜索并行的同步成本。
+  \item \textbf{NUMA 感知}：在鲲鹏等多 socket 平台上，考虑 NUMA 拓扑对内存访问延迟的影响，将线程绑定到最近的内存节点。
+  \item \textbf{混合并行}：结合 inter-query 和 intra-query 的优势，例如在 query 数量不足时自动切换到 intra-query 模式。
+  \item \textbf{GPU 加速}：将 SIMD 距离计算扩展为 CUDA/OpenCL 内核，利用 GPU 的大规模并行能力进一步降低延迟。
+\end{enumerate}
 
 \section*{AI 辅助说明}
 \addcontentsline{toc}{section}{AI 辅助说明}
