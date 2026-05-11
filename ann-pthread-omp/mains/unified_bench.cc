@@ -233,6 +233,19 @@ static void RunSQ(const DataCtx& ctx) {
         { std::vector<FlatHeap> res;
           double us = TimeOnce_us([&]{ sq_search_inter_pool(ctx.base.get(),ctx.queries.get(),ctx.base_n,ctx.query_n,ctx.d,kK,sq_idx,100,nthr,res); });
           Print("sq","pthread_pool_inter",nthr, RecallAtK_Float(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "p=100"); }
+        // intra
+        { std::vector<FlatHeap> res(ctx.query_n);
+          double us = TimeOnce_us([&]{ for(size_t i=0;i<ctx.query_n;++i) res[i]=sq_search_intra_omp(ctx.base.get(),ctx.queries.get()+i*ctx.d,ctx.base_n,ctx.d,kK,sq_idx,100,nthr); });
+          Print("sq","omp_intra",nthr, RecallAtK_Float(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "p=100"); }
+        { std::vector<FlatHeap> res(ctx.query_n);
+          double us = TimeOnce_us([&]{ for(size_t i=0;i<ctx.query_n;++i) res[i]=sq_search_intra_static(ctx.base.get(),ctx.queries.get()+i*ctx.d,ctx.base_n,ctx.d,kK,sq_idx,100,nthr); });
+          Print("sq","pthread_static_intra",nthr, RecallAtK_Float(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "p=100"); }
+        { std::vector<FlatHeap> res(ctx.query_n);
+          double us = TimeOnce_us([&]{ for(size_t i=0;i<ctx.query_n;++i) res[i]=sq_search_intra_dynamic(ctx.base.get(),ctx.queries.get()+i*ctx.d,ctx.base_n,ctx.d,kK,sq_idx,100,nthr); });
+          Print("sq","pthread_dynamic_intra",nthr, RecallAtK_Float(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "p=100"); }
+        { std::vector<FlatHeap> res(ctx.query_n);
+          double us = TimeOnce_us([&]{ for(size_t i=0;i<ctx.query_n;++i) res[i]=sq_search_intra_pool(ctx.base.get(),ctx.queries.get()+i*ctx.d,ctx.base_n,ctx.d,kK,sq_idx,100,nthr); });
+          Print("sq","pthread_pool_intra",nthr, RecallAtK_Float(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "p=100"); }
     }
 }
 
@@ -255,6 +268,19 @@ static void RunPQ(const DataCtx& ctx) {
         { std::vector<FlatHeap> res;
           double us = TimeOnce_us([&]{ pq_search_inter_pool(ctx.base.get(),ctx.queries.get(),ctx.base_n,ctx.query_n,ctx.d,kK,pq_idx,100,nthr,res); });
           Print("pq","pthread_pool_inter",nthr, RecallAtK_Float(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "p=100"); }
+        // intra
+        { std::vector<FlatHeap> res(ctx.query_n);
+          double us = TimeOnce_us([&]{ for(size_t i=0;i<ctx.query_n;++i) res[i]=pq_search_intra_omp(ctx.base.get(),ctx.queries.get()+i*ctx.d,ctx.base_n,ctx.d,kK,pq_idx,100,nthr); });
+          Print("pq","omp_intra",nthr, RecallAtK_Float(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "p=100"); }
+        { std::vector<FlatHeap> res(ctx.query_n);
+          double us = TimeOnce_us([&]{ for(size_t i=0;i<ctx.query_n;++i) res[i]=pq_search_intra_static(ctx.base.get(),ctx.queries.get()+i*ctx.d,ctx.base_n,ctx.d,kK,pq_idx,100,nthr); });
+          Print("pq","pthread_static_intra",nthr, RecallAtK_Float(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "p=100"); }
+        { std::vector<FlatHeap> res(ctx.query_n);
+          double us = TimeOnce_us([&]{ for(size_t i=0;i<ctx.query_n;++i) res[i]=pq_search_intra_dynamic(ctx.base.get(),ctx.queries.get()+i*ctx.d,ctx.base_n,ctx.d,kK,pq_idx,100,nthr); });
+          Print("pq","pthread_dynamic_intra",nthr, RecallAtK_Float(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "p=100"); }
+        { std::vector<FlatHeap> res(ctx.query_n);
+          double us = TimeOnce_us([&]{ for(size_t i=0;i<ctx.query_n;++i) res[i]=pq_search_intra_pool(ctx.base.get(),ctx.queries.get()+i*ctx.d,ctx.base_n,ctx.d,kK,pq_idx,100,nthr); });
+          Print("pq","pthread_pool_intra",nthr, RecallAtK_Float(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "p=100"); }
     }
 }
 
@@ -316,6 +342,18 @@ static void RunIVF(const DataCtx& ctx) {
         { std::vector<IVFHeap> res;
           double us = TimeOnce_us([&]{ ivf_search_inter_pool(ivf_idx,ctx.queries.get(),ctx.query_n,kK,nprobe,nthr,res); });
           Print("ivf","pthread_pool_inter",nthr, RecallAtK_IVF(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "nprobe=4"); }
+        // intra
+        if (nthr <= 8) {  // intra 很重，16线程不跑
+            { std::vector<IVFHeap> res(ctx.query_n);
+              double us = TimeOnce_us([&]{ for(size_t i=0;i<ctx.query_n;++i) res[i]=ivf_search_intra_omp(ivf_idx,ctx.queries.get()+i*ctx.d,kK,nprobe,nthr); });
+              Print("ivf","omp_intra",nthr, RecallAtK_IVF(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "nprobe=4"); }
+            { std::vector<IVFHeap> res(ctx.query_n);
+              double us = TimeOnce_us([&]{ for(size_t i=0;i<ctx.query_n;++i) res[i]=ivf_search_intra_static(ivf_idx,ctx.queries.get()+i*ctx.d,kK,nprobe,nthr); });
+              Print("ivf","pthread_static_intra",nthr, RecallAtK_IVF(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "nprobe=4"); }
+            { std::vector<IVFHeap> res(ctx.query_n);
+              double us = TimeOnce_us([&]{ for(size_t i=0;i<ctx.query_n;++i) res[i]=ivf_search_intra_dynamic(ivf_idx,ctx.queries.get()+i*ctx.d,kK,nprobe,nthr); });
+              Print("ivf","pthread_dynamic_intra",nthr, RecallAtK_IVF(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "nprobe=4"); }
+        }
     }
 }
 
@@ -341,6 +379,16 @@ static void RunIVFPQ(const DataCtx& ctx) {
                 { std::vector<IVFHeap> res;
                   double us = TimeOnce_us([&]{ ivf_pq_search_inter_pool(idx,ctx.queries.get(),ctx.query_n,kK,4,100,nthr,res); });
                   Print("ivfpq_global","pthread_pool_inter",nthr, RecallAtK_IVF(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "nprobe=4,p=100"); }
+                // intra
+                { std::vector<IVFHeap> res(ctx.query_n);
+                  double us = TimeOnce_us([&]{ for(size_t i=0;i<ctx.query_n;++i) res[i]=ivf_pq_search_intra_omp(idx,ctx.queries.get()+i*ctx.d,kK,4,100,nthr); });
+                  Print("ivfpq_global","omp_intra",nthr, RecallAtK_IVF(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "nprobe=4,p=100"); }
+                { std::vector<IVFHeap> res(ctx.query_n);
+                  double us = TimeOnce_us([&]{ for(size_t i=0;i<ctx.query_n;++i) res[i]=ivf_pq_search_intra_static(idx,ctx.queries.get()+i*ctx.d,kK,4,100,nthr); });
+                  Print("ivfpq_global","pthread_static_intra",nthr, RecallAtK_IVF(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "nprobe=4,p=100"); }
+                { std::vector<IVFHeap> res(ctx.query_n);
+                  double us = TimeOnce_us([&]{ for(size_t i=0;i<ctx.query_n;++i) res[i]=ivf_pq_search_intra_dynamic(idx,ctx.queries.get()+i*ctx.d,kK,4,100,nthr); });
+                  Print("ivfpq_global","pthread_dynamic_intra",nthr, RecallAtK_IVF(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "nprobe=4,p=100"); }
             }
         }
         CkptWrite("ivfpq_global");
@@ -361,6 +409,19 @@ static void RunIVFPQ(const DataCtx& ctx) {
                 { std::vector<IVFHeap> res;
                   double us = TimeOnce_us([&]{ ivf_pq_search_inter_dynamic(idx,ctx.queries.get(),ctx.query_n,kK,4,100,nthr,res); });
                   Print("ivfpq_local","pthread_dynamic_inter",nthr, RecallAtK_IVF(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "nprobe=4,p=100"); }
+                { std::vector<IVFHeap> res;
+                  double us = TimeOnce_us([&]{ ivf_pq_search_inter_pool(idx,ctx.queries.get(),ctx.query_n,kK,4,100,nthr,res); });
+                  Print("ivfpq_local","pthread_pool_inter",nthr, RecallAtK_IVF(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "nprobe=4,p=100"); }
+                // intra
+                { std::vector<IVFHeap> res(ctx.query_n);
+                  double us = TimeOnce_us([&]{ for(size_t i=0;i<ctx.query_n;++i) res[i]=ivf_pq_search_intra_omp(idx,ctx.queries.get()+i*ctx.d,kK,4,100,nthr); });
+                  Print("ivfpq_local","omp_intra",nthr, RecallAtK_IVF(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "nprobe=4,p=100"); }
+                { std::vector<IVFHeap> res(ctx.query_n);
+                  double us = TimeOnce_us([&]{ for(size_t i=0;i<ctx.query_n;++i) res[i]=ivf_pq_search_intra_static(idx,ctx.queries.get()+i*ctx.d,kK,4,100,nthr); });
+                  Print("ivfpq_local","pthread_static_intra",nthr, RecallAtK_IVF(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "nprobe=4,p=100"); }
+                { std::vector<IVFHeap> res(ctx.query_n);
+                  double us = TimeOnce_us([&]{ for(size_t i=0;i<ctx.query_n;++i) res[i]=ivf_pq_search_intra_dynamic(idx,ctx.queries.get()+i*ctx.d,kK,4,100,nthr); });
+                  Print("ivfpq_local","pthread_dynamic_intra",nthr, RecallAtK_IVF(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "nprobe=4,p=100"); }
             }
         }
         CkptWrite("ivfpq_local");
