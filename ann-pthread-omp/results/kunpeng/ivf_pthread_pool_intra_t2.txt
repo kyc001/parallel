@@ -1,0 +1,3 @@
+ivf_pthread_pool_intra, nthreads=2, nlist=16, nprobe=4
+average recall: 0.96225
+average latency (us): 1522.93636
