@@ -26,6 +26,7 @@ int main(int argc, char** argv) {
     std::cerr << "Step 1: train_fastscan...\n";
     ann_fs::FastScanIndex idx;
     ann_fs::train_fastscan(idx, base.get(), static_cast<int>(bn), static_cast<int>(bd));
+    ann_fs::encode_fastscan(idx, base.get());
     std::cerr << "  nblk=" << idx.nblk << " M=" << idx.M << " codes_packed.size=" << idx.codes_packed.size() << "\n";
 
     std::cerr << "Step 2: single query search...\n";

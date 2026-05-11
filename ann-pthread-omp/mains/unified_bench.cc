@@ -288,14 +288,10 @@ static void RunPQ(const DataCtx& ctx) {
 // FastScan 实验（ARM NEON 上有 segfault，待调试，暂时跳过）
 // ============================================================
 static void RunFastScan(const DataCtx& ctx) {
-#if defined(__aarch64__) || defined(__ARM_NEON)
-    std::cerr << "[skip] FastScan (ARM NEON segfault, pending debug)\n";
-    CkptWrite("fastscan");
-    (void)ctx;
-#else
     Section("FastScan");
     ann_fs::FastScanIndex fs_idx;
     ann_fs::train_fastscan(fs_idx, ctx.base.get(), static_cast<int>(ctx.base_n), static_cast<int>(ctx.d));
+    ann_fs::encode_fastscan(fs_idx, ctx.base.get());
     for (int nthr : {1, 4, 8, 16}) {
         { std::vector<FlatHeap> res;
           double us = TimeOnce_us([&]{ fastscan_search_inter_omp(fs_idx,ctx.base.get(),ctx.queries.get(),ctx.query_n,kK,1000,nthr,res); });
@@ -310,7 +306,6 @@ static void RunFastScan(const DataCtx& ctx) {
           double us = TimeOnce_us([&]{ fastscan_search_inter_pool(fs_idx,ctx.base.get(),ctx.queries.get(),ctx.query_n,kK,1000,nthr,res); });
           Print("fastscan","pthread_pool_inter",nthr, RecallAtK_Float(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "p=1000"); }
     }
-#endif
 }
 
 // ============================================================
