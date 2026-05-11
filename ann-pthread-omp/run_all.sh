@@ -4,6 +4,17 @@ set -euo pipefail
 CXX=${CXX:-g++}
 THREADS=${THREADS:-"1 2 4 8 16"}
 RESULT_DIR=${RESULT_DIR:-results/local}
+SQ_RERANK_P=${SQ_RERANK_P:-100}
+PQ_RERANK_P=${PQ_RERANK_P:-1000}
+IVF_NLIST=${IVF_NLIST:-16}
+IVF_NPROBE=${IVF_NPROBE:-4}
+IVFPQ_NLIST=${IVFPQ_NLIST:-16}
+IVFPQ_NPROBE=${IVFPQ_NPROBE:-4}
+IVFPQ_RERANK_P=${IVFPQ_RERANK_P:-1000}
+IVFPQ_MODE=${IVFPQ_MODE:-local}
+HNSW_EF=${HNSW_EF:-50}
+HNSW_NLIST=${HNSW_NLIST:-16}
+HNSW_NPROBE=${HNSW_NPROBE:-8}
 mkdir -p build "$RESULT_DIR"
 
 ARCH=$(uname -m 2>/dev/null || echo unknown)
@@ -13,9 +24,6 @@ if [[ "$ARCH" != "aarch64" && "$ARCH" != "arm64" ]]; then
 fi
 
 variants=(
-  mains/simd/main_baseline.cc
-  mains/simd/main_fastscan.cc
-
   mains/omp/inter/main_flat.cc
   mains/omp/intra/main_flat.cc
   mains/pthread/static/inter/main_flat.cc
@@ -99,16 +107,20 @@ for src in "${variants[@]}"; do
       ./build/run_one > "$RESULT_DIR/${name}.txt" 2>&1
       ;;
     *ivfpq*)
-      for t in $THREADS; do ./build/run_one "$t" 16 4 100 global > "$RESULT_DIR/${name}_t${t}.txt" 2>&1; done
+      for t in $THREADS; do ./build/run_one "$t" "$IVFPQ_NLIST" "$IVFPQ_NPROBE" "$IVFPQ_RERANK_P" "$IVFPQ_MODE" > "$RESULT_DIR/${name}_t${t}.txt" 2>&1; done
       ;;
     *ivf*)
-      for t in $THREADS; do ./build/run_one "$t" 16 4 > "$RESULT_DIR/${name}_t${t}.txt" 2>&1; done
+      for t in $THREADS; do ./build/run_one "$t" "$IVF_NLIST" "$IVF_NPROBE" > "$RESULT_DIR/${name}_t${t}.txt" 2>&1; done
       ;;
     *hnsw*)
-      for t in 1 4 8 16; do ./build/run_one "$t" 50 16 4 > "$RESULT_DIR/${name}_t${t}.txt" 2>&1; done
+      for t in 1 4 8 16; do ./build/run_one "$t" "$HNSW_EF" "$HNSW_NLIST" "$HNSW_NPROBE" > "$RESULT_DIR/${name}_t${t}.txt" 2>&1; done
       ;;
     *main_pq.cc|*main_sq.cc)
-      for t in $THREADS; do ./build/run_one "$t" 100 > "$RESULT_DIR/${name}_t${t}.txt" 2>&1; done
+      if [[ "$src" == *main_pq.cc ]]; then
+        for t in $THREADS; do ./build/run_one "$t" "$PQ_RERANK_P" > "$RESULT_DIR/${name}_t${t}.txt" 2>&1; done
+      else
+        for t in 1 4 8 16; do ./build/run_one "$t" "$SQ_RERANK_P" > "$RESULT_DIR/${name}_t${t}.txt" 2>&1; done
+      fi
       ;;
     *main_fastscan.cc)
       for t in 1 4 8 16; do ./build/run_one "$t" 1000 > "$RESULT_DIR/${name}_t${t}.txt" 2>&1; done

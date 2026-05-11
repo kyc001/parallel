@@ -9,8 +9,11 @@
 鲲鹏服务器提交：
 
 ```bash
-bash test.sh 2 1    # 参数：选题序号=2 (pthread-omp)，节点数=1
+bash run_all_kunpeng_part1.sh
+bash run_all_kunpeng_part2.sh
 ```
+
+两个脚本都会通过 `run_all_kunpeng.sh` 预编译 `main`，再调用 `bash test.sh 2 1` 提交，满足服务器必须通过 bash 脚本运行的要求。
 
 ## 算法覆盖
 
@@ -31,9 +34,11 @@ ann-pthread-omp/
 ├── main.cc                # 编译入口（由脚本 cp 覆盖生成）
 ├── flat_scan.h            # 串行基线（不可修改）
 ├── test.sh / qsub.sh      # 服务器提交脚本（不可修改）
-├── run_all.sh             # 本机一键运行
-├── run_all_kunpeng.sh     # 鲲鹏一键运行
-├── run_all.ps1            # 本机 PowerShell 一键运行
+├── run_all.ps1            # 本机 PowerShell 全量一键运行，并刷新 results/*.csv
+├── run_all.sh             # Bash 全量运行
+├── run_all_kunpeng.sh     # 鲲鹏提交引擎（由 part1/part2 调用）
+├── run_all_kunpeng_part1.sh # 鲲鹏全量实验第一段
+├── run_all_kunpeng_part2.sh # 鲲鹏全量实验第二段
 ├── Makefile               # 一键编译所有变体
 │
 ├── simd/                  # SIMD 距离计算头文件
@@ -60,6 +65,12 @@ ann-pthread-omp/
 ```bash
 make                          # 编译所有变体到 build/
 bash run_all.sh               # 一键运行核心矩阵
+```
+
+Windows / PowerShell：
+
+```powershell
+.\run_all.ps1                 # 输出到 results/local，并刷新 local_summary.csv 等汇总
 ```
 
 或手动：

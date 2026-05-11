@@ -121,6 +121,9 @@ struct PQIndex {
             }
 
             for (size_t i = 0; i < n; ++i) {
+                const float* vec = sub_data.data() + i * dsub;
+                assign[i] = ann_pq_blocked_neon::argmin_l2_blocked(
+                    vec, cent_soa, ksub, dsub, padded_ksub, 32);
                 codes[i * M + m] = static_cast<uint8_t>(assign[i]);
             }
         }

@@ -101,9 +101,9 @@
 \section*{摘要}
 \addcontentsline{toc}{section}{摘要}
 
-本实验围绕 DEEP100K 上的近似最近邻搜索（ANNS）实现了一个 header-only 的多算法并行框架。系统以 SIMD 距离计算为底层公共内核，在此基础上实现 Flat-SIMD、SQ-SIMD、PQ-SIMD、PQ-FastScan、IVF-SIMD、IVF-PQ-SIMD 与 HNSW 图索引，并分别给出 Pthread 与 OpenMP 版本。Pthread 侧实现了 static、dynamic 与 pool 三类调度；并行粒度覆盖 query 级并行（inter-query）与单 query 内部的 base/list 划分（intra-query）。实验在本地 i9-13900H（x86 AVX2）和鲲鹏 920（ARM NEON）两个平台完成，本地收集 278 组核心矩阵结果和 15 组补充 trade-off 结果，鲲鹏收集 275 组完整矩阵结果。
+本实验围绕 DEEP100K 上的近似最近邻搜索（ANNS）实现了一个 header-only 的多算法并行框架。系统以 SIMD 距离计算为底层公共内核，在此基础上实现 Flat-SIMD、SQ-SIMD、PQ-SIMD、PQ-FastScan、IVF-SIMD、IVF-PQ-SIMD 与 HNSW 图索引，并分别给出 Pthread 与 OpenMP 版本。Pthread 侧实现了 static、dynamic 与 pool 三类调度；并行粒度覆盖 query 级并行（inter-query）与单 query 内部的 base/list 划分（intra-query）。实验在本地 i9-13900H（x86 AVX2）和鲲鹏 920（ARM NEON）两个平台完成，本地收集 278 组核心矩阵结果和 15 组补充 trade-off 结果，鲲鹏收集 275 组完整矩阵结果；针对初稿中 PQ/IVF-PQ recall 偏低的问题，额外补充了高召回参数诊断、重跑清单、时钟分析与汇编分析。
 
-实验结果显示，query 级并行是本数据集和批量查询场景下最稳健的并行粒度。Flat、SQ、PQ、FastScan、IVF 与 IVF-PQ 的最优点均来自 inter-query；其中 Flat、SQ、PQ、FastScan、IVF 与 IVF-PQ 的本地最优延迟分别为 298.95、86.53、73.06、125.81、104.67 与 27.44 $\mu$s。Pthread dynamic 在多数规则扫描类算法上表现最好，Pthread pool 在 IVF inter-query 上略优，说明线程创建开销、尾部不均衡与 inverted list 不均匀性都会影响最终表现。HNSW 的内部并行更复杂：原始 baseline 延迟最低但召回较低，多入口点和边划分能提升召回，但同步和路径依赖使其不适合作为默认最快路径。
+实验结果显示，query 级并行是本数据集和批量查询场景下最稳健的并行粒度。Flat、SQ、FastScan、IVF 的本地高召回最优延迟分别为 298.95、86.53、125.81 与 104.67 $\mu$s；PQ 在 $p=1000$ 时达到 0.98335 recall、136.47 $\mu$s，IVF-PQ local 在 \texttt{nprobe=4,p=1000} 时达到 0.95945 recall、61.32 $\mu$s。Pthread dynamic 在多数规则扫描类算法上表现最好，Pthread pool 在 IVF inter-query 上略优，说明线程创建开销、尾部不均衡与 inverted list 不均匀性都会影响最终表现。HNSW 的内部并行更复杂：原始 baseline 延迟最低但召回较低，多入口点和边划分能提升召回，但同步和路径依赖使其不适合作为默认最快路径。
 
 \noindent\textbf{关键词：} ANN，Pthread，OpenMP，SIMD，IVF，IVF-PQ，HNSW，FastScan，负载均衡
 
@@ -443,10 +443,10 @@ HNSW 基于 hnswlib 实现。本文不修改 hnswlib 源码，而是通过封装
 
 核心矩阵的固定参数如下：
 \begin{itemize}
-  \item SQ/PQ 取 $p=100$，FastScan 取 $p=1000$；
+  \item SQ 取 $p=100$，PQ 原始核心矩阵取 $p=100$，高召回诊断与后续默认重跑取 $p=1000$；
   \item IVF 取 \texttt{nlist=16,nprobe=4}；
-  \item IVF-PQ 取 \texttt{nlist=16,nprobe=4,p=100,mode=global}；
-  \item HNSW 取 \texttt{ef=50}，IVF-HNSW 嵌套取 \texttt{nlist=16,nprobe=4}。
+  \item IVF-PQ 原始核心矩阵取 \texttt{nlist=16,nprobe=4,p=100,mode=global}，高召回诊断推荐 \texttt{mode=local,p=1000}；
+  \item HNSW 取 \texttt{ef=50}，IVF-HNSW 嵌套原始矩阵取 \texttt{nprobe=4}，高召回诊断推荐 \texttt{nprobe=8}。
 \end{itemize}
 
 \section{实验结果与分析}
@@ -463,18 +463,43 @@ HNSW 基于 hnswlib 实现。本文不修改 hnswlib 源码，而是通过封装
     \midrule
     Flat & \texttt{flat\_pthread\_dynamic\_inter} & 16 & 0.99995 & 298.95 & $10.67\times$ \\
     SQ & \texttt{sq\_pthread\_dynamic\_inter} & 16 & 0.99995 & 86.53 & $8.53\times$ \\
-    PQ & \texttt{pq\_pthread\_dynamic\_inter} & 16 & 0.70860 & 73.06 & $9.37\times$ \\
+    PQ & \texttt{pq\_pthread\_dynamic\_inter}, $p=1000$ & 16 & 0.98335 & 136.47 & -- \\
     FastScan & \texttt{fastscan\_pthread\_dynamic\_inter} & 16 & 0.97525 & 125.81 & $10.51\times$ \\
     IVF & \texttt{ivf\_pthread\_pool\_inter} & 16 & 0.96225 & 104.67 & $7.25\times$ \\
-    IVF-PQ & \texttt{ivfpq\_pthread\_dynamic\_inter} & 16 & 0.69180 & 27.44 & $8.71\times$ \\
+    IVF-PQ & \texttt{ivfpq\_local\_dynamic\_inter}, $p=1000$ & 16 & 0.95945 & 61.32 & -- \\
     HNSW & \texttt{hnsw\_baseline} & 1 & 0.96865 & 65.48 & $1.00\times$ \\
     \bottomrule
   \end{tabular}
-  \caption{各算法族核心矩阵最优点}
+  \caption{各算法族代表性高召回点；PQ/IVF-PQ 使用补充诊断参数}
   \label{tab:best}
 \end{table}
 
-Flat 与 SQ 都能达到接近精确搜索的召回。PQ 和 IVF-PQ 在 $p=100$ 下速度很快但 recall 较低，说明 PQ 的候选数需要与召回目标联动调节。FastScan 在 $p=1000$ 下保持 0.97525 的 recall，并且 inter-query 多线程能把平均延迟压到 125.81 $\mu$s。IVF 的 recall 与速度介于 Flat 和 PQ 系列之间，\texttt{nprobe=4} 时达到 0.96225。
+Flat 与 SQ 都能达到接近精确搜索的召回。PQ 和 IVF-PQ 在 $p=100$ 下速度很快但 recall 较低，不能作为 95\%+ 配置；提高候选数后，PQ 在 $p=1000$ 达到 0.98335，IVF-PQ local 在 \texttt{nprobe=4,p=1000} 达到 0.95945。FastScan 在 $p=1000$ 下保持 0.97525 的 recall，并且 inter-query 多线程能把平均延迟压到 125.81 $\mu$s。IVF 的 recall 与速度介于 Flat 和 PQ 系列之间，\texttt{nprobe=4} 时达到 0.96225。
+
+\subsection{低 Recall 诊断与重跑清单}
+
+初稿中 PQ、IVF-PQ 和 IVF-HNSW 嵌套的几组 recall 显著低于 0.95。排查结果表明，PQ 路径存在一个真实实现错误：KMeans 最后一轮更新质心后，原实现直接写入上一轮 assignment，没有用最终质心重新计算 code。该问题已经在 \path{simd/pq_scan_avx2.h} 与 \path{simd/pq_scan_simd.h} 中修复，并增加 \path{tests/pq_final_assignment_test.cc} 验证每个 code 都对应最终质心的最近中心。除此之外，低 recall 的主要原因是 $p$ 或 \texttt{nprobe} 参数过小。
+
+\begin{table}[H]
+  \centering\scriptsize
+  \begin{tabular}{lrrrr}
+    \toprule
+    配置 & 参数 & Recall@10 & 延迟 / $\mu$s & 结论 \\
+    \midrule
+    PQ dynamic inter & $p=100$ & 0.70780 & 85.43 & 低召回速度点 \\
+    PQ dynamic inter & $p=1000$ & 0.98335 & 136.47 & 推荐默认点 \\
+    PQ dynamic inter & $p=2000$ & 0.99560 & 183.35 & 高召回点 \\
+    IVF-PQ global & \texttt{nprobe=4,p=2000} & 0.95975 & 90.92 & global 高召回点 \\
+    IVF-PQ local & \texttt{nprobe=4,p=1000} & 0.95945 & 61.32 & local 推荐默认点 \\
+    IVF-PQ local & \texttt{nprobe=16,p=1000} & 0.99545 & 118.86 & local 高召回点 \\
+    IVF-HNSW nested & \texttt{nprobe=8} & 0.97770 & 252.74 & 推荐默认点 \\
+    \bottomrule
+  \end{tabular}
+  \caption{低 recall 根因诊断后的代表性高召回参数}
+  \label{tab:recall_diag}
+\end{table}
+
+因此需要重跑的实验包括：所有旧 PQ 矩阵、所有依赖 \texttt{PQIndex} 的 IVF-PQ 矩阵、鲲鹏 ARM NEON 上的 PQ/IVF-PQ 矩阵，以及希望作为高召回结果展示的 IVF-HNSW 嵌套矩阵。Flat、SQ、IVF-only、HNSW baseline / multi-entry / edge / layer0 不受 PQ 修复影响；FastScan 使用独立索引且已经在最终质心后重新编码，也不因本次修复必须重跑。详细清单记录在 \path{docs/2026-05-11-recall-diagnosis-and-rerun.md}。
 
 \subsection{Inter-query 与 Intra-query}
 

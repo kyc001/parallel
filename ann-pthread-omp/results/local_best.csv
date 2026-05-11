@@ -3,6 +3,6 @@
 "flat","flat_pthread_dynamic_inter","16","0.99995","298.95235","flat_pthread_pool_inter","3188.89825","10.6669"
 "hnsw","hnsw_baseline","1","0.96865","65.483","hnsw_baseline","65.483","1"
 "ivf","ivf_pthread_pool_inter","16","0.96225","104.67185","ivf_pthread_pool_inter","758.45335","7.246"
-"ivfpq","ivfpq_pthread_dynamic_inter","16","0.6918","27.44455","ivfpq_pthread_dynamic_inter","238.97665","8.7076"
-"pq","pq_pthread_dynamic_inter","16","0.7086","73.06375","pq_pthread_pool_inter","684.6245","9.3702"
+"ivfpq","ivfpq_pthread_pool_inter","16","0.95945","57.6115","ivfpq_pthread_pool_inter","650.0874","11.284"
+"pq","pq_omp_inter","16","0.98335","131.96975","pq_pthread_dynamic_inter","1175.3591","8.9063"
 "sq","sq_pthread_dynamic_inter","16","0.99995","86.52985","sq_pthread_static_inter","738.4767","8.5344"
