@@ -387,10 +387,11 @@ static void RunIVF(const DataCtx& ctx) {
     const size_t nlist = 16, nprobe = 4;
     ann_ivf::IVFIndex ivf_idx; ivf_idx.build(ctx.base.get(), ctx.base_n, ctx.d, nlist, 8);
     for (int nthr : {1, 2, 4, 8, 16}) {
-        // SIMD serial (single-threaded, run at all thread counts for completeness)
-        { std::vector<IVFHeap> res(ctx.query_n);
-          double us = TimeOnce_us([&]{ for(size_t i=0;i<ctx.query_n;++i) res[i]=ivf_search(ivf_idx,ctx.queries.get()+i*ctx.d,kK,nprobe); });
-          Print("ivf","simd_serial",nthr, RecallAtK_IVF(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "nprobe=4"); }
+        // SIMD serial (single-threaded, only meaningful at t=1)
+        if (nthr == 1) {
+            std::vector<IVFHeap> res(ctx.query_n);
+            double us = TimeOnce_us([&]{ for(size_t i=0;i<ctx.query_n;++i) res[i]=ivf_search(ivf_idx,ctx.queries.get()+i*ctx.d,kK,nprobe); });
+            Print("ivf","simd_serial",1, RecallAtK_IVF(res,ctx.gt.get(),ctx.query_n,ctx.gt_dim), us/ctx.query_n, "nprobe=4"); }
         // OMP inter
         { std::vector<IVFHeap> res;
           double us = TimeOnce_us([&]{ ivf_search_inter_omp(ivf_idx,ctx.queries.get(),ctx.query_n,kK,nprobe,nthr,res); });

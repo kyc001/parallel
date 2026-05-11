@@ -1,6 +1,0 @@
-﻿ivf_simd_serial, nthreads=4, nlist=16, nprobe=4
-average recall: 0.96225
-average latency (us): 1040.31605
-[IVF] Building index: nlist=16, niter=8
-[IVF] Index built.
-
