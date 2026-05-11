@@ -761,6 +761,24 @@ Flat 与 SQ 都能达到接近精确搜索的召回。PQ 和 IVF-PQ 在 $p=100$ 
 
 原因主要有三点。第一，DEEP100K 实验使用 2000 条 query，query 级并行天然有足够任务数，线程间几乎没有共享状态。第二，intra-query 需要多个局部 top-$k$ 堆和最终 merge，固定开销在每条 query 上重复出现。第三，PQ、FastScan 和 IVF-PQ 的单 query 内部计算已经被量化压缩，继续切分会更快遇到 cache、内存带宽和同步瓶颈。
 
+图 \ref{fig:inter_vs_intra} 直观对比两种并行粒度的最优延迟。
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.75\textwidth]{fig/inter_vs_intra.pdf}
+  \caption{Inter vs Intra 最优延迟对比 (16 threads)}
+  \label{fig:inter_vs_intra}
+\end{figure}
+
+图 \ref{fig:speedup_all} 展示各算法的多线程加速比。Flat 和 SQ 接近线性扩展到 4 线程，之后受内存带宽限制；PQ 和 FastScan 因内存访问量小，在 16 线程时仍保持较好扩展性。
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.75\textwidth]{fig/speedup_all.pdf}
+  \caption{各算法多线程加速比}
+  \label{fig:speedup_all}
+\end{figure}
+
 \subsection{Pthread 与 OpenMP 调度}
 
 表 \ref{tab:scheduler} 给出 16 线程下若干代表性 inter-query 结果。Pthread dynamic 在多数算法中优于 OpenMP，Pthread pool 在 IVF 中表现最好。
@@ -785,9 +803,52 @@ Flat 与 SQ 都能达到接近精确搜索的召回。PQ 和 IVF-PQ 在 $p=100$ 
 
 Dynamic 的优势来自更好的尾部负载均衡。虽然每次抢任务需要原子操作，但 query 数量足够多，单个 query 的计算量也远大于一次 \texttt{fetch\_add}。IVF 的 pool 结果略优，说明 inverted list 扫描和索引对象访问使线程复用收益更明显。OpenMP 写法简洁，但在本机运行环境中调度常数和 runtime 行为不总是最优。
 
+图 \ref{fig:scheduler_flat}--\ref{fig:scheduler_ivf} 直观展示各算法的调度策略差异。
+
+\begin{figure}[H]
+  \centering
+  \begin{minipage}[t]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{fig/scheduler_flat.pdf}
+    \captionof{figure}{Flat 调度策略对比}
+    \label{fig:scheduler_flat}
+  \end{minipage}
+  \hfill
+  \begin{minipage}[t]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{fig/scheduler_pq.pdf}
+    \captionof{figure}{PQ 调度策略对比}
+    \label{fig:scheduler_pq}
+  \end{minipage}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \begin{minipage}[t]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{fig/scheduler_fastscan.pdf}
+    \captionof{figure}{FastScan 调度策略对比}
+    \label{fig:scheduler_fastscan}
+  \end{minipage}
+  \hfill
+  \begin{minipage}[t]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{fig/scheduler_ivf.pdf}
+    \captionof{figure}{IVF 调度策略对比}
+    \label{fig:scheduler_ivf}
+  \end{minipage}
+\end{figure}
+
 \subsection{Flat 线程伸缩性}
 
-Flat 的 inter-query 线程伸缩性如表 \ref{tab:flat_scaling}。从 1 到 16 线程，三类 Pthread 变体均有明显加速，但 8 到 16 线程收益已经下降，说明全量扫描逐渐接近内存带宽上限。
+Flat 的 inter-query 线程伸缩性如表 \ref{tab:flat_scaling} 和图 \ref{fig:flat_scaling}。从 1 到 16 线程，三类 Pthread 变体均有明显加速，但 8 到 16 线程收益已经下降，说明全量扫描逐渐接近内存带宽上限。
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.75\textwidth]{fig/flat_scaling.pdf}
+  \caption{Flat inter-query 延迟 vs 线程数}
+  \label{fig:flat_scaling}
+\end{figure}
 
 \begin{table}[H]
   \centering\scriptsize
@@ -847,6 +908,25 @@ Flat 的 inter-query 线程伸缩性如表 \ref{tab:flat_scaling}。从 1 到 16
 
 需要说明的是，IVF-PQ 的多线程结果存在一定运行噪声，尤其是在延迟已经降到几十微秒时，线程调度、缓存状态和系统后台负载都会造成非单调波动。因此表 \ref{tab:ivfpq_tradeoff} 更适合观察 recall 趋势和两种构建方式差异，而非把每一个延迟点解释为严格单调曲线。
 
+图 \ref{fig:recall_latency_pq} 和 \ref{fig:recall_latency_ivfpq} 以散点图形式展示 latency-recall trade-off。
+
+\begin{figure}[H]
+  \centering
+  \begin{minipage}[t]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{fig/recall_latency_pq.pdf}
+    \captionof{figure}{PQ Recall-Latency Trade-off}
+    \label{fig:recall_latency_pq}
+  \end{minipage}
+  \hfill
+  \begin{minipage}[t]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{fig/recall_latency_ivfpq.pdf}
+    \captionof{figure}{IVF-PQ Recall-Latency Trade-off}
+    \label{fig:recall_latency_ivfpq}
+  \end{minipage}
+\end{figure}
+
 \subsection{HNSW 图搜索}
 
 HNSW 的结果见表 \ref{tab:hnsw}。baseline 最快，但 Recall@10 只有 0.96865。多入口点和边划分能提升召回，其中 \texttt{hnsw\_edge\_omp} 在 0.99915 recall 下延迟为 390.91 $\mu$s，\texttt{hnsw\_multi\_entry\_omp} 在 4 线程下达到 1.00000 recall，延迟为 464.85 $\mu$s。Layer0 点划分接近底层全扫描，召回高但延迟很大。
@@ -897,6 +977,15 @@ HNSW 的结果见表 \ref{tab:hnsw}。baseline 最快，但 Recall@10 只有 0.9
   \caption{16 线程 inter-query 下 x86 AVX2 与 ARM NEON 延迟对比}
   \label{tab:cross_platform}
 \end{table}
+
+图 \ref{fig:cross_platform} 以柱状图形式直观展示跨平台延迟差异。
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\textwidth]{fig/cross_platform.pdf}
+  \caption{跨平台延迟对比 (16 threads, inter-query)}
+  \label{fig:cross_platform}
+\end{figure}
 
 表 \ref{tab:arm_hnsw} 给出鲲鹏平台上 HNSW 的代表性结果。与本地类似，多入口点和边划分能在 ARM 上提升召回，但图搜索的同步开销在 ARM 上同样显著。
 
