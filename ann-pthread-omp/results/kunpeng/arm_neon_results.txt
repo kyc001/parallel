@@ -1,165 +1,275 @@
-RESULT flat omp_inter t=1 recall=0.99995 latency_us=6336.97709
-RESULT flat omp_intra t=1 recall=0.99995 latency_us=8467.56562
-RESULT flat pthread_static_inter t=1 recall=0.99995 latency_us=6238.52343
-RESULT flat pthread_dynamic_inter t=1 recall=0.99995 latency_us=6200.80689
-RESULT flat pthread_pool_inter t=1 recall=0.99995 latency_us=7489.24305
-RESULT flat pthread_static_intra t=1 recall=0.99995 latency_us=6224.53931
-RESULT flat pthread_dynamic_intra t=1 recall=0.99995 latency_us=7098.00289
-RESULT flat pthread_pool_intra t=1 recall=0.99995 latency_us=6677.04576
-RESULT flat omp_inter t=2 recall=0.99995 latency_us=3079.27622
-RESULT flat omp_intra t=2 recall=0.99995 latency_us=3503.57102
-RESULT flat pthread_static_inter t=2 recall=0.99995 latency_us=3125.62715
-RESULT flat pthread_dynamic_inter t=2 recall=0.99995 latency_us=3275.13439
-RESULT flat pthread_pool_inter t=2 recall=0.99995 latency_us=3427.91249
-RESULT flat pthread_static_intra t=2 recall=0.99995 latency_us=3605.07625
-RESULT flat pthread_dynamic_intra t=2 recall=0.99995 latency_us=8475.95232
-RESULT flat pthread_pool_intra t=2 recall=0.99995 latency_us=4057.97610
-RESULT flat omp_inter t=4 recall=0.99995 latency_us=2259.82865
-RESULT flat omp_intra t=4 recall=0.99995 latency_us=1708.59689
-RESULT flat pthread_static_inter t=4 recall=0.99995 latency_us=2418.54068
-RESULT flat pthread_dynamic_inter t=4 recall=0.99995 latency_us=1942.35243
-RESULT flat pthread_pool_inter t=4 recall=0.99995 latency_us=1793.26069
-RESULT flat pthread_static_intra t=4 recall=0.99995 latency_us=2302.99231
-RESULT flat pthread_dynamic_intra t=4 recall=0.99995 latency_us=16373.88753
-RESULT flat pthread_pool_intra t=4 recall=0.99995 latency_us=2646.29802
-RESULT flat omp_inter t=8 recall=0.99995 latency_us=1218.44978
-RESULT flat omp_intra t=8 recall=0.99995 latency_us=1025.20243
-RESULT flat pthread_static_inter t=8 recall=0.99995 latency_us=1264.09128
-RESULT flat pthread_dynamic_inter t=8 recall=0.99995 latency_us=931.81724
-RESULT flat pthread_pool_inter t=8 recall=0.99995 latency_us=934.23749
-RESULT flat pthread_static_intra t=8 recall=0.99995 latency_us=2204.05429
-RESULT flat pthread_dynamic_intra t=8 recall=0.99995 latency_us=32187.40493
-RESULT flat pthread_pool_intra t=8 recall=0.99995 latency_us=2400.51030
-RESULT flat omp_inter t=16 recall=0.99995 latency_us=995.78451
-RESULT flat omp_intra t=16 recall=0.99995 latency_us=1682.15957
-RESULT flat pthread_static_inter t=16 recall=0.99995 latency_us=1046.44188
-RESULT flat pthread_dynamic_inter t=16 recall=0.99995 latency_us=945.07822
-RESULT flat pthread_pool_inter t=16 recall=0.99995 latency_us=954.73287
-RESULT flat pthread_static_intra t=16 recall=0.99995 latency_us=2375.39416
-RESULT flat pthread_dynamic_intra t=16 recall=0.99995 latency_us=29605.69491
-RESULT flat pthread_pool_intra t=16 recall=0.99995 latency_us=3150.95034
-RESULT sq omp_inter t=1 recall=0.99995 latency_us=2419.39424 p=100
-RESULT sq pthread_static_inter t=1 recall=0.99995 latency_us=2890.20841 p=100
-RESULT sq pthread_dynamic_inter t=1 recall=0.99995 latency_us=2749.68059 p=100
-RESULT sq pthread_pool_inter t=1 recall=0.99995 latency_us=3079.56597 p=100
-RESULT sq omp_inter t=4 recall=0.99995 latency_us=775.27452 p=100
-RESULT sq pthread_static_inter t=4 recall=0.99995 latency_us=836.42138 p=100
-RESULT sq pthread_dynamic_inter t=4 recall=0.99995 latency_us=809.97101 p=100
-RESULT sq pthread_pool_inter t=4 recall=0.99995 latency_us=823.32259 p=100
-RESULT sq omp_inter t=8 recall=0.99995 latency_us=423.98381 p=100
-RESULT sq pthread_static_inter t=8 recall=0.99995 latency_us=423.49851 p=100
-RESULT sq pthread_dynamic_inter t=8 recall=0.99995 latency_us=380.51897 p=100
-RESULT sq pthread_pool_inter t=8 recall=0.99995 latency_us=387.16467 p=100
-RESULT sq omp_inter t=16 recall=0.99995 latency_us=400.46646 p=100
-RESULT sq pthread_static_inter t=16 recall=0.99995 latency_us=421.06946 p=100
-RESULT sq pthread_dynamic_inter t=16 recall=0.99995 latency_us=381.33107 p=100
-RESULT sq pthread_pool_inter t=16 recall=0.99995 latency_us=381.60304 p=100
-RESULT pq omp_inter t=1 recall=0.70370 latency_us=1272.01365 p=100
-RESULT pq pthread_static_inter t=1 recall=0.70370 latency_us=1259.70632 p=100
-RESULT pq pthread_dynamic_inter t=1 recall=0.70370 latency_us=1255.54621 p=100
-RESULT pq pthread_pool_inter t=1 recall=0.70370 latency_us=1256.02277 p=100
-RESULT pq omp_inter t=2 recall=0.70370 latency_us=634.14281 p=100
-RESULT pq pthread_static_inter t=2 recall=0.70370 latency_us=631.33626 p=100
-RESULT pq pthread_dynamic_inter t=2 recall=0.70370 latency_us=618.64212 p=100
-RESULT pq pthread_pool_inter t=2 recall=0.70370 latency_us=617.36043 p=100
-RESULT pq omp_inter t=4 recall=0.70370 latency_us=323.38664 p=100
-RESULT pq pthread_static_inter t=4 recall=0.70370 latency_us=317.98754 p=100
-RESULT pq pthread_dynamic_inter t=4 recall=0.70370 latency_us=310.72107 p=100
-RESULT pq pthread_pool_inter t=4 recall=0.70370 latency_us=312.41075 p=100
-RESULT pq omp_inter t=8 recall=0.70370 latency_us=159.25237 p=100
-RESULT pq pthread_static_inter t=8 recall=0.70370 latency_us=160.71538 p=100
-RESULT pq pthread_dynamic_inter t=8 recall=0.70370 latency_us=154.67356 p=100
-RESULT pq pthread_pool_inter t=8 recall=0.70370 latency_us=155.85136 p=100
-RESULT pq omp_inter t=16 recall=0.70370 latency_us=165.22929 p=100
-RESULT pq pthread_static_inter t=16 recall=0.70370 latency_us=163.16719 p=100
-RESULT pq pthread_dynamic_inter t=16 recall=0.70370 latency_us=154.77660 p=100
-RESULT pq pthread_pool_inter t=16 recall=0.70370 latency_us=156.60898 p=100
-RESULT ivf simd_serial t=1 recall=0.96225 latency_us=1385.80344 nprobe=4
-RESULT ivf omp_inter t=1 recall=0.96225 latency_us=1378.81662 nprobe=4
-RESULT ivf pthread_static_inter t=1 recall=0.96225 latency_us=1708.69230 nprobe=4
-RESULT ivf pthread_dynamic_inter t=1 recall=0.96225 latency_us=1431.93893 nprobe=4
-RESULT ivf pthread_pool_inter t=1 recall=0.96225 latency_us=1555.83317 nprobe=4
-RESULT ivf omp_inter t=2 recall=0.96225 latency_us=1163.73022 nprobe=4
-RESULT ivf pthread_static_inter t=2 recall=0.96225 latency_us=1133.58382 nprobe=4
-RESULT ivf pthread_dynamic_inter t=2 recall=0.96225 latency_us=984.89186 nprobe=4
-RESULT ivf pthread_pool_inter t=2 recall=0.96225 latency_us=1002.29528 nprobe=4
-RESULT ivf omp_inter t=4 recall=0.96225 latency_us=586.58503 nprobe=4
-RESULT ivf pthread_static_inter t=4 recall=0.96225 latency_us=570.75538 nprobe=4
-RESULT ivf pthread_dynamic_inter t=4 recall=0.96225 latency_us=481.16002 nprobe=4
-RESULT ivf pthread_pool_inter t=4 recall=0.96225 latency_us=423.83928 nprobe=4
-RESULT ivf omp_inter t=8 recall=0.96225 latency_us=308.27080 nprobe=4
-RESULT ivf pthread_static_inter t=8 recall=0.96225 latency_us=315.10446 nprobe=4
-RESULT ivf pthread_dynamic_inter t=8 recall=0.96225 latency_us=271.66704 nprobe=4
-RESULT ivf pthread_pool_inter t=8 recall=0.96225 latency_us=278.51619 nprobe=4
-RESULT ivf omp_inter t=16 recall=0.96225 latency_us=303.13986 nprobe=4
-RESULT ivf pthread_static_inter t=16 recall=0.96225 latency_us=296.25123 nprobe=4
-RESULT ivf pthread_dynamic_inter t=16 recall=0.96225 latency_us=272.01245 nprobe=4
-RESULT ivf pthread_pool_inter t=16 recall=0.96225 latency_us=276.44689 nprobe=4
-RESULT ivfpq_global omp_inter t=1 recall=0.68705 latency_us=623.99756 nprobe=4,p=100
-RESULT ivfpq_global pthread_static_inter t=1 recall=0.68705 latency_us=725.37686 nprobe=4,p=100
-RESULT ivfpq_global pthread_dynamic_inter t=1 recall=0.68705 latency_us=716.81598 nprobe=4,p=100
-RESULT ivfpq_global pthread_pool_inter t=1 recall=0.68705 latency_us=714.11659 nprobe=4,p=100
-RESULT ivfpq_global omp_inter t=2 recall=0.68705 latency_us=319.69048 nprobe=4,p=100
-RESULT ivfpq_global pthread_static_inter t=2 recall=0.68705 latency_us=317.65487 nprobe=4,p=100
-RESULT ivfpq_global pthread_dynamic_inter t=2 recall=0.68705 latency_us=310.87111 nprobe=4,p=100
-RESULT ivfpq_global pthread_pool_inter t=2 recall=0.68705 latency_us=313.70538 nprobe=4,p=100
-RESULT ivfpq_global omp_inter t=4 recall=0.68705 latency_us=194.78934 nprobe=4,p=100
-RESULT ivfpq_global pthread_static_inter t=4 recall=0.68705 latency_us=177.26994 nprobe=4,p=100
-RESULT ivfpq_global pthread_dynamic_inter t=4 recall=0.68705 latency_us=157.40705 nprobe=4,p=100
-RESULT ivfpq_global pthread_pool_inter t=4 recall=0.68705 latency_us=156.95878 nprobe=4,p=100
-RESULT ivfpq_global omp_inter t=8 recall=0.68705 latency_us=90.56851 nprobe=4,p=100
-RESULT ivfpq_global pthread_static_inter t=8 recall=0.68705 latency_us=89.41286 nprobe=4,p=100
-RESULT ivfpq_global pthread_dynamic_inter t=8 recall=0.68705 latency_us=83.12351 nprobe=4,p=100
-RESULT ivfpq_global pthread_pool_inter t=8 recall=0.68705 latency_us=84.57764 nprobe=4,p=100
-RESULT ivfpq_global omp_inter t=16 recall=0.68705 latency_us=89.44177 nprobe=4,p=100
-RESULT ivfpq_global pthread_static_inter t=16 recall=0.68705 latency_us=91.31282 nprobe=4,p=100
-RESULT ivfpq_global pthread_dynamic_inter t=16 recall=0.68705 latency_us=83.18659 nprobe=4,p=100
-RESULT ivfpq_global pthread_pool_inter t=16 recall=0.68705 latency_us=83.99113 nprobe=4,p=100
-RESULT ivfpq_local omp_inter t=1 recall=0.82105 latency_us=542.02765 nprobe=4,p=100
-RESULT ivfpq_local pthread_static_inter t=1 recall=0.82105 latency_us=554.66339 nprobe=4,p=100
-RESULT ivfpq_local pthread_dynamic_inter t=1 recall=0.82105 latency_us=552.07553 nprobe=4,p=100
-RESULT ivfpq_local omp_inter t=2 recall=0.82105 latency_us=268.86762 nprobe=4,p=100
-RESULT ivfpq_local pthread_static_inter t=2 recall=0.82105 latency_us=274.84600 nprobe=4,p=100
-RESULT ivfpq_local pthread_dynamic_inter t=2 recall=0.82105 latency_us=269.30308 nprobe=4,p=100
-RESULT ivfpq_local omp_inter t=4 recall=0.82105 latency_us=136.65768 nprobe=4,p=100
-RESULT ivfpq_local pthread_static_inter t=4 recall=0.82105 latency_us=137.88154 nprobe=4,p=100
-RESULT ivfpq_local pthread_dynamic_inter t=4 recall=0.82105 latency_us=134.63454 nprobe=4,p=100
-RESULT ivfpq_local omp_inter t=8 recall=0.82105 latency_us=69.45277 nprobe=4,p=100
-RESULT ivfpq_local pthread_static_inter t=8 recall=0.82105 latency_us=68.64523 nprobe=4,p=100
-RESULT ivfpq_local pthread_dynamic_inter t=8 recall=0.82105 latency_us=67.37881 nprobe=4,p=100
-RESULT ivfpq_local omp_inter t=16 recall=0.82105 latency_us=68.69945 nprobe=4,p=100
-RESULT ivfpq_local pthread_static_inter t=16 recall=0.82105 latency_us=73.77628 nprobe=4,p=100
-RESULT ivfpq_local pthread_dynamic_inter t=16 recall=0.82105 latency_us=67.29850 nprobe=4,p=100
-RESULT hnsw baseline t=1 recall=0.96865 latency_us=267.69281 ef=50
-RESULT hnsw multi_entry_omp t=1 recall=0.96825 latency_us=300.18759 ef=50
-RESULT hnsw multi_entry_static t=1 recall=0.96825 latency_us=469.81967 ef=50
-RESULT hnsw edge_omp t=1 recall=0.99915 latency_us=349.63776 ef=50
-RESULT hnsw edge_static t=1 recall=0.99915 latency_us=455.54074 ef=50
-RESULT hnsw layer0_omp t=1 recall=0.99995 latency_us=36483.54477 ef=50
-RESULT hnsw layer0_static t=1 recall=0.99995 latency_us=38263.48637 ef=50
-RESULT hnsw multi_entry_omp t=4 recall=1.00000 latency_us=415.17627 ef=50
-RESULT hnsw multi_entry_static t=4 recall=1.00000 latency_us=691.29883 ef=50
-RESULT hnsw edge_omp t=4 recall=0.99915 latency_us=353.57621 ef=50
-RESULT hnsw edge_static t=4 recall=0.99915 latency_us=697.99270 ef=50
-RESULT hnsw layer0_omp t=4 recall=0.99995 latency_us=7535.87439 ef=50
-RESULT hnsw layer0_static t=4 recall=0.99995 latency_us=11845.47437 ef=50
-RESULT hnsw multi_entry_omp t=8 recall=1.00000 latency_us=440.27590 ef=50
-RESULT hnsw multi_entry_static t=8 recall=1.00000 latency_us=1072.57599 ef=50
-RESULT hnsw edge_omp t=8 recall=0.99915 latency_us=332.68010 ef=50
-RESULT hnsw edge_static t=8 recall=0.99915 latency_us=794.33676 ef=50
-RESULT hnsw layer0_omp t=8 recall=0.99995 latency_us=3968.52890 ef=50
-RESULT hnsw layer0_static t=8 recall=0.99995 latency_us=8032.58871 ef=50
-RESULT hnsw multi_entry_omp t=16 recall=1.00000 latency_us=1034.10934 ef=50
-RESULT hnsw multi_entry_static t=16 recall=1.00000 latency_us=1730.38092 ef=50
-RESULT hnsw edge_omp t=16 recall=0.99915 latency_us=624.84394 ef=50
-RESULT hnsw edge_static t=16 recall=0.99915 latency_us=1802.40345 ef=50
-RESULT hnsw layer0_omp t=16 recall=0.99995 latency_us=6203.34728 ef=50
-RESULT hnsw layer0_static t=16 recall=0.99995 latency_us=7069.16092 ef=50
-RESULT hnsw_ivf_nested omp t=1 recall=0.94705 latency_us=841.11685 ef=50,nprobe=4
-RESULT hnsw_ivf_nested static t=1 recall=0.94705 latency_us=831.82023 ef=50,nprobe=4
-RESULT hnsw_ivf_nested omp t=4 recall=0.94705 latency_us=261.33425 ef=50,nprobe=4
-RESULT hnsw_ivf_nested static t=4 recall=0.94705 latency_us=841.02894 ef=50,nprobe=4
-RESULT hnsw_ivf_nested omp t=8 recall=0.94705 latency_us=308.69209 ef=50,nprobe=4
-RESULT hnsw_ivf_nested static t=8 recall=0.94705 latency_us=833.47739 ef=50,nprobe=4
-RESULT hnsw_ivf_nested omp t=16 recall=0.94705 latency_us=413.85610 ef=50,nprobe=4
-RESULT hnsw_ivf_nested static t=16 recall=0.94705 latency_us=840.38147 ef=50,nprobe=4
+RESULT fastscan omp_inter t=1 recall=0.97525 latency_us=1361.34772 p=1000
+RESULT fastscan omp_inter t=4 recall=0.97525 latency_us=375.36611 p=1000
+RESULT fastscan omp_inter t=8 recall=0.97525 latency_us=185.81649 p=1000
+RESULT fastscan omp_inter t=16 recall=0.97525 latency_us=193.81722 p=1000
+RESULT fastscan pthread_dynamic_inter t=1 recall=0.97525 latency_us=1456.16167 p=1000
+RESULT fastscan pthread_dynamic_inter t=4 recall=0.97525 latency_us=361.87926 p=1000
+RESULT fastscan pthread_dynamic_inter t=8 recall=0.97525 latency_us=179.87212 p=1000
+RESULT fastscan pthread_dynamic_inter t=16 recall=0.97525 latency_us=181.62819 p=1000
+RESULT fastscan pthread_pool_inter t=1 recall=0.97525 latency_us=1508.06558 p=1000
+RESULT fastscan pthread_pool_inter t=4 recall=0.97525 latency_us=361.82559 p=1000
+RESULT fastscan pthread_pool_inter t=8 recall=0.97525 latency_us=180.39701 p=1000
+RESULT fastscan pthread_pool_inter t=16 recall=0.97525 latency_us=182.10958 p=1000
+RESULT fastscan pthread_static_inter t=1 recall=0.97525 latency_us=1448.53831 p=1000
+RESULT fastscan pthread_static_inter t=4 recall=0.97525 latency_us=377.27312 p=1000
+RESULT fastscan pthread_static_inter t=8 recall=0.97525 latency_us=185.06472 p=1000
+RESULT fastscan pthread_static_inter t=16 recall=0.97525 latency_us=232.52165 p=1000
+RESULT flat omp_inter t=1 recall=0.99995 latency_us=6606.10297
+RESULT flat omp_inter t=2 recall=0.99995 latency_us=3271.39749
+RESULT flat omp_inter t=4 recall=0.99995 latency_us=1974.47378
+RESULT flat omp_inter t=8 recall=0.99995 latency_us=1083.15679
+RESULT flat omp_inter t=16 recall=0.99995 latency_us=955.80645
+RESULT flat omp_intra t=1 recall=0.99995 latency_us=6647.41626
+RESULT flat omp_intra t=2 recall=0.99995 latency_us=3405.47612
+RESULT flat omp_intra t=4 recall=0.99995 latency_us=1800.71500
+RESULT flat omp_intra t=8 recall=0.99995 latency_us=771.79636
+RESULT flat omp_intra t=16 recall=0.99995 latency_us=1670.75896
+RESULT flat pthread_dynamic_inter t=1 recall=0.99995 latency_us=8235.34995
+RESULT flat pthread_dynamic_inter t=2 recall=0.99995 latency_us=3266.66361
+RESULT flat pthread_dynamic_inter t=4 recall=0.99995 latency_us=1757.14618
+RESULT flat pthread_dynamic_inter t=8 recall=0.99995 latency_us=895.33405
+RESULT flat pthread_dynamic_inter t=16 recall=0.99995 latency_us=913.46367
+RESULT flat pthread_dynamic_intra t=1 recall=0.99995 latency_us=7588.76701
+RESULT flat pthread_dynamic_intra t=2 recall=0.99995 latency_us=9167.40566
+RESULT flat pthread_dynamic_intra t=4 recall=0.99995 latency_us=17245.96732
+RESULT flat pthread_dynamic_intra t=8 recall=0.99995 latency_us=27689.43312
+RESULT flat pthread_dynamic_intra t=16 recall=0.99995 latency_us=32383.91677
+RESULT flat pthread_pool_inter t=1 recall=0.99995 latency_us=8104.63318
+RESULT flat pthread_pool_inter t=2 recall=0.99995 latency_us=3505.90795
+RESULT flat pthread_pool_inter t=4 recall=0.99995 latency_us=1804.54977
+RESULT flat pthread_pool_inter t=8 recall=0.99995 latency_us=901.54746
+RESULT flat pthread_pool_inter t=16 recall=0.99995 latency_us=926.94447
+RESULT flat pthread_pool_intra t=1 recall=0.99995 latency_us=7093.77153
+RESULT flat pthread_pool_intra t=2 recall=0.99995 latency_us=3877.07786
+RESULT flat pthread_pool_intra t=4 recall=0.99995 latency_us=2601.61217
+RESULT flat pthread_pool_intra t=8 recall=0.99995 latency_us=2358.42452
+RESULT flat pthread_pool_intra t=16 recall=0.99995 latency_us=3163.72237
+RESULT flat pthread_static_inter t=1 recall=0.99995 latency_us=6463.52492
+RESULT flat pthread_static_inter t=2 recall=0.99995 latency_us=3889.20004
+RESULT flat pthread_static_inter t=4 recall=0.99995 latency_us=1949.45658
+RESULT flat pthread_static_inter t=8 recall=0.99995 latency_us=1093.89380
+RESULT flat pthread_static_inter t=16 recall=0.99995 latency_us=967.69845
+RESULT flat pthread_static_intra t=1 recall=0.99995 latency_us=7343.80627
+RESULT flat pthread_static_intra t=2 recall=0.99995 latency_us=3840.24155
+RESULT flat pthread_static_intra t=4 recall=0.99995 latency_us=2260.53242
+RESULT flat pthread_static_intra t=8 recall=0.99995 latency_us=2411.45671
+RESULT flat pthread_static_intra t=16 recall=0.99995 latency_us=2157.04207
+RESULT hnsw baseline t=1 recall=0.96865 latency_us=258.05412 ef=50
+RESULT hnsw edge_omp t=1 recall=0.99915 latency_us=336.60129 ef=50
+RESULT hnsw edge_omp t=4 recall=0.99915 latency_us=326.61175 ef=50
+RESULT hnsw edge_omp t=8 recall=0.99915 latency_us=443.52340 ef=50
+RESULT hnsw edge_omp t=16 recall=0.99915 latency_us=618.26184 ef=50
+RESULT hnsw edge_static t=1 recall=0.99915 latency_us=437.28873 ef=50
+RESULT hnsw edge_static t=4 recall=0.99915 latency_us=533.77064 ef=50
+RESULT hnsw edge_static t=8 recall=0.99915 latency_us=992.21633 ef=50
+RESULT hnsw edge_static t=16 recall=0.99915 latency_us=1875.11282 ef=50
+RESULT hnsw layer0_omp t=1 recall=0.99995 latency_us=33038.33211 ef=50
+RESULT hnsw layer0_omp t=4 recall=0.99995 latency_us=8458.87149 ef=50
+RESULT hnsw layer0_omp t=8 recall=0.99995 latency_us=3954.68834 ef=50
+RESULT hnsw layer0_omp t=16 recall=0.99995 latency_us=6078.78868 ef=50
+RESULT hnsw layer0_static t=1 recall=0.99995 latency_us=38443.30754 ef=50
+RESULT hnsw layer0_static t=4 recall=0.99995 latency_us=11663.10400 ef=50
+RESULT hnsw layer0_static t=8 recall=0.99995 latency_us=8026.47870 ef=50
+RESULT hnsw layer0_static t=16 recall=0.99995 latency_us=6695.27796 ef=50
+RESULT hnsw multi_entry_dynamic t=1 recall=0.96825 latency_us=437.04339 ef=50
+RESULT hnsw multi_entry_dynamic t=4 recall=1.00000 latency_us=583.10355 ef=50
+RESULT hnsw multi_entry_dynamic t=8 recall=1.00000 latency_us=859.89813 ef=50
+RESULT hnsw multi_entry_dynamic t=16 recall=1.00000 latency_us=1540.11157 ef=50
+RESULT hnsw multi_entry_omp t=1 recall=0.96825 latency_us=288.48107 ef=50
+RESULT hnsw multi_entry_omp t=4 recall=1.00000 latency_us=419.53288 ef=50
+RESULT hnsw multi_entry_omp t=8 recall=1.00000 latency_us=466.03037 ef=50
+RESULT hnsw multi_entry_omp t=16 recall=1.00000 latency_us=1055.55128 ef=50
+RESULT hnsw multi_entry_pool t=1 recall=0.96825 latency_us=468.09337 ef=50
+RESULT hnsw multi_entry_pool t=4 recall=1.00000 latency_us=681.62617 ef=50
+RESULT hnsw multi_entry_pool t=8 recall=1.00000 latency_us=1197.32142 ef=50
+RESULT hnsw multi_entry_pool t=16 recall=1.00000 latency_us=2509.29769 ef=50
+RESULT hnsw multi_entry_static t=1 recall=0.96825 latency_us=437.67811 ef=50
+RESULT hnsw multi_entry_static t=4 recall=1.00000 latency_us=558.88260 ef=50
+RESULT hnsw multi_entry_static t=8 recall=1.00000 latency_us=1107.61692 ef=50
+RESULT hnsw multi_entry_static t=16 recall=1.00000 latency_us=1689.40159 ef=50
+RESULT hnsw_ivf_nested omp t=1 recall=0.94705 latency_us=769.10428 ef=50,nprobe=4
+RESULT hnsw_ivf_nested omp t=4 recall=0.94705 latency_us=314.21226 ef=50,nprobe=4
+RESULT hnsw_ivf_nested omp t=8 recall=0.94705 latency_us=319.63666 ef=50,nprobe=4
+RESULT hnsw_ivf_nested omp t=16 recall=0.94705 latency_us=428.91036 ef=50,nprobe=4
+RESULT hnsw_ivf_nested static t=1 recall=0.94705 latency_us=763.96123 ef=50,nprobe=4
+RESULT hnsw_ivf_nested static t=4 recall=0.94705 latency_us=829.40122 ef=50,nprobe=4
+RESULT hnsw_ivf_nested static t=8 recall=0.94705 latency_us=823.58879 ef=50,nprobe=4
+RESULT hnsw_ivf_nested static t=16 recall=0.94705 latency_us=823.67646 ef=50,nprobe=4
+RESULT ivf omp_inter t=1 recall=0.96225 latency_us=1364.89794 nprobe=4
+RESULT ivf omp_inter t=2 recall=0.96225 latency_us=1045.26912 nprobe=4
+RESULT ivf omp_inter t=4 recall=0.96225 latency_us=534.51283 nprobe=4
+RESULT ivf omp_inter t=8 recall=0.96225 latency_us=282.79423 nprobe=4
+RESULT ivf omp_inter t=16 recall=0.96225 latency_us=278.57462 nprobe=4
+RESULT ivf omp_intra t=1 recall=0.96225 latency_us=1437.06708 nprobe=4
+RESULT ivf omp_intra t=2 recall=0.96225 latency_us=1072.66585 nprobe=4
+RESULT ivf omp_intra t=4 recall=0.96225 latency_us=819.33868 nprobe=4
+RESULT ivf omp_intra t=8 recall=0.96225 latency_us=792.06522 nprobe=4
+RESULT ivf omp_intra t=16 recall=0.96225 latency_us=1065.91136 nprobe=4
+RESULT ivf pthread_dynamic_inter t=1 recall=0.96225 latency_us=1376.67872 nprobe=4
+RESULT ivf pthread_dynamic_inter t=2 recall=0.96225 latency_us=803.74481 nprobe=4
+RESULT ivf pthread_dynamic_inter t=4 recall=0.96225 latency_us=483.65665 nprobe=4
+RESULT ivf pthread_dynamic_inter t=8 recall=0.96225 latency_us=255.71013 nprobe=4
+RESULT ivf pthread_dynamic_inter t=16 recall=0.96225 latency_us=266.35585 nprobe=4
+RESULT ivf pthread_dynamic_intra t=1 recall=0.96225 latency_us=1934.40751 nprobe=4
+RESULT ivf pthread_dynamic_intra t=2 recall=0.96225 latency_us=1261.61729 nprobe=4
+RESULT ivf pthread_dynamic_intra t=4 recall=0.96225 latency_us=922.65276 nprobe=4
+RESULT ivf pthread_dynamic_intra t=8 recall=0.96225 latency_us=982.63299 nprobe=4
+RESULT ivf pthread_dynamic_intra t=16 recall=0.96225 latency_us=1639.32149 nprobe=4
+RESULT ivf pthread_pool_inter t=1 recall=0.96225 latency_us=1402.38551 nprobe=4
+RESULT ivf pthread_pool_inter t=2 recall=0.96225 latency_us=798.16286 nprobe=4
+RESULT ivf pthread_pool_inter t=4 recall=0.96225 latency_us=482.13805 nprobe=4
+RESULT ivf pthread_pool_inter t=8 recall=0.96225 latency_us=261.94351 nprobe=4
+RESULT ivf pthread_pool_inter t=16 recall=0.96225 latency_us=269.75729 nprobe=4
+RESULT ivf pthread_static_inter t=1 recall=0.96225 latency_us=1370.77687 nprobe=4
+RESULT ivf pthread_static_inter t=2 recall=0.96225 latency_us=1125.04507 nprobe=4
+RESULT ivf pthread_static_inter t=4 recall=0.96225 latency_us=460.99529 nprobe=4
+RESULT ivf pthread_static_inter t=8 recall=0.96225 latency_us=268.88242 nprobe=4
+RESULT ivf pthread_static_inter t=16 recall=0.96225 latency_us=264.79145 nprobe=4
+RESULT ivf pthread_static_intra t=1 recall=0.96225 latency_us=1925.42592 nprobe=4
+RESULT ivf pthread_static_intra t=2 recall=0.96225 latency_us=1441.57796 nprobe=4
+RESULT ivf pthread_static_intra t=4 recall=0.96225 latency_us=932.51693 nprobe=4
+RESULT ivf pthread_static_intra t=8 recall=0.96225 latency_us=934.28295 nprobe=4
+RESULT ivf pthread_static_intra t=16 recall=0.96225 latency_us=1624.51573 nprobe=4
+RESULT ivf simd_serial t=1 recall=0.96225 latency_us=1451.82479 nprobe=4
+RESULT ivfpq_global omp_inter t=1 recall=0.68705 latency_us=638.45179 nprobe=4,p=100
+RESULT ivfpq_global omp_inter t=2 recall=0.68705 latency_us=360.20521 nprobe=4,p=100
+RESULT ivfpq_global omp_inter t=4 recall=0.68705 latency_us=179.05303 nprobe=4,p=100
+RESULT ivfpq_global omp_inter t=8 recall=0.68705 latency_us=91.53427 nprobe=4,p=100
+RESULT ivfpq_global omp_inter t=16 recall=0.68705 latency_us=91.44376 nprobe=4,p=100
+RESULT ivfpq_global omp_intra t=1 recall=0.68705 latency_us=665.85349 nprobe=4,p=100
+RESULT ivfpq_global omp_intra t=2 recall=0.68705 latency_us=504.60213 nprobe=4,p=100
+RESULT ivfpq_global omp_intra t=4 recall=0.68705 latency_us=505.70146 nprobe=4,p=100
+RESULT ivfpq_global omp_intra t=8 recall=0.68705 latency_us=439.52873 nprobe=4,p=100
+RESULT ivfpq_global omp_intra t=16 recall=0.68705 latency_us=588.25828 nprobe=4,p=100
+RESULT ivfpq_global pthread_dynamic_inter t=1 recall=0.68705 latency_us=720.92232 nprobe=4,p=100
+RESULT ivfpq_global pthread_dynamic_inter t=2 recall=0.68705 latency_us=317.39478 nprobe=4,p=100
+RESULT ivfpq_global pthread_dynamic_inter t=4 recall=0.68705 latency_us=156.64079 nprobe=4,p=100
+RESULT ivfpq_global pthread_dynamic_inter t=8 recall=0.68705 latency_us=82.42364 nprobe=4,p=100
+RESULT ivfpq_global pthread_dynamic_inter t=16 recall=0.68705 latency_us=83.08987 nprobe=4,p=100
+RESULT ivfpq_global pthread_dynamic_intra t=1 recall=0.68705 latency_us=786.06658 nprobe=4,p=100
+RESULT ivfpq_global pthread_dynamic_intra t=2 recall=0.68705 latency_us=547.17478 nprobe=4,p=100
+RESULT ivfpq_global pthread_dynamic_intra t=4 recall=0.68705 latency_us=528.02887 nprobe=4,p=100
+RESULT ivfpq_global pthread_dynamic_intra t=8 recall=0.68705 latency_us=654.45894 nprobe=4,p=100
+RESULT ivfpq_global pthread_dynamic_intra t=16 recall=0.68705 latency_us=1601.03558 nprobe=4,p=100
+RESULT ivfpq_global pthread_pool_inter t=1 recall=0.68705 latency_us=717.23796 nprobe=4,p=100
+RESULT ivfpq_global pthread_pool_inter t=2 recall=0.68705 latency_us=318.70237 nprobe=4,p=100
+RESULT ivfpq_global pthread_pool_inter t=4 recall=0.68705 latency_us=164.12132 nprobe=4,p=100
+RESULT ivfpq_global pthread_pool_inter t=8 recall=0.68705 latency_us=83.75861 nprobe=4,p=100
+RESULT ivfpq_global pthread_pool_inter t=16 recall=0.68705 latency_us=83.64380 nprobe=4,p=100
+RESULT ivfpq_global pthread_static_inter t=1 recall=0.68705 latency_us=738.99360 nprobe=4,p=100
+RESULT ivfpq_global pthread_static_inter t=2 recall=0.68705 latency_us=319.41881 nprobe=4,p=100
+RESULT ivfpq_global pthread_static_inter t=4 recall=0.68705 latency_us=179.27463 nprobe=4,p=100
+RESULT ivfpq_global pthread_static_inter t=8 recall=0.68705 latency_us=90.65774 nprobe=4,p=100
+RESULT ivfpq_global pthread_static_inter t=16 recall=0.68705 latency_us=90.65907 nprobe=4,p=100
+RESULT ivfpq_global pthread_static_intra t=1 recall=0.68705 latency_us=805.10899 nprobe=4,p=100
+RESULT ivfpq_global pthread_static_intra t=2 recall=0.68705 latency_us=599.88923 nprobe=4,p=100
+RESULT ivfpq_global pthread_static_intra t=4 recall=0.68705 latency_us=544.49825 nprobe=4,p=100
+RESULT ivfpq_global pthread_static_intra t=8 recall=0.68705 latency_us=658.61201 nprobe=4,p=100
+RESULT ivfpq_global pthread_static_intra t=16 recall=0.68705 latency_us=1592.51224 nprobe=4,p=100
+RESULT ivfpq_local omp_inter t=1 recall=0.82105 latency_us=541.65079 nprobe=4,p=100
+RESULT ivfpq_local omp_inter t=2 recall=0.82105 latency_us=284.23728 nprobe=4,p=100
+RESULT ivfpq_local omp_inter t=4 recall=0.82105 latency_us=141.60040 nprobe=4,p=100
+RESULT ivfpq_local omp_inter t=8 recall=0.82105 latency_us=70.99277 nprobe=4,p=100
+RESULT ivfpq_local omp_inter t=16 recall=0.82105 latency_us=72.07207 nprobe=4,p=100
+RESULT ivfpq_local omp_intra t=1 recall=0.82105 latency_us=564.83985 nprobe=4,p=100
+RESULT ivfpq_local omp_intra t=2 recall=0.82105 latency_us=427.91738 nprobe=4,p=100
+RESULT ivfpq_local omp_intra t=4 recall=0.82105 latency_us=414.15383 nprobe=4,p=100
+RESULT ivfpq_local omp_intra t=8 recall=0.82105 latency_us=370.42484 nprobe=4,p=100
+RESULT ivfpq_local omp_intra t=16 recall=0.82105 latency_us=512.24969 nprobe=4,p=100
+RESULT ivfpq_local pthread_dynamic_inter t=1 recall=0.82105 latency_us=556.08886 nprobe=4,p=100
+RESULT ivfpq_local pthread_dynamic_inter t=2 recall=0.82105 latency_us=266.47250 nprobe=4,p=100
+RESULT ivfpq_local pthread_dynamic_inter t=4 recall=0.82105 latency_us=134.10113 nprobe=4,p=100
+RESULT ivfpq_local pthread_dynamic_inter t=8 recall=0.82105 latency_us=69.12247 nprobe=4,p=100
+RESULT ivfpq_local pthread_dynamic_inter t=16 recall=0.82105 latency_us=68.23669 nprobe=4,p=100
+RESULT ivfpq_local pthread_dynamic_intra t=1 recall=0.82105 latency_us=651.26799 nprobe=4,p=100
+RESULT ivfpq_local pthread_dynamic_intra t=2 recall=0.82105 latency_us=461.32116 nprobe=4,p=100
+RESULT ivfpq_local pthread_dynamic_intra t=4 recall=0.82105 latency_us=505.89089 nprobe=4,p=100
+RESULT ivfpq_local pthread_dynamic_intra t=8 recall=0.82105 latency_us=577.57344 nprobe=4,p=100
+RESULT ivfpq_local pthread_dynamic_intra t=16 recall=0.82105 latency_us=1636.89614 nprobe=4,p=100
+RESULT ivfpq_local pthread_pool_inter t=1 recall=0.82105 latency_us=554.58684 nprobe=4,p=100
+RESULT ivfpq_local pthread_pool_inter t=2 recall=0.82105 latency_us=267.33661 nprobe=4,p=100
+RESULT ivfpq_local pthread_pool_inter t=4 recall=0.82105 latency_us=137.59860 nprobe=4,p=100
+RESULT ivfpq_local pthread_pool_inter t=8 recall=0.82105 latency_us=68.24520 nprobe=4,p=100
+RESULT ivfpq_local pthread_pool_inter t=16 recall=0.82105 latency_us=69.90371 nprobe=4,p=100
+RESULT ivfpq_local pthread_static_inter t=1 recall=0.82105 latency_us=560.33740 nprobe=4,p=100
+RESULT ivfpq_local pthread_static_inter t=2 recall=0.82105 latency_us=270.54243 nprobe=4,p=100
+RESULT ivfpq_local pthread_static_inter t=4 recall=0.82105 latency_us=136.50583 nprobe=4,p=100
+RESULT ivfpq_local pthread_static_inter t=8 recall=0.82105 latency_us=70.28087 nprobe=4,p=100
+RESULT ivfpq_local pthread_static_inter t=16 recall=0.82105 latency_us=69.31652 nprobe=4,p=100
+RESULT ivfpq_local pthread_static_intra t=1 recall=0.82105 latency_us=671.66794 nprobe=4,p=100
+RESULT ivfpq_local pthread_static_intra t=2 recall=0.82105 latency_us=475.64337 nprobe=4,p=100
+RESULT ivfpq_local pthread_static_intra t=4 recall=0.82105 latency_us=557.22666 nprobe=4,p=100
+RESULT ivfpq_local pthread_static_intra t=8 recall=0.82105 latency_us=593.84599 nprobe=4,p=100
+RESULT ivfpq_local pthread_static_intra t=16 recall=0.82105 latency_us=1620.09083 nprobe=4,p=100
+RESULT pq omp_inter t=1 recall=0.70370 latency_us=1274.84921 p=100
+RESULT pq omp_inter t=2 recall=0.70370 latency_us=644.20766 p=100
+RESULT pq omp_inter t=4 recall=0.70370 latency_us=320.01476 p=100
+RESULT pq omp_inter t=8 recall=0.70370 latency_us=162.97261 p=100
+RESULT pq omp_inter t=16 recall=0.70370 latency_us=169.23071 p=100
+RESULT pq omp_intra t=1 recall=0.70370 latency_us=1452.62657 p=100
+RESULT pq omp_intra t=2 recall=0.70360 latency_us=889.64654 p=100
+RESULT pq omp_intra t=4 recall=0.70350 latency_us=788.85198 p=100
+RESULT pq omp_intra t=8 recall=0.70370 latency_us=811.59411 p=100
+RESULT pq omp_intra t=16 recall=0.70380 latency_us=945.36154 p=100
+RESULT pq pthread_dynamic_inter t=1 recall=0.70370 latency_us=1275.40999 p=100
+RESULT pq pthread_dynamic_inter t=2 recall=0.70370 latency_us=631.02333 p=100
+RESULT pq pthread_dynamic_inter t=4 recall=0.70370 latency_us=317.35856 p=100
+RESULT pq pthread_dynamic_inter t=8 recall=0.70370 latency_us=158.33303 p=100
+RESULT pq pthread_dynamic_inter t=16 recall=0.70370 latency_us=158.35228 p=100
+RESULT pq pthread_dynamic_intra t=1 recall=0.70370 latency_us=1876.46864 p=100
+RESULT pq pthread_dynamic_intra t=2 recall=0.70415 latency_us=4102.17200 p=100
+RESULT pq pthread_dynamic_intra t=4 recall=0.70330 latency_us=8810.52365 p=100
+RESULT pq pthread_dynamic_intra t=8 recall=0.70370 latency_us=16528.73336 p=100
+RESULT pq pthread_dynamic_intra t=16 recall=0.70350 latency_us=19097.07471 p=100
+RESULT pq pthread_pool_inter t=1 recall=0.70370 latency_us=1304.01841 p=100
+RESULT pq pthread_pool_inter t=2 recall=0.70370 latency_us=631.43749 p=100
+RESULT pq pthread_pool_inter t=4 recall=0.70370 latency_us=318.16612 p=100
+RESULT pq pthread_pool_inter t=8 recall=0.70370 latency_us=159.75377 p=100
+RESULT pq pthread_pool_inter t=16 recall=0.70370 latency_us=160.56078 p=100
+RESULT pq pthread_pool_intra t=1 recall=0.70370 latency_us=2081.43095 p=100
+RESULT pq pthread_pool_intra t=2 recall=0.70360 latency_us=1308.62989 p=100
+RESULT pq pthread_pool_intra t=4 recall=0.70350 latency_us=1369.69714 p=100
+RESULT pq pthread_pool_intra t=8 recall=0.70370 latency_us=1642.65956 p=100
+RESULT pq pthread_pool_intra t=16 recall=0.70380 latency_us=2687.98782 p=100
+RESULT pq pthread_static_inter t=1 recall=0.70370 latency_us=1290.82343 p=100
+RESULT pq pthread_static_inter t=2 recall=0.70370 latency_us=631.16196 p=100
+RESULT pq pthread_static_inter t=4 recall=0.70370 latency_us=326.49629 p=100
+RESULT pq pthread_static_inter t=8 recall=0.70370 latency_us=163.79390 p=100
+RESULT pq pthread_static_inter t=16 recall=0.70370 latency_us=167.71640 p=100
+RESULT pq pthread_static_intra t=1 recall=0.70370 latency_us=1497.32359 p=100
+RESULT pq pthread_static_intra t=2 recall=0.70360 latency_us=1022.55989 p=100
+RESULT pq pthread_static_intra t=4 recall=0.70350 latency_us=1006.39295 p=100
+RESULT pq pthread_static_intra t=8 recall=0.70370 latency_us=1087.36370 p=100
+RESULT pq pthread_static_intra t=16 recall=0.70380 latency_us=1684.72357 p=100
+RESULT sq omp_inter t=1 recall=0.99995 latency_us=2339.53776 p=100
+RESULT sq omp_inter t=4 recall=0.99995 latency_us=777.94442 p=100
+RESULT sq omp_inter t=8 recall=0.99995 latency_us=385.32965 p=100
+RESULT sq omp_inter t=16 recall=0.99995 latency_us=386.17045 p=100
+RESULT sq omp_intra t=1 recall=0.99995 latency_us=2364.96091 p=100
+RESULT sq omp_intra t=4 recall=0.99995 latency_us=1082.92533 p=100
+RESULT sq omp_intra t=8 recall=0.99995 latency_us=838.10900 p=100
+RESULT sq omp_intra t=16 recall=0.99995 latency_us=1047.16825 p=100
+RESULT sq pthread_dynamic_inter t=1 recall=0.99995 latency_us=3022.28904 p=100
+RESULT sq pthread_dynamic_inter t=4 recall=0.99995 latency_us=642.43270 p=100
+RESULT sq pthread_dynamic_inter t=8 recall=0.99995 latency_us=366.89451 p=100
+RESULT sq pthread_dynamic_inter t=16 recall=0.99995 latency_us=366.13799 p=100
+RESULT sq pthread_dynamic_intra t=1 recall=0.99995 latency_us=3306.07179 p=100
+RESULT sq pthread_dynamic_intra t=4 recall=0.99995 latency_us=10911.99330 p=100
+RESULT sq pthread_dynamic_intra t=8 recall=0.99995 latency_us=24044.40925 p=100
+RESULT sq pthread_dynamic_intra t=16 recall=0.99995 latency_us=23209.70370 p=100
+RESULT sq pthread_pool_inter t=1 recall=0.99995 latency_us=3123.49513 p=100
+RESULT sq pthread_pool_inter t=4 recall=0.99995 latency_us=627.99939 p=100
+RESULT sq pthread_pool_inter t=8 recall=0.99995 latency_us=369.01785 p=100
+RESULT sq pthread_pool_inter t=16 recall=0.99995 latency_us=362.05730 p=100
+RESULT sq pthread_pool_intra t=1 recall=0.99995 latency_us=3316.63005 p=100
+RESULT sq pthread_pool_intra t=4 recall=0.99995 latency_us=1565.86983 p=100
+RESULT sq pthread_pool_intra t=8 recall=0.99995 latency_us=2040.19380 p=100
+RESULT sq pthread_pool_intra t=16 recall=0.99995 latency_us=2943.95235 p=100
+RESULT sq pthread_static_inter t=1 recall=0.99995 latency_us=2413.53772 p=100
+RESULT sq pthread_static_inter t=4 recall=0.99995 latency_us=805.93772 p=100
+RESULT sq pthread_static_inter t=8 recall=0.99995 latency_us=390.25829 p=100
+RESULT sq pthread_static_inter t=16 recall=0.99995 latency_us=396.42037 p=100
+RESULT sq pthread_static_intra t=1 recall=0.99995 latency_us=3104.73617 p=100
+RESULT sq pthread_static_intra t=4 recall=0.99995 latency_us=1219.44002 p=100
+RESULT sq pthread_static_intra t=8 recall=0.99995 latency_us=1461.84526 p=100
+RESULT sq pthread_static_intra t=16 recall=0.99995 latency_us=1710.92581 p=100
