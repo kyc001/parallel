@@ -3,12 +3,20 @@
 #PBS -e test.e
 #PBS -o test.o
 
-/usr/local/bin/pssh -h $PBS_NODEFILE mkdir -p /home/${USER} 1>&2
-scp master_ubss1:/home/${USER}/ann/main /home/${USER} 1>&2
-scp -r master_ubss1:/home/${USER}/ann/files/ /home/${USER}/ 1>&2
-/usr/local/bin/pscp -h $PBS_NODEFILE /home/${USER}/main /home/${USER} 1>&2
+set -eu
 
-/home/${USER}/main
-rm /home/${USER}/main
-scp -r /home/${USER}/files/ master_ubss1:/home/${USER}/ann/ 2>&1
-rm -r /home/${USER}/files/
+LOGIN_HOST=${ANN_LOGIN_HOST:-master_ubss1}
+PROJECT_DIR=${ANN_PROJECT_DIR:-/home/${USER}/ann}
+RUN_DIR=${ANN_RUN_DIR:-/home/${USER}}
+DATA_DIR=${ANN_DATA_DIR:-/anndata}
+
+/usr/local/bin/pssh -h "$PBS_NODEFILE" "mkdir -p '$RUN_DIR'" 1>&2
+scp "${LOGIN_HOST}:${PROJECT_DIR}/main" "${RUN_DIR}/main" 1>&2
+/usr/local/bin/pscp -h "$PBS_NODEFILE" "${RUN_DIR}/main" "$RUN_DIR" 1>&2
+
+if [ -d "$DATA_DIR" ]; then
+    export ANN_DATA_PATH="${ANN_DATA_PATH:-$DATA_DIR/}"
+fi
+
+"${RUN_DIR}/main"
+rm -f "${RUN_DIR}/main"

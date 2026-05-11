@@ -89,4 +89,4 @@ bash run_all_kunpeng_part1.sh
 bash run_all_kunpeng_part2.sh
 ```
 
-The Kunpeng scripts are split only because the server job time window is limited. Both scripts still go through `run_all_kunpeng.sh`, which precompiles the selected phases and submits via `bash test.sh 2 1`.
+The Kunpeng scripts are split only because the server job time window is limited. Both scripts still go through `run_all_kunpeng.sh`, which precompiles the selected phases and submits `qsub.sh` directly. This avoids the legacy `test.sh` recompile path, whose fixed `-std=c++11`/missing `-I.` command is incompatible with the current unified benchmark.

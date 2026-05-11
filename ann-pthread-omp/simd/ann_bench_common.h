@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <cstdlib>
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
@@ -15,6 +16,10 @@
 #include <vector>
 
 namespace ann_bench {
+
+#ifndef ANN_DEFAULT_DATA_PATH
+#define ANN_DEFAULT_DATA_PATH ""
+#endif
 
 template <typename T>
 std::unique_ptr<T[]> LoadData(const std::string& data_path, size_t& n, size_t& d) {
@@ -43,10 +48,29 @@ std::unique_ptr<T[]> LoadData(const std::string& data_path, size_t& n, size_t& d
     return data;
 }
 
+inline std::string WithTrailingSlash(std::string path) {
+    if (!path.empty() && path.back() != '/' && path.back() != '\\') {
+        path.push_back('/');
+    }
+    return path;
+}
+
 inline std::string DefaultDataPath() {
+    const char* env_path = std::getenv("ANN_DATA_PATH");
+    if (env_path && env_path[0]) {
+        return WithTrailingSlash(env_path);
+    }
+
+    const std::string compiled_path = ANN_DEFAULT_DATA_PATH;
+    if (!compiled_path.empty()) {
+        return WithTrailingSlash(compiled_path);
+    }
 #ifdef _WIN32
     return "../files/";
 #else
+    if (std::filesystem::exists("/anndata/DEEP100K.query.fbin")) {
+        return "/anndata/";
+    }
     return "files/";   // 登录节点: files -> /anndata 链接; 计算节点: qsub 拷入
 #endif
 }

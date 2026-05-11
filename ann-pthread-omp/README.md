@@ -13,7 +13,7 @@ bash run_all_kunpeng_part1.sh
 bash run_all_kunpeng_part2.sh
 ```
 
-两个脚本都会通过 `run_all_kunpeng.sh` 预编译 `main`，再调用 `bash test.sh 2 1` 提交，满足服务器必须通过 bash 脚本运行的要求。
+Both Kunpeng scripts call `run_all_kunpeng.sh`, which precompiles `main` with C++17 flags and submits `qsub.sh` directly from bash. The older `test.sh` wrapper is kept only as a compatibility artifact.
 
 ## 算法覆盖
 
@@ -33,7 +33,7 @@ bash run_all_kunpeng_part2.sh
 ann-pthread-omp/
 ├── main.cc                # 编译入口（由脚本 cp 覆盖生成）
 ├── flat_scan.h            # 串行基线（不可修改）
-├── test.sh / qsub.sh      # 服务器提交脚本（不可修改）
+├── test.sh / qsub.sh      # server submission helpers; maintained entry is run_all_kunpeng*.sh
 ├── run_all.ps1            # 本机 PowerShell 全量一键运行，并刷新 results/*.csv
 ├── run_all.sh             # Bash 全量运行
 ├── run_all_kunpeng.sh     # 鲲鹏提交引擎（由 part1/part2 调用）
@@ -84,4 +84,4 @@ g++ main.cc -o main -O2 -fopenmp -lpthread -std=c++17 -I. -mavx2 -mfma
 ## 平台
 
 - **本机**: Windows 11, Intel i9-13900H, AVX2+FMA, 数据 `../files/`
-- **鲲鹏服务器**: AArch64/NEON, 数据 `/anndata/`, 提交 `bash test.sh 2 1`
+- **Kunpeng server**: AArch64/NEON, data `/anndata/`, submit with `bash run_all_kunpeng_part1.sh` and `bash run_all_kunpeng_part2.sh`
