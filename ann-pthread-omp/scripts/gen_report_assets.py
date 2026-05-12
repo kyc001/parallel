@@ -59,10 +59,10 @@ def plot_scheduler_compact(local_rows: list[dict[str, str]]) -> None:
         ("ivfpq", "IVF-PQ"),
     ]
     strategies = [
-        ("omp", "OMP"),
-        ("pthread_static", "Static"),
-        ("pthread_dynamic", "Dynamic"),
-        ("pthread_pool", "Pool"),
+        ("omp_inter", "OMP"),
+        ("pthread_static_inter", "Static"),
+        ("pthread_dynamic_inter", "Dynamic"),
+        ("pthread_pool_inter", "Pool"),
     ]
 
     fig, ax = plt.subplots(figsize=(7.4, 3.2))
@@ -163,8 +163,14 @@ def plot_inter_intra_compact(local_rows: list[dict[str, str]]) -> None:
     fig, ax = plt.subplots(figsize=(6.8, 3.0))
     x = np.arange(len(algos))
     w = 0.35
-    ax.bar(x - w / 2, inter_values, w, label="Inter-query", color="#4C72B0")
-    ax.bar(x + w / 2, intra_values, w, label="Intra-query", color="#DD8452")
+    bars1 = ax.bar(x - w / 2, inter_values, w, label="Inter-query", color="#4C72B0")
+    bars2 = ax.bar(x + w / 2, intra_values, w, label="Intra-query", color="#DD8452")
+    for bar in bars1:
+        h = bar.get_height()
+        ax.text(bar.get_x() + bar.get_width() / 2, h, f"{h:.0f}", ha="center", va="bottom", fontsize=7)
+    for bar in bars2:
+        h = bar.get_height()
+        ax.text(bar.get_x() + bar.get_width() / 2, h, f"{h:.0f}", ha="center", va="bottom", fontsize=7)
     ax.set_xticks(x)
     ax.set_xticklabels(labels)
     ax.set_ylabel("Latency / us")
@@ -184,7 +190,7 @@ def plot_cross_platform_compact(
         ("pq", "pq", "PQ"),
         ("fastscan", "fastscan", "FastScan"),
         ("ivf", "ivf", "IVF"),
-        ("ivfpq", "ivfpq_local", "IVF-PQ"),
+        ("ivfpq_local", "ivfpq_local", "IVF-PQ"),
     ]
     x86: list[float] = []
     arm: list[float] = []
@@ -197,7 +203,7 @@ def plot_cross_platform_compact(
             and r["granularity"] == "inter"
             and int(r["threads"]) == 16
             and f(r, "recall") >= 0.95
-            and (local_algo != "ivfpq" or r.get("mode", "") == "local")
+            and (local_algo != "ivfpq_local" or r.get("mode", "") in ("local", "", None))
         ]
         arows = [
             r
@@ -277,7 +283,7 @@ def plot_tradeoff_curves(tradeoff_rows: list[dict[str, str]]) -> None:
     ax.grid(True, alpha=0.25)
 
     ax = axes[2]
-    for mode, color in [("global", "#8172B2"), ("local", "#DD8452")]:
+    for mode, color, ls in [("global", "#8172B2", "--"), ("local", "#DD8452", "-")]:
         rows = sorted(
             [r for r in tradeoff_rows if r["algorithm"] == "ivfpq" and r["mode"] == mode],
             key=lambda r: int(r["nprobe"]),
@@ -288,6 +294,8 @@ def plot_tradeoff_curves(tradeoff_rows: list[dict[str, str]]) -> None:
             marker="o",
             label=mode,
             color=color,
+            linestyle=ls,
+            linewidth=1.8,
         )
         for r in rows:
             ax.annotate(
@@ -308,6 +316,34 @@ def plot_tradeoff_curves(tradeoff_rows: list[dict[str, str]]) -> None:
     plt.close(fig)
 
 
+def plot_hnsw_ef_sweep() -> None:
+    data = []
+    with open(RESULTS / "hnsw_ef_sweep.txt") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            parts = line.split(",")
+            ef = int(parts[0].split("=")[1])
+            recall = float(parts[1].split("=")[1])
+            latency = float(parts[2].split("=")[1])
+            data.append((ef, recall, latency))
+
+    fig, ax = plt.subplots(figsize=(5.0, 3.0))
+    latencies = [d[2] for d in data]
+    recalls = [d[1] for d in data]
+    ax.plot(latencies, recalls, marker="o", color="#4C72B0", linewidth=1.5)
+    for ef, recall, lat in data:
+        ax.annotate(f"ef={ef}", (lat, recall), fontsize=7, xytext=(4, 4), textcoords="offset points")
+    ax.axhline(0.95, color="#C44E52", linestyle="--", linewidth=1, alpha=0.7)
+    ax.set_xlabel("Latency / us")
+    ax.set_ylabel("Recall@10")
+    ax.set_title("HNSW ef sweep (single thread)")
+    ax.grid(True, alpha=0.25)
+    fig.savefig(OUT / "hnsw_ef_curve.pdf")
+    plt.close(fig)
+
+
 def main() -> None:
     setup_style()
     OUT.mkdir(parents=True, exist_ok=True)
@@ -319,6 +355,7 @@ def main() -> None:
     plot_inter_intra_compact(local_rows)
     plot_cross_platform_compact(local_rows, arm_rows)
     plot_tradeoff_curves(tradeoff_rows)
+    plot_hnsw_ef_sweep()
     print("generated compact report figures")
 
 
