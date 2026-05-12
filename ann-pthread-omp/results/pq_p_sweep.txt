@@ -1,0 +1,7 @@
+pq,p=40,recall=0.50600,latency_us=215.31375
+pq,p=100,recall=0.70475,latency_us=222.10180
+pq,p=300,recall=0.89010,latency_us=279.21745
+pq,p=500,recall=0.94125,latency_us=280.26880
+pq,p=1000,recall=0.98070,latency_us=400.01955
+pq,p=2000,recall=0.99550,latency_us=569.20195
+pq,p=5000,recall=0.99960,latency_us=1120.63050

@@ -659,9 +659,49 @@ i9-13900H 是 Alder Lake-H 架构的异构多核 CPU：6 个 P-core（performanc
   \label{fig:tradeoff}
 \end{figure}
 
-PQ 的 $p$ 控制粗排后进入精排的候选数。$p=100$ 时延迟仅 85.43 $\mu$s，但 Recall@10 只有 0.70780；$p=1000$ 时 Recall@10 提升到 0.98335，延迟为 136.47 $\mu$s，是本文的默认高召回点；$p=2000$ 进一步达到 0.99560，但延迟升至 183.35 $\mu$s。
+PQ 的 $p$ 控制粗排后进入精排的候选数。表 \ref{tab:pq_p_sweep} 给出完整的 $p$-sweep 数据（\code{pthread\_dynamic\_inter}, t=16，数据来源 \path{results/pq_p_sweep.txt}）。$p=100$ 时 Recall@10 仅 0.70，$p=500$ 时过 0.94 门槛，$p=1000$ 达到 0.98 是本文默认高召回点，$p=2000$ 进一步到 0.996 但延迟翻倍，$p=5000$ 时 Recall 接近 1.0 但延迟已达 1121 μs——收益快速衰减。
 
-IVF 的 \code{nprobe} 控制扫描簇数。\code{nprobe=1} 只有 0.73665 recall，\code{nprobe=4} 达到 0.96225，\code{nprobe=16} 接近精确但延迟明显上升。IVF-PQ 的 local 构建在固定 $p=100$ 时 recall 始终高于 global，证明局部码本降低了簇内量化误差；但两者在该 $p$ 下都未过 0.95 门槛，因此主线高召回结果把 local 的 $p$ 提到 1000。
+\begin{table}[H]
+  \centering\small
+  \begin{tabular}{rrr}
+    \toprule
+    $p$ & Recall@10 & 延迟 / $\mu$s \\
+    \midrule
+     40  & 0.50600 & 215.31 \\
+    100  & 0.70475 & 222.10 \\
+    300  & 0.89010 & 279.22 \\
+    500  & 0.94125 & 280.27 \\
+    1000 & 0.98070 & 400.02 \\
+    2000 & 0.99550 & 569.20 \\
+    5000 & 0.99960 & 1120.63 \\
+    \bottomrule
+  \end{tabular}
+  \caption{PQ $p$-sweep 的 recall-latency trade-off（\code{pthread\_dynamic\_inter}, t=16）}
+  \label{tab:pq_p_sweep}
+\end{table}
+
+表 \ref{tab:ivf_nlist_sweep} 给出 IVF 的 \code{nlist}-sweep（固定 \code{nprobe=nlist/4}，\code{pthread\_pool\_inter}, t=16，数据来源 \path{results/ivf_nlist_sweep.txt}）。\code{nlist=16}（核心矩阵默认）在 0.96 recall 下延迟最低（115 μs）；增大 \code{nlist} 到 64/128/256 能把 recall 抬到 0.99+，但延迟增幅有限（119--141 μs），说明 IVF 的粗排阶段（$O(nlist \cdot d)$）在 \code{nlist} 较小时不是瓶颈，真正的开销在 inverted list 扫描。
+
+\begin{table}[H]
+  \centering\small
+  \begin{tabular}{rrrr}
+    \toprule
+    \code{nlist} & \code{nprobe} & Recall@10 & 延迟 / $\mu$s \\
+    \midrule
+    4   & 1  & 0.85890 & 122.41 \\
+    8   & 2  & 0.92405 & 126.09 \\
+    16  & 4  & 0.96225 & 115.23 \\
+    32  & 8  & 0.98625 & 132.84 \\
+    64  & 16 & 0.99220 & 119.33 \\
+    128 & 32 & 0.99595 & 135.48 \\
+    256 & 64 & 0.99760 & 141.37 \\
+    \bottomrule
+  \end{tabular}
+  \caption{IVF \code{nlist}-sweep 的 recall-latency trade-off（固定 \code{nprobe=nlist/4}，\code{pthread\_pool\_inter}, t=16）}
+  \label{tab:ivf_nlist_sweep}
+\end{table}
+
+IVF-PQ 的 local 构建在固定 $p=100$ 时 recall 始终高于 global，证明局部码本降低了簇内量化误差；但两者在该 $p$ 下都未过 0.95 门槛，因此主线高召回结果把 local 的 $p$ 提到 1000。
 
 \subsection{HNSW 图搜索}
 
