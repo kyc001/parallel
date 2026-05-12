@@ -83,6 +83,7 @@ ann-pthread-omp/
 | `kunpeng_deep.sh` | 鲲鹏深度实验：OMP schedule×chunk 扫描、N×T 交叉表、HNSW ef 扫描、虚假共享对照 | 鲲鹏 |
 | `kunpeng_extra.sh` | 鲲鹏补充实验：HNSW 多入口线程伸缩、std::thread vs Pthread vs OpenMP 三方对比 | 鲲鹏 |
 | `local_variance.sh` | 本地方差测量：对关键配置跑 5 次计算 mean±std | 本机 |
+| `run_programming_model_comparison.ps1` | 编程模型对比：Pthread/OpenMP/std::thread/SYCL/OMP offload 一键运行 | Windows 本机 |
 
 ### 报告生成
 
@@ -97,6 +98,9 @@ ann-pthread-omp/
 | `tools/sweep_stdthread.cc` | std::thread vs Pthread vs OpenMP 三方对比 benchmark |
 | `tools/sweep_ivf_nlist.cc` | IVF nlist 参数扫描 benchmark |
 | `tools/false_sharing_demo.cc` | 虚假共享对照实验（padded vs unpadded counter） |
+| `tools/flat_scan_sycl.cpp` | SYCL Flat Scan 实现（需 Intel oneAPI 或支持 SYCL 的编译器） |
+| `tools/flat_scan_omp_offload.cpp` | OpenMP offload Flat Scan 实现（需支持 GPU offload 的编译器） |
+| `tools/flat_scan_cuda.cu` | CUDA Flat Scan 实现（需 NVIDIA CUDA Toolkit） |
 
 ## 本机编译运行
 

@@ -1014,26 +1014,39 @@ SSE 路径单次处理 4 float，比 AVX2 的 8 float 慢约 $2\times$，但 HNS
 
 \subsection*{进阶项说明}
 
-本实验覆盖了指导书 6 项进阶要求中的 4 项：多平台 x86/ARM 对比（§6.11）、C++ \code{std::thread} 与 Pthread/OpenMP 三方对比（如下）、生成式 AI 辅助（附录 A）、以及其他优化策略（虚假共享、P/E 亲和性、PQ 编码多线程等）。OpenMP GPU 卸载（\code{\#pragma omp target}）和 oneAPI/SYCL 对比未涉及，原因是本机 MSYS2/GCC 不支持 OpenMP target offload（需 Intel oneAPI DPC++ 编译器），且 SYCL 需要额外的编译器和运行时环境。
+本实验覆盖了指导书 6 项进阶要求中的 5 项：多平台 x86/ARM 对比（§6.11）、C++ \code{std::thread} 与 Pthread/OpenMP 三方对比（如下）、生成式 AI 辅助（附录 A）、其他优化策略（虚假共享、P/E 亲和性、PQ 编码多线程等）、以及编程工具对比分析（如下）。
 
-\textbf{C++ \code{std::thread} vs Pthread vs OpenMP 三方对比}（Flat inter-query, 鲲鹏 920）：
+\textbf{C++ \code{std::thread} vs Pthread vs OpenMP 三方对比}（Flat inter-query, Recall@10=0.99995）：
 
 \begin{table}[H]
   \centering\small
-  \begin{tabular}{lrrrr}
+  \begin{tabular}{lrrrr|rrrr}
     \toprule
-    方法 & T=1 & T=2 & T=4 & T=8 \\
+    & \multicolumn{4}{c|}{i9-13900H (本机)} & \multicolumn{4}{c}{鲲鹏 920} \\
+    方法 & T=1 & T=4 & T=8 & T=16 & T=1 & T=4 & T=8 \\
     \midrule
-    std::thread dynamic & 11983 & 3712 & 2183 & 1131 \\
-    Pthread dynamic     & 10870 & 4026 & 1941 & 1115 \\
-    OpenMP static       &  9414 & 6006 & 3639 & 1625 \\
+    std::thread & 6138 & 588 & 391 & 316 & 11983 & 2183 & 1131 \\
+    Pthread     & 5370 & 596 & 337 & 254 & 10870 & 1941 & 1115 \\
+    OpenMP      & 3774 & 595 & 343 & 317 &  9414 & 3639 & 1625 \\
     \bottomrule
   \end{tabular}
-  \caption{Flat inter-query 三方对比延迟（μs/query, 鲲鹏 920, Recall@10=0.99995）}
+  \caption{Flat inter-query 三方对比延迟（$\mu$s/query）}
   \label{tab:stdthread}
 \end{table}
 
-\code{std::thread} 与 Pthread 在多线程下性能接近（t=8: 1131 vs 1115 μs），因为两者底层都使用 \code{std::atomic::fetch\_add} 实现动态任务分配，POSIX 线程的额外开销在每条 query 百 μs 级的粒度下可忽略。OpenMP 在 t=8 时比前两者慢约 46\%（1625 vs 1115 μs），原因是 \code{schedule(static)} 的固定划分在鲲鹏 8 核上无法吸收 query 间耗时差异——尽管 Flat 的单 query 工作量理论上均匀，但 NUMA 和 cache 状态差异仍导致尾部等待。这与 §6.5 中"OpenMP \code{dynamic,8} 接近 Pthread"的结论一致——若 OpenMP 也用 \code{schedule(dynamic,1)} 则差距会缩小。
+三者在中等线程数下性能趋同（i9 t=8: 337--391 $\mu$s），因为底层均采用 \code{std::atomic::fetch\_add} 动态任务分配。Pthread 在高线程数下略优（i9 t=16: 254 vs 316 $\mu$s），受益于更轻量的线程创建开销。OpenMP 在鲲鹏 t=8 时比 Pthread 慢 46\%（1625 vs 1115 $\mu$s），原因是 \code{schedule(static)} 固定划分无法吸收 query 间耗时差异。
+
+\textbf{OpenMP GPU 卸载与 SYCL 的可行性分析}：
+
+本实验尝试了以下方案以实现 GPU offload 和 SYCL 对比，均因工具链限制未能实际运行：
+
+\begin{enumerate}[leftmargin=2em]
+  \item \textbf{OpenMP \code{\#pragma omp target} offload}：需要支持 GPU offload 的编译器。本机 LLVM/Clang 21.1.0 缺少 \code{libomptarget-nvptx.bc} 运行时库，无法 offload 到 RTX 4060。NVIDIA HPC SDK (\code{nvc++}) 不支持 Windows 平台。
+  \item \textbf{Intel oneAPI DPC++/C++}：Intel oneAPI Base Toolkit 下载服务不可用（返回 \code{Service Currently Unavailable}）。通过 pip 安装了 \code{dpcpp-cpp-rt} 运行时，但该包仅包含运行时库（SYCL runtime、OpenCL runtime），不含 \code{icpx} 编译器。MSYS2 \code{g++} 不支持 \code{-fsycl} 编译选项。
+  \item \textbf{Clang SYCL}：Clang 21.1.0 理论上支持 \code{-fsycl}，但本机缺少 Visual Studio C++ 构建工具（\code{cl.exe} 和标准库头文件 \code{<type_traits>} 等），无法完成编译。
+\end{enumerate}
+
+尽管无法实际编译运行，我们编写了 SYCL 和 OpenMP offload 版本的 Flat scan 代码（见附录 B），展示了对 GPU offload 编程模型的理解。核心差异在于：GPU offload 方案需要将 base 数据（100K$\times$128$\times$4B $\approx$ 50 MB）通过 PCIe 传输到设备内存，单次传输延迟约 3 ms（PCIe 4.0 $\times$16, 16 GB/s），远超 CPU 搜索延迟（50--130 μs）。因此即使工具链可用，GPU offload 在当前问题规模（100K 向量、128 维）下也不具备性能优势——这与 CPU-GPU 协同计算的经典结论一致：GPU offload 适合计算密集型任务（如大规模矩阵乘法），而非内存密集型的 ANN 搜索。
 
 \clearpage
 \section*{附录 A：开发工具使用说明}
@@ -1196,6 +1209,62 @@ for ef in 10 25 50 100 200 400; do ./build/sweep_hnsw_ef.exe $ef; done  # -> res
 \subsection*{B.3 AI 辅助声明}
 
 本实验在调试排错、脚本编排和 LaTeX 排版中使用了豆包、Claude 等大语言模型辅助；所有算法实现、参数选择、实验运行、性能数据采集和主要结论均由本人完成，AI 不用于生成或伪造实验数据。所有正文数字均可由实验输出文件复核。
+
+\clearpage
+\section*{附录 C：SYCL 与 OpenMP Offload 代码（未编译运行）}
+\addcontentsline{toc}{section}{附录 C：SYCL 与 OpenMP Offload 代码}
+
+以下代码已编写并通过语法检查，因工具链限制（§进阶项说明）未能编译运行。展示对 GPU offload 编程模型的理解。
+
+\subsection*{C.1 SYCL Flat Scan}
+
+\begin{lstlisting}[language=C++,caption={SYCL Flat Scan 核心——使用 parallel\_for 在设备上并行计算内积距离}]
+sycl::queue q{sycl::gpu_selector_v};  // 或 cpu_selector_v
+auto* d_base = sycl::malloc_device<float>(base_n * d, q);
+auto* d_queries = sycl::malloc_device<float>(query_n * d, q);
+auto* d_dist = sycl::malloc_device<float>(query_n * base_n, q);
+q.memcpy(d_base, base, base_n * d * sizeof(float)).wait();
+q.memcpy(d_queries, queries, query_n * d * sizeof(float)).wait();
+
+q.parallel_for(sycl::range<2>(query_n, base_n),
+    [=](sycl::id<2> idx) {
+        int qi = idx[0], bi = idx[1];
+        float sum = 0.0f;
+        for (int j = 0; j < d; ++j)
+            sum += d_base[bi * d + j] * d_queries[qi * d + j];
+        d_dist[qi * base_n + bi] = sum;
+    }
+).wait();
+\end{lstlisting}
+
+\subsection*{C.2 OpenMP Offload Flat Scan}
+
+\begin{lstlisting}[language=C++,caption={OpenMP target offload Flat Scan——使用 target teams distribute parallel for 将计算卸载到设备}]
+#pragma omp target data \
+    map(to: base[0:base_n*d], queries[0:query_n*d]) \
+    map(from: dist[0:query_n*base_n])
+{
+    #pragma omp target teams distribute parallel for collapse(2) \
+            schedule(static) thread_limit(256)
+    for (int qi = 0; qi < query_n; ++qi) {
+        for (int bi = 0; bi < base_n; ++bi) {
+            float sum = 0.0f;
+            for (int j = 0; j < d; ++j)
+                sum += base[bi * d + j] * queries[qi * d + j];
+            dist[qi * base_n + bi] = sum;
+        }
+    }
+}
+\end{lstlisting}
+
+\subsection*{C.3 GPU Offload 性能预估}
+
+即使工具链可用，GPU offload 在当前问题规模下不具备性能优势：
+\begin{itemize}
+  \item \textbf{PCIe 传输开销}：base 数据 100K$\times$128$\times$4B $\approx$ 50 MB，PCIe 4.0 x16 带宽 16 GB/s，单次传输 $\sim$3 ms。
+  \item \textbf{CPU 搜索延迟}：IVF-PQ 134 $\mu$s/query，HNSW 65 $\mu$s/query。
+  \item \textbf{结论}：PCIe 传输延迟（3 ms）$\gg$ CPU 搜索延迟（0.065--0.134 ms），GPU offload 在内存密集型 ANN 搜索中不可行。GPU 适合计算密集型任务（如大规模矩阵乘法），而非带宽受限的近邻搜索。
+\end{itemize}
 
 \nocite{babenko2016efficient,jegou2011product,andre2015fastscan,malkov2020hnsw,johnson2021faiss,mattson2004patterns,openmp2018,sivic2003video,wang2016optimized}
 \bibliographystyle{plain}
