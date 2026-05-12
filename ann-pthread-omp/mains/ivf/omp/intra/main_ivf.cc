@@ -1,4 +1,4 @@
-#include "ivf/ivf_scan_omp.h"
+#include "../../../../ivf/ivf_scan_omp.h"
 #include "mains/ivf_bench_common.h"
 
 int main(int argc, char** argv) {

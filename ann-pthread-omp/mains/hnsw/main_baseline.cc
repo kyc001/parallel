@@ -1,4 +1,4 @@
-#include "hnsw/hnsw_graph_utils.h"
+#include "../../hnsw/hnsw_graph_utils.h"
 #include "mains/hnsw_bench_common.h"
 
 int main(int argc, char** argv) {

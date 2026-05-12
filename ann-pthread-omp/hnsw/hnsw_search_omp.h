@@ -3,7 +3,7 @@
 #include <omp.h>
 #include <vector>
 
-#include "hnsw/hnsw_graph_utils.h"
+#include "hnsw_graph_utils.h"
 
 static inline ann_hnsw::SearchHeap hnsw_search_multi_entry_omp(
     const ann_hnsw::HnswIndex& index, const float* query, size_t k,

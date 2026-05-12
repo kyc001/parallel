@@ -4,10 +4,10 @@
 #include <cstdint>
 #include <cstdlib>
 #include <iostream>
-#include "simd/ann_bench_common.h"
-#include "simd/pq_fastscan_simd.h"
-#include "pthread/pq_fastscan_pthread.h"
-#include "omp/pq_fastscan_omp.h"
+#include "../simd/ann_bench_common.h"
+#include "../simd/pq_fastscan_simd.h"
+#include "../pthread/pq_fastscan_pthread.h"
+#include "../omp/pq_fastscan_omp.h"
 
 int main(int argc, char** argv) {
     int nthr = (argc > 1) ? std::atoi(argv[1]) : 1;

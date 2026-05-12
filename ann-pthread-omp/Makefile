@@ -11,7 +11,7 @@ else
   PLATFORM := x86
 endif
 
-COMMON_FLAGS := -O2 -std=c++17 -I. -fopenmp -lpthread
+COMMON_FLAGS := -O2 -std=c++11 -I. -fopenmp -lpthread
 ifeq ($(PLATFORM),x86)
   COMMON_FLAGS += -mavx2 -mfma
 endif

@@ -11,7 +11,7 @@
 #include <queue>
 #include <utility>
 
-#include "simd/flat_scan_avx2.h"  // reuse ip_distance_avx2 + horizontal_sum
+#include "flat_scan_avx2.h"  // reuse ip_distance_avx2 + horizontal_sum
 
 namespace ann_avx2_blocked {
 

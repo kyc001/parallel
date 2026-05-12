@@ -1,0 +1,15 @@
+N=10000, T=1, latency_us=115.271
+N=10000, T=2, latency_us=47.532
+N=10000, T=4, latency_us=23.954
+N=10000, T=8, latency_us=16.872
+N=10000, T=16, latency_us=11.725
+N=50000, T=1, latency_us=3841.775
+N=50000, T=2, latency_us=602.365
+N=50000, T=4, latency_us=180.543
+N=50000, T=8, latency_us=142.100
+N=50000, T=16, latency_us=103.786
+N=100000, T=1, latency_us=8416.513
+N=100000, T=2, latency_us=4059.086
+N=100000, T=4, latency_us=1115.152
+N=100000, T=8, latency_us=476.156
+N=100000, T=16, latency_us=443.711

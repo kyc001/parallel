@@ -18,7 +18,7 @@ HNSW_NPROBE=${HNSW_NPROBE:-8}
 mkdir -p build "$RESULT_DIR"
 
 ARCH=$(uname -m 2>/dev/null || echo unknown)
-FLAGS="-O2 -std=c++17 -I. -fopenmp -lpthread"
+FLAGS="-O2 -std=c++11 -I. -fopenmp -lpthread"
 if [[ "$ARCH" != "aarch64" && "$ARCH" != "arm64" ]]; then
   FLAGS="$FLAGS -mavx2 -mfma"
 fi

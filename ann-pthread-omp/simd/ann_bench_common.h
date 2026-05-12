@@ -4,7 +4,6 @@
 #include <chrono>
 #include <cstdlib>
 #include <cstdint>
-#include <filesystem>
 #include <fstream>
 #include <iomanip>
 #include <memory>
@@ -14,6 +13,11 @@
 #include <string>
 #include <utility>
 #include <vector>
+
+#ifndef _WIN32
+#include <sys/stat.h>
+#include <unistd.h>
+#endif
 
 namespace ann_bench {
 
@@ -68,7 +72,7 @@ inline std::string DefaultDataPath() {
 #ifdef _WIN32
     return "../files/";
 #else
-    if (std::filesystem::exists("/anndata/DEEP100K.query.fbin")) {
+    if (access("/anndata/DEEP100K.query.fbin", F_OK) == 0) {
         return "/anndata/";
     }
     return "files/";   // 登录节点: files -> /anndata 链接; 计算节点: qsub 拷入
@@ -86,7 +90,13 @@ inline std::string DefaultFastScanResultsDir() {
 }
 
 inline void EnsureDirectory(const std::string& dir) {
-    std::filesystem::create_directories(std::filesystem::path(dir));
+#ifdef _WIN32
+    std::string cmd = "mkdir \"" + dir + "\" 2>NUL";
+    (void)system(cmd.c_str());
+#else
+    std::string cmd = "mkdir -p \"" + dir + "\"";
+    (void)system(cmd.c_str());
+#endif
 }
 
 inline std::vector<size_t> ParseSizeList(const std::string& csv) {
@@ -155,10 +165,10 @@ inline void WriteFastScanResult(const std::string& output_dir,
                                 size_t rerank_p,
                                 const BenchmarkResult& result) {
     EnsureDirectory(output_dir);
-    const std::filesystem::path file_path =
-        std::filesystem::path(output_dir) /
+    const std::string file_path =
+        output_dir + "/" +
         ("speed_fastscan_p" + std::to_string(rerank_p) + ".txt");
-    std::ofstream out(file_path.string().c_str());
+    std::ofstream out(file_path.c_str());
     out << std::fixed << std::setprecision(5);
     out << "mode=" << label
         << " p=" << rerank_p

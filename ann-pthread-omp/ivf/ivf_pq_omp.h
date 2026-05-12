@@ -3,7 +3,7 @@
 #include <omp.h>
 #include <vector>
 
-#include "ivf/ivf_pq_simd.h"
+#include "ivf_pq_simd.h"
 
 namespace ann_ivfpq_omp {
 

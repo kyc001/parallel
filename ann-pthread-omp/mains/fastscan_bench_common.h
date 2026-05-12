@@ -13,7 +13,7 @@
 #include <utility>
 #include <vector>
 
-#include "simd/ann_bench_common.h"
+#include "../simd/ann_bench_common.h"
 
 namespace ann_fastscan_main {
 

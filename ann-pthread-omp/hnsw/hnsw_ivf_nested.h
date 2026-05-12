@@ -5,8 +5,8 @@
 #include <omp.h>
 #include <vector>
 
-#include "hnsw/hnsw_graph_utils.h"
-#include "ivf/ivf_index.h"
+#include "hnsw_graph_utils.h"
+#include "../ivf/ivf_index.h"
 
 namespace ann_hnsw_nested {
 

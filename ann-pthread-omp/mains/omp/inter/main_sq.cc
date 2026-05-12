@@ -1,4 +1,4 @@
-#include "omp/sq_scan_omp.h"
+#include "../../../omp/sq_scan_omp.h"
 #include "mains/sq_bench_common.h"
 
 int main(int argc, char** argv) {

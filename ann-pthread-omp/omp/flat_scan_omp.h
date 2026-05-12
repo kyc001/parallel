@@ -9,10 +9,10 @@
 #include <vector>
 
 #if defined(__aarch64__) || defined(__ARM_NEON)
-#include "simd/flat_scan_simd.h"
+#include "../simd/flat_scan_simd.h"
 #define ANN_FLAT_OMP_HAS_NEON 1
 #elif defined(__AVX2__)
-#include "simd/flat_scan_avx2.h"
+#include "../simd/flat_scan_avx2.h"
 #define ANN_FLAT_OMP_HAS_AVX2 1
 #else
 #include "flat_scan.h"

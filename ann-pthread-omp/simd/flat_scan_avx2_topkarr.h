@@ -14,7 +14,7 @@
 #include <utility>
 #include <cfloat>
 
-#include "simd/flat_scan_avx2.h"
+#include "flat_scan_avx2.h"
 
 namespace ann_avx2_topk {
 

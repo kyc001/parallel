@@ -9,10 +9,10 @@
 #include <vector>
 
 #if defined(__aarch64__) || defined(__ARM_NEON)
-#include "simd/pq_scan_simd.h"
+#include "../simd/pq_scan_simd.h"
 #define ANN_PQ_OMP_HAS_NEON 1
 #elif defined(__AVX2__)
-#include "simd/pq_scan_avx2.h"
+#include "../simd/pq_scan_avx2.h"
 #define ANN_PQ_OMP_HAS_AVX2 1
 #else
 #error "PQ SIMD requires ARM NEON or x86 AVX2. Compile x86 builds with -mavx2 -mfma."

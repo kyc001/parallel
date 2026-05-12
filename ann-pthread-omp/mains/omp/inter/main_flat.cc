@@ -1,4 +1,4 @@
-#include "omp/flat_scan_omp.h"
+#include "../../../omp/flat_scan_omp.h"
 #include "mains/flat_bench_common.h"
 
 int main(int argc, char** argv) {

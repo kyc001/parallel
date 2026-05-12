@@ -1,4 +1,4 @@
-#include "hnsw/hnsw_search_pthread.h"
+#include "../../hnsw/hnsw_search_pthread.h"
 #include "mains/hnsw_bench_common.h"
 
 int main(int argc, char** argv) {

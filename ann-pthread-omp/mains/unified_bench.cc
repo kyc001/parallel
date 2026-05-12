@@ -19,37 +19,37 @@
 #include <vector>
 
 // 公共工具（并行头文件内部按平台条件包含 SIMD 内核）
-#include "simd/ann_bench_common.h"
+#include "../simd/ann_bench_common.h"
 
 // Pthread 并行
-#include "pthread/thread_pool.h"
-#include "pthread/flat_scan_pthread.h"
-#include "pthread/sq_scan_pthread.h"
-#include "pthread/pq_scan_pthread.h"
-#include "pthread/pq_fastscan_pthread.h"
+#include "../pthread/thread_pool.h"
+#include "../pthread/flat_scan_pthread.h"
+#include "../pthread/sq_scan_pthread.h"
+#include "../pthread/pq_scan_pthread.h"
+#include "../pthread/pq_fastscan_pthread.h"
 
 // OpenMP 并行
-#include "omp/flat_scan_omp.h"
-#include "omp/sq_scan_omp.h"
-#include "omp/pq_scan_omp.h"
-#include "omp/pq_fastscan_omp.h"
+#include "../omp/flat_scan_omp.h"
+#include "../omp/sq_scan_omp.h"
+#include "../omp/pq_scan_omp.h"
+#include "../omp/pq_fastscan_omp.h"
 
 // IVF
-#include "ivf/ivf_index.h"
-#include "ivf/ivf_scan_simd.h"
-#include "ivf/ivf_scan_pthread.h"
-#include "ivf/ivf_scan_omp.h"
-#include "ivf/ivf_pq_simd.h"
-#include "ivf/ivf_pq_pthread.h"
-#include "ivf/ivf_pq_omp.h"
+#include "../ivf/ivf_index.h"
+#include "../ivf/ivf_scan_simd.h"
+#include "../ivf/ivf_scan_pthread.h"
+#include "../ivf/ivf_scan_omp.h"
+#include "../ivf/ivf_pq_simd.h"
+#include "../ivf/ivf_pq_pthread.h"
+#include "../ivf/ivf_pq_omp.h"
 
 // HNSW
-#include "hnsw/hnsw_graph_utils.h"
-#include "hnsw/hnsw_search_pthread.h"
-#include "hnsw/hnsw_search_omp.h"
-#include "hnsw/hnsw_edge_parallel.h"
-#include "hnsw/hnsw_layer0_parallel.h"
-#include "hnsw/hnsw_ivf_nested.h"
+#include "../hnsw/hnsw_graph_utils.h"
+#include "../hnsw/hnsw_search_pthread.h"
+#include "../hnsw/hnsw_search_omp.h"
+#include "../hnsw/hnsw_edge_parallel.h"
+#include "../hnsw/hnsw_layer0_parallel.h"
+#include "../hnsw/hnsw_ivf_nested.h"
 
 #ifndef ANN_DEFAULT_PHASES
 #define ANN_DEFAULT_PHASES ""

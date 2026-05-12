@@ -11,7 +11,7 @@
 #include <omp.h>
 #include <algorithm>
 #include "hnswlib/hnswlib/hnswlib.h"
-#include "simd/flat_scan_simd.h"   // 改成 SIMD �?
+#include "../../simd/flat_scan_simd.h"   // 改成 SIMD �?
 using namespace hnswlib;
 
 template<typename T>
@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
     }
     std::cout << std::fixed << std::setprecision(5)
               << "flat_simd\n";
-    // ⬇️ 保留原版输出两行（勿修改�?    std::cout << "average recall: " << avg_recall / test_number << "\n";
+    // ⬇️ 保留原版输出两行（勿修改�?    std::cout << "average recall: " << avg_recall / test_number << "\n";
     std::cout << "average latency (us): " << avg_latency / test_number << "\n";
     return 0;
 }

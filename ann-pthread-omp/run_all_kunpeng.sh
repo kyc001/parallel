@@ -49,8 +49,8 @@ cat > "$CONFIG_HEADER" <<EOF
 #define ANN_DEFAULT_DATA_PATH "$DATA_DIR_SLASH"
 EOF
 
-echo "==> precompile main (-std=c++17 -I.)"
-g++ main.cc -o main -O2 -fopenmp -lpthread -std=c++17 -I. -include "$CONFIG_HEADER"
+echo "==> precompile main (-std=c++11 -I.)"
+g++ main.cc -o main -O2 -fopenmp -lpthread -std=c++11 -I. -include "$CONFIG_HEADER"
 
 if [[ -f "$RESUME_FILE" ]]; then
   echo "==> checkpoint found: $(cat "$RESUME_FILE"); continuing from next phase"

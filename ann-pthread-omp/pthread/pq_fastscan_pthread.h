@@ -9,8 +9,8 @@
 #include <utility>
 #include <vector>
 
-#include "simd/pq_fastscan_simd.h"
-#include "pthread/thread_pool.h"
+#include "../simd/pq_fastscan_simd.h"
+#include "thread_pool.h"
 
 namespace ann_fastscan_pthread {
 

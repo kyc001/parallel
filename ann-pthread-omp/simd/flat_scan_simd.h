@@ -1,6 +1,6 @@
 #pragma once
 #include <queue>
-#include "simd/neon_common.h"
+#include "neon_common.h"
 
 // (horizontal_sum_f32 / ip_distance_simd / l2_distance_simd 在 neon_common.h 中统一定义)
 

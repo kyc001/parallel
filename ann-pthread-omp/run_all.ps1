@@ -198,7 +198,7 @@ function Export-Summaries([string]$dir) {
 
 $threadList = Split-List $Threads
 $shortThreadList = Split-List $ShortThreads
-$flags = @("-O2", "-mavx2", "-mfma", "-fopenmp", "-lpthread", "-std=c++17", "-I.")
+$flags = @("-O2", "-mavx2", "-mfma", "-fopenmp", "-lpthread", "-std=c++11", "-I.")
 
 $variants = @(
     "mains/omp/inter/main_flat.cc",

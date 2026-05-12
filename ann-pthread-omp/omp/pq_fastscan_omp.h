@@ -8,7 +8,7 @@
 #include <utility>
 #include <vector>
 
-#include "simd/pq_fastscan_simd.h"
+#include "../simd/pq_fastscan_simd.h"
 
 namespace ann_fastscan_omp {
 

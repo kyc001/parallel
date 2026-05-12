@@ -5,7 +5,7 @@
 #include <pthread.h>
 #include <vector>
 
-#include "hnsw/hnsw_graph_utils.h"
+#include "hnsw_graph_utils.h"
 
 namespace ann_hnsw_edge {
 

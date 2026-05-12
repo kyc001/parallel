@@ -3,7 +3,7 @@
 #include <omp.h>
 #include <vector>
 
-#include "ivf/ivf_scan_simd.h"
+#include "ivf_scan_simd.h"
 
 namespace ann_ivf_omp {
 

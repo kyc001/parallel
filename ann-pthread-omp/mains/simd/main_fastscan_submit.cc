@@ -9,7 +9,7 @@
 #include <queue>
 #include <sys/time.h>
 
-#include "simd/pq_fastscan_simd.h"
+#include "../../simd/pq_fastscan_simd.h"
 
 #ifndef FASTSCAN_DEFAULT_RERANK_P
 #define FASTSCAN_DEFAULT_RERANK_P 1000

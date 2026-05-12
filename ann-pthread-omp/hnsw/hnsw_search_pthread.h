@@ -5,8 +5,8 @@
 #include <pthread.h>
 #include <vector>
 
-#include "hnsw/hnsw_graph_utils.h"
-#include "pthread/thread_pool.h"
+#include "hnsw_graph_utils.h"
+#include "../pthread/thread_pool.h"
 
 namespace ann_hnsw_pthread {
 

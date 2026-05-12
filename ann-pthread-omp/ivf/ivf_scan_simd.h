@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ivf/ivf_index.h"
+#include "ivf_index.h"
 
 static inline ann_ivf::SearchHeap ivf_search(
     const ann_ivf::IVFIndex& index, const float* query, size_t k, size_t nprobe) {

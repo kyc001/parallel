@@ -1,4 +1,4 @@
-#include "hnsw/hnsw_search_omp.h"
+#include "../../hnsw/hnsw_search_omp.h"
 #include "mains/hnsw_bench_common.h"
 
 int main(int argc, char** argv) {

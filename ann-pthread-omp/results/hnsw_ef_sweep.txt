@@ -1,0 +1,6 @@
+ef=10, recall=0.78995, latency_us=23.06485
+ef=25, recall=0.92135, latency_us=41.92710
+ef=50, recall=0.96865, latency_us=61.91640
+ef=100, recall=0.99070, latency_us=136.32270
+ef=200, recall=0.99720, latency_us=323.02285
+ef=400, recall=0.99940, latency_us=402.26830

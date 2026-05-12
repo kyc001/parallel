@@ -1,4 +1,4 @@
-#include "ivf/ivf_scan_simd.h"
+#include "../../../ivf/ivf_scan_simd.h"
 #include "mains/ivf_bench_common.h"
 
 int main(int argc, char** argv) {

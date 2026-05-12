@@ -6,7 +6,7 @@
 #include <sstream>
 #include <vector>
 
-#include "simd/pq_scan_avx2.h"
+#include "../simd/pq_scan_avx2.h"
 
 static int nearest_final_centroid(const PQIndex& index,
                                   const float* vec,

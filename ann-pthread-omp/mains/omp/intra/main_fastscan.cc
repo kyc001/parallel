@@ -1,4 +1,4 @@
-#include "omp/pq_fastscan_omp.h"
+#include "../../../omp/pq_fastscan_omp.h"
 #include "mains/fastscan_bench_common.h"
 
 int main(int argc, char** argv) {

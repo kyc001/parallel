@@ -1,4 +1,4 @@
-#include "hnsw/hnsw_ivf_nested.h"
+#include "../../hnsw/hnsw_ivf_nested.h"
 #include "mains/hnsw_bench_common.h"
 
 int main(int argc, char** argv) {

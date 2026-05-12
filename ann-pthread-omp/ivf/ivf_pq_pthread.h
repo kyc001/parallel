@@ -6,8 +6,8 @@
 #include <pthread.h>
 #include <vector>
 
-#include "ivf/ivf_pq_simd.h"
-#include "pthread/thread_pool.h"
+#include "ivf_pq_simd.h"
+#include "../pthread/thread_pool.h"
 
 namespace ann_ivfpq_pthread {
 

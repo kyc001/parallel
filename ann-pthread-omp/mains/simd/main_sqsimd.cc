@@ -11,7 +11,7 @@
 #include <omp.h>
 #include <algorithm>
 #include "hnswlib/hnswlib/hnswlib.h"
-#include "simd/sq_scan_simd.h"
+#include "../../simd/sq_scan_simd.h"
 
 using namespace hnswlib;
 

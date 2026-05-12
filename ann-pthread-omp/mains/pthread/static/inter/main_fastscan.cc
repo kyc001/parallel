@@ -1,4 +1,4 @@
-#include "pthread/pq_fastscan_pthread.h"
+#include "../../../../pthread/pq_fastscan_pthread.h"
 #include "mains/fastscan_bench_common.h"
 
 int main(int argc, char** argv) {

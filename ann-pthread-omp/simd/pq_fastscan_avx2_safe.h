@@ -10,7 +10,7 @@
 #include <queue>
 #include <vector>
 
-#include "simd/pq_blocked_avx2.h"
+#include "pq_blocked_avx2.h"
 
 namespace ann_fs {
 

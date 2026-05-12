@@ -1,4 +1,4 @@
-#include "pthread/pq_scan_pthread.h"
+#include "../../../../pthread/pq_scan_pthread.h"
 #include "mains/pq_bench_common.h"
 
 int main(int argc, char** argv) {

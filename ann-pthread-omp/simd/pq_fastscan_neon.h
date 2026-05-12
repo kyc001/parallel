@@ -10,7 +10,7 @@
 #include <queue>
 #include <vector>
 
-#include "simd/pq_blocked_neon.h"
+#include "pq_blocked_neon.h"
 
 namespace ann_fs {
 

@@ -13,8 +13,8 @@
 #include <utility>
 #include <vector>
 
-#include "hnsw/hnsw_ivf_nested.h"
-#include "simd/ann_bench_common.h"
+#include "../hnsw/hnsw_ivf_nested.h"
+#include "../simd/ann_bench_common.h"
 
 namespace ann_hnsw_main {
 

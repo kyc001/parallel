@@ -10,8 +10,8 @@
 #include <queue>
 #include <vector>
 
-#include "simd/neon_common.h"
-#include "simd/pq_blocked_neon.h"
+#include "neon_common.h"
+#include "pq_blocked_neon.h"
 
 // (horizontal_sum_f32 / ip_distance_simd / l2_distance_simd 在 neon_common.h 中统一定义)
 
