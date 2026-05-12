@@ -1,0 +1,12 @@
+flat,schedule=static,threads=16,recall=0.99995,latency_us=1220.82998
+flat,schedule=static,1,threads=16,recall=0.99995,latency_us=1281.62951
+flat,schedule=static,8,threads=16,recall=0.99995,latency_us=1269.10314
+flat,schedule=static,64,threads=16,recall=0.99995,latency_us=1212.10696
+flat,schedule=static,256,threads=16,recall=0.99995,latency_us=1166.82377
+flat,schedule=dynamic,1,threads=16,recall=0.99995,latency_us=1162.67866
+flat,schedule=dynamic,8,threads=16,recall=0.99995,latency_us=1147.56656
+flat,schedule=dynamic,64,threads=16,recall=0.99995,latency_us=1187.51077
+flat,schedule=dynamic,256,threads=16,recall=0.99995,latency_us=1154.92780
+flat,schedule=guided,1,threads=16,recall=0.99995,latency_us=1241.69142
+flat,schedule=guided,8,threads=16,recall=0.99995,latency_us=1295.62988
+flat,schedule=guided,64,threads=16,recall=0.99995,latency_us=1171.73476

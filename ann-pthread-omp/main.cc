@@ -35,7 +35,7 @@ using SearchHeap = ann_ivf::SearchHeap;
 
 int main(int /*argc*/, char** /*argv*/) {
     // 鲲鹏侧实测最快配置 (Recall@10>0.95 准入下端到端最低延迟)
-    const int    nthreads = 16;
+    const int    nthreads = 8;
     const size_t nlist    = 16;
     const size_t nprobe   = 4;
     const size_t rerank_p = 1000;

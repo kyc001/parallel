@@ -317,29 +317,42 @@ def plot_tradeoff_curves(tradeoff_rows: list[dict[str, str]]) -> None:
 
 
 def plot_hnsw_ef_sweep() -> None:
-    data = []
-    with open(RESULTS / "hnsw_ef_sweep.txt") as f:
-        for line in f:
-            line = line.strip()
-            if not line:
-                continue
-            parts = line.split(",")
-            ef = int(parts[0].split("=")[1])
-            recall = float(parts[1].split("=")[1])
-            latency = float(parts[2].split("=")[1])
-            data.append((ef, recall, latency))
+    def load_ef(path):
+        data = []
+        with open(path) as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                kv = {}
+                for part in line.split(","):
+                    if "=" in part:
+                        k, v = part.split("=", 1)
+                        kv[k.strip()] = v.strip()
+                if "ef" in kv and "recall" in kv and "latency_us" in kv:
+                    data.append((int(kv["ef"]), float(kv["recall"]), float(kv["latency_us"])))
+        return data
 
-    fig, ax = plt.subplots(figsize=(5.0, 3.0))
-    latencies = [d[2] for d in data]
-    recalls = [d[1] for d in data]
-    ax.plot(latencies, recalls, marker="o", color="#4C72B0", linewidth=1.5)
-    for ef, recall, lat in data:
+    i9_data = load_ef(RESULTS / "hnsw_ef_sweep.txt")
+    arm_path = RESULTS / "kunpeng" / "hnsw_ef_sweep.txt"
+    arm_data = load_ef(arm_path) if arm_path.exists() else []
+
+    fig, ax = plt.subplots(figsize=(5.5, 3.2))
+    ax.plot([d[2] for d in i9_data], [d[1] for d in i9_data],
+            marker="o", color="#4C72B0", linewidth=1.5, label="i9-13900H")
+    for ef, recall, lat in i9_data:
         ax.annotate(f"ef={ef}", (lat, recall), fontsize=7, xytext=(4, 4), textcoords="offset points")
+    if arm_data:
+        ax.plot([d[2] for d in arm_data], [d[1] for d in arm_data],
+                marker="s", color="#DD8452", linewidth=1.5, label="Kunpeng 920")
+        for ef, recall, lat in arm_data:
+            ax.annotate(f"ef={ef}", (lat, recall), fontsize=7, xytext=(4, -10), textcoords="offset points")
     ax.axhline(0.95, color="#C44E52", linestyle="--", linewidth=1, alpha=0.7)
     ax.set_xlabel("Latency / us")
     ax.set_ylabel("Recall@10")
     ax.set_title("HNSW ef sweep (single thread)")
     ax.grid(True, alpha=0.25)
+    ax.legend(frameon=False)
     fig.savefig(OUT / "hnsw_ef_curve.pdf")
     plt.close(fig)
 

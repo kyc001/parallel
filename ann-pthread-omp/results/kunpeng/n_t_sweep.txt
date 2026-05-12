@@ -1,0 +1,15 @@
+flat,N=10000,T=1,recall=0.10340,latency_us=437.06989
+flat,N=10000,T=2,recall=0.10340,latency_us=221.07463
+flat,N=10000,T=4,recall=0.10340,latency_us=116.86280
+flat,N=10000,T=8,recall=0.10340,latency_us=89.83074
+flat,N=10000,T=16,recall=0.10340,latency_us=71.76348
+flat,N=50000,T=1,recall=0.49550,latency_us=3876.69964
+flat,N=50000,T=2,recall=0.49550,latency_us=1890.39486
+flat,N=50000,T=4,recall=0.49550,latency_us=1216.80383
+flat,N=50000,T=8,recall=0.49550,latency_us=632.03318
+flat,N=50000,T=16,recall=0.49550,latency_us=585.88515
+flat,N=100000,T=1,recall=0.99995,latency_us=10402.90340
+flat,N=100000,T=2,recall=0.99995,latency_us=3777.74000
+flat,N=100000,T=4,recall=0.99995,latency_us=2617.53802
+flat,N=100000,T=8,recall=0.99995,latency_us=1323.16533
+flat,N=100000,T=16,recall=0.99995,latency_us=1309.83559

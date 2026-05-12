@@ -1,0 +1,12 @@
+flat_stdthread_inter,threads=1,recall=0.99995,latency_us=11983.16712
+flat_pthread_dynamic_inter,threads=1,recall=0.99995,latency_us=10869.86368
+flat_omp_inter,threads=1,recall=0.99995,latency_us=9413.51546
+flat_stdthread_inter,threads=2,recall=0.99995,latency_us=3712.28634
+flat_pthread_dynamic_inter,threads=2,recall=0.99995,latency_us=4026.22853
+flat_omp_inter,threads=2,recall=0.99995,latency_us=6006.05919
+flat_stdthread_inter,threads=4,recall=0.99995,latency_us=2182.85725
+flat_pthread_dynamic_inter,threads=4,recall=0.99995,latency_us=1940.78773
+flat_omp_inter,threads=4,recall=0.99995,latency_us=3639.28152
+flat_stdthread_inter,threads=8,recall=0.99995,latency_us=1131.23296
+flat_pthread_dynamic_inter,threads=8,recall=0.99995,latency_us=1114.52480
+flat_omp_inter,threads=8,recall=0.99995,latency_us=1624.53578

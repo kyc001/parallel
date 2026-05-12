@@ -47,16 +47,10 @@ else
     echo "[4/5] IVF nlist sweep 已存在，跳过"
 fi
 
-# 5. PQ p sweep (如果还没跑过)
-if [ ! -f "$RESULTS/pq_p_sweep.txt" ]; then
-    echo "[5/5] 运行 PQ p sweep..."
-    g++ tools/sweep_pq_p.cc -o build/sweep_pq_p.exe -O2 -fopenmp -lpthread -std=c++11 -I.
-    for p in 40 100 300 500 1000 2000 5000; do
-        ./build/sweep_pq_p.exe $p >> "$RESULTS/pq_p_sweep.txt"
-    done
-else
-    echo "[5/5] PQ p sweep 已存在，跳过"
-fi
+# 5. PQ p sweep — 鲲鹏的 PQ 实验已在主线 run_all_kunpeng 脚本中完成
+# sweep_pq_p.cc 依赖 AVX2 头文件 (immintrin.h)，无法在 ARM 上编译
+# 如需鲲鹏侧 PQ p-sweep 数据，请用 pthread/pq_scan_pthread.h 中的 NEON 路径
+echo "[5/5] PQ p sweep 需要 AVX2，跳过（鲲鹏数据已在主线实验中采集）"
 
 echo ""
 echo "=== 采集完成 ==="

@@ -1,0 +1,12 @@
+T=2 iters=30000000
+  false_sharing:  0.13 ms (sum=60000000)
+  padded(64B):    0.00 ms (sum=60000000)
+  ratio (FS/pad): 42.37x
+T=4 iters=30000000
+  false_sharing:  0.15 ms (sum=120000000)
+  padded(64B):    0.00 ms (sum=120000000)
+  ratio (FS/pad): 55.79x
+T=8 iters=30000000
+  false_sharing:  0.30 ms (sum=240000000)
+  padded(64B):    0.01 ms (sum=240000000)
+  ratio (FS/pad): 53.01x

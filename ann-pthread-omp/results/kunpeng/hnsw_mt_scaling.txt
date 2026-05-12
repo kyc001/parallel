@@ -1,0 +1,4 @@
+hnsw_multi_entry,threads=1,recall=0.96865,latency_us=249.48598
+hnsw_multi_entry,threads=2,recall=0.96865,latency_us=145.26032
+hnsw_multi_entry,threads=4,recall=0.96865,latency_us=99.25480
+hnsw_multi_entry,threads=8,recall=0.96865,latency_us=52.58863
