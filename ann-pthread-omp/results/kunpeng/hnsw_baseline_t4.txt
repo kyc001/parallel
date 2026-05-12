@@ -1,3 +1,0 @@
-hnsw_baseline, nthreads=4, ef=50, nlist=0, nprobe=0
-average recall: 0.96865
-average latency (us): 418.64587

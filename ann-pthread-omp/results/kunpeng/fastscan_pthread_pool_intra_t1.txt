@@ -1,3 +1,0 @@
-fastscan_pthread_pool_intra, nthreads=1, p=1000
-average recall: 0.97545
-average latency (us): 12969.40311

@@ -8,9 +8,7 @@
    - 现有报告已有 PQ 高召回 p-sweep 和 SIMD 报告中的 FastScan 曲线，但多线程矩阵中尚未对 SQ/PQ/FastScan 用完全一致的线程数、调度策略、p 集合重跑。
    - 建议固定 `pthread_dynamic_inter` 或每族最优 inter-query 调度，扫描 `p={40,100,300,500,1000,2000,5000}`，输出统一 recall-latency 曲线。
 
-2. **鲲鹏侧 perf / PMU 证据**
-   - 目前鲲鹏主线以 latency / recall 为核心，底层剖析主要来自本地 VTune 与汇编片段。
-   - 若服务器权限允许，补充 `perf stat` 的 cycles、instructions、cache-misses、LLC-load-misses、context-switches，可增强跨平台瓶颈分析。
+2. **鲲鹏侧 perf / PMU 证据**（无权限，放弃）
 
 3. **intra-query 每线程 top-p 参数 sweep**
    - 现有实现采用每线程保留全局规模 `p_t=p`，保证 recall 不因分块丢候选。

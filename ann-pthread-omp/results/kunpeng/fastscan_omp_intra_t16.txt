@@ -1,3 +1,0 @@
-fastscan_omp_static_intra, nthreads=16, p=1000
-average recall: 0.97545
-average latency (us): 3840.77524
