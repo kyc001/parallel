@@ -1,0 +1,18 @@
+\frametitle{Java 21 虚拟线程：「同步语法 + 协程性能」}
+\begin{lstlisting}[language=Java, title={百万并发虚拟线程}]
+try (var exec = Executors.newVirtualThreadPerTaskExecutor()) {
+    for (int i = 0; i < 1_000_000; i++)
+        exec.submit(() -> { var r = http.send(req); return r; });
+}
+  \end{lstlisting}
+
+  \begin{itemize}
+    \item \textbf{Virtual Thread = JVM 管理的有栈协程}（Continuation + Scheduler）
+    \item 跑在少量 carrier 平台线程上，由 ForkJoinPool 调度
+    \item JDK 内所有阻塞 API 已改造为 yield 而非 block
+    \item \textbf{最大卖点}：旧业务代码一行不改，Thread 换 Thread.ofVirtual() 就能扩到百万并发
+  \end{itemize}
+
+  \begin{alertblock}{Pinning 陷阱}
+    synchronized 块、JNI 调用会把虚拟线程钉在 carrier 上
+  \end{alertblock}

@@ -335,7 +335,7 @@ void RunWorker() {
     可移植性 & POSIX only & 跨平台 & Windows Pthread 需 pthreads-win32 \\
     \bottomrule
   \end{tabularx}
-  \caption{Flat inter-query 的 Pthread vs OpenMP 编程对比}
+  \caption{Flat inter-query 的 Pthread vs OpenMP 编程复杂度对比}
   \label{tab:pthread_vs_omp}
 \end{table}
 
@@ -512,7 +512,9 @@ Trade-off 额外扫描 PQ 的 $p$，IVF 的 \code{nprobe}，以及 IVF-PQ 的 gl
   \label{tab:best}
 \end{table}
 
-量化索引显著降低延迟。鲲鹏上 IVF-PQ local 是最快的高召回配置，说明“先 IVF 限定候选，再在 list 内用局部 PQ 降低距离代价”适合 DEEP100K。i9 上 IVF-PQ local 进一步降到 57.61 $\mu$s，主要受更高频率、更宽 SIMD 和更强内存子系统影响。Flat 和 SQ 的 recall 近似精确，但需要更多内存带宽；PQ / FastScan / IVF-PQ 则通过压缩候选空间换取延迟。
+量化索引显著降低延迟。鲲鹏上 IVF-PQ local 是最快的高召回配置，说明”先 IVF 限定候选，再在 list 内用局部 PQ 降低距离代价”适合 DEEP100K。i9 上 IVF-PQ local 进一步降到 57.61 $\mu$s，主要受更高频率、更宽 SIMD 和更强内存子系统影响。Flat 和 SQ 的 recall 近似精确，但需要更多内存带宽；PQ / FastScan / IVF-PQ 则通过压缩候选空间换取延迟。
+
+\textbf{IVF-PQ Recall 平台差异。} 鲲鹏上 IVF-PQ local 的 Recall@10 为 0.95970（表 \ref{tab:best}），本地 i9 上为 0.95945（表 \ref{tab:local_picks}），两者相差 0.00025。原因是 IVF-PQ 的 KMeans 训练和 PQ codebook 构建存在随机性（随机初始化质心），双平台各自独立训练的码本不完全一致，导致相同 $(nprobe, p)$ 下进入精排的候选集有微小差异。这不影响结论——两者均远超 0.95 准入门槛。
 
 \subsection{串行到多线程的伸缩性}
 
@@ -625,7 +627,7 @@ Trade-off 额外扫描 PQ 的 $p$，IVF 的 \code{nprobe}，以及 IVF-PQ 的 gl
 
 \subsection{问题规模 N $\times$ 线程数 T 交叉表}\label{sec:n_t_sweep}
 
-为了量化 strong scaling 在不同问题规模下的表现，本节固定算法（Flat inter-query, OpenMP \code{schedule(static)}, AVX2 内积内核）做 N $\in \{10k, 50k, 100k\}$ $\times$ T $\in \{1, 2, 4, 8, 16\}$ 的二维扫描。
+为了量化 strong scaling 在不同问题规模下的表现，本节固定算法（Flat inter-query, OpenMP \code{schedule(static)}, AVX2 内积内核）做 N $\in \{10k, 50k, 100k\}$ $\times$ T $\in \{1, 2, 4, 8, 16\}$ 的二维扫描。注意：本节使用未优化的朴素内核（无 batch/prefetch），T=1 基准值高于主线表 \ref{tab:best} 约 $2.5\times$，因此伸缩比数值不可与表 \ref{tab:best} 的加速比直接对比——本表关注的是\textbf{同一内核在不同 N/T 下的相对趋势}。
 
 \begin{table}[H]
   \centering\small
@@ -691,8 +693,8 @@ Trade-off 额外扫描 PQ 的 $p$，IVF 的 \code{nprobe}，以及 IVF-PQ 的 gl
     \cmidrule(lr){2-4} \cmidrule(lr){5-7}
     T & 紧凑 / ms & padded / ms & 倍数 & 紧凑 / ms & padded / ms & 倍数 \\
     \midrule
-    2 & 0.97 & 0.41 & $2.4\times$ & 0.13 & 0.00 & $42.4\times$ \\
-    4 & 0.55 & 0.14 & $4.0\times$ & 0.15 & 0.00 & $55.8\times$ \\
+    2 & 0.97 & 0.41 & $2.4\times$ & 0.13 & $<$0.01 & $42.4\times$ \\
+    4 & 0.55 & 0.14 & $4.0\times$ & 0.15 & $<$0.01 & $55.8\times$ \\
     8 & 0.95 & 0.38 & $2.5\times$ & 0.30 & 0.01 & $53.0\times$ \\
     \bottomrule
   \end{tabular}
@@ -1014,23 +1016,23 @@ SSE 路径单次处理 4 float，比 AVX2 的 8 float 慢约 $2\times$，但 HNS
 
 \subsection*{进阶项说明}
 
-本实验覆盖了指导书 6 项进阶要求中的 5 项：多平台 x86/ARM 对比（§6.11）、C++ \code{std::thread} 与 Pthread/OpenMP 三方对比（如下）、生成式 AI 辅助（附录 A）、其他优化策略（虚假共享、P/E 亲和性、PQ 编码多线程等）、以及编程工具对比分析（如下）。
+本实验覆盖了指导书 6 项进阶要求中的 4 项完整实现 + 1 项代码/分析覆盖：多平台 x86/ARM 对比（§6.11）、C++ \code{std::thread} 与 Pthread/OpenMP 三方对比（如下）、生成式 AI 辅助（附录 A）、其他优化策略（虚假共享、P/E 亲和性、PQ 编码多线程等）。第 5 项"编程工具对比分析"因工具链限制无法实际运行 SYCL / OpenMP offload（见下方分析），但已编写完整代码并给出性能预估（附录 C）。
 
 \textbf{C++ \code{std::thread} vs Pthread vs OpenMP 三方对比}（Flat inter-query, Recall@10=0.99995）：
 
 \begin{table}[H]
   \centering\small
-  \begin{tabular}{lrrrr|rrrr}
+  \begin{tabular}{lrrrr|rrrrr}
     \toprule
-    & \multicolumn{4}{c|}{i9-13900H (本机)} & \multicolumn{4}{c}{鲲鹏 920} \\
-    方法 & T=1 & T=4 & T=8 & T=16 & T=1 & T=4 & T=8 \\
+    & \multicolumn{4}{c|}{i9-13900H (本机)} & \multicolumn{5}{c}{鲲鹏 920} \\
+    方法 & T=1 & T=4 & T=8 & T=16 & T=1 & T=2 & T=4 & T=8 \\
     \midrule
-    std::thread & 6138 & 588 & 391 & 316 & 11983 & 2183 & 1131 \\
-    Pthread     & 5370 & 596 & 337 & 254 & 10870 & 1941 & 1115 \\
-    OpenMP      & 3774 & 595 & 343 & 317 &  9414 & 3639 & 1625 \\
+    std::thread & 6138 & 588 & 391 & 316 & 11983 & 3712 & 2183 & 1131 \\
+    Pthread     & 5370 & 596 & 337 & 254 & 10870 & 4026 & 1941 & 1115 \\
+    OpenMP      & 3774 & 595 & 343 & 317 &  9414 & 6006 & 3639 & 1625 \\
     \bottomrule
   \end{tabular}
-  \caption{Flat inter-query 三方对比延迟（$\mu$s/query）}
+  \caption{Flat inter-query 三方对比延迟（$\mu$s/query）。鲲鹏 8 核无 HT，故 T=16 数据未采集}
   \label{tab:stdthread}
 \end{table}
 
@@ -1046,7 +1048,7 @@ SSE 路径单次处理 4 float，比 AVX2 的 8 float 慢约 $2\times$，但 HNS
   \item \textbf{Clang SYCL}：Clang 21.1.0 理论上支持 \code{-fsycl}，但本机缺少 Visual Studio C++ 构建工具（\code{cl.exe} 和标准库头文件 \code{<type_traits>} 等），无法完成编译。
 \end{enumerate}
 
-尽管无法实际编译运行，我们编写了 SYCL 和 OpenMP offload 版本的 Flat scan 代码（见附录 B），展示了对 GPU offload 编程模型的理解。核心差异在于：GPU offload 方案需要将 base 数据（100K$\times$128$\times$4B $\approx$ 50 MB）通过 PCIe 传输到设备内存，单次传输延迟约 3 ms（PCIe 4.0 $\times$16, 16 GB/s），远超 CPU 搜索延迟（50--130 μs）。因此即使工具链可用，GPU offload 在当前问题规模（100K 向量、128 维）下也不具备性能优势——这与 CPU-GPU 协同计算的经典结论一致：GPU offload 适合计算密集型任务（如大规模矩阵乘法），而非内存密集型的 ANN 搜索。
+尽管无法实际编译运行，我们编写了 SYCL 和 OpenMP offload 版本的 Flat scan 代码（见附录 B），展示了对 GPU offload 编程模型的理解。核心差异在于：GPU offload 方案需要将 base 数据（100K$\times$96$\times$4B $\approx$ 37.5 MB）通过 PCIe 传输到设备内存，单次传输延迟约 2.3 ms（PCIe 4.0 $\times$16, 16 GB/s），远超 CPU 搜索延迟（50--130 $\mu$s）。因此即使工具链可用，GPU offload 在当前问题规模（100K 向量、128 维）下也不具备性能优势——这与 CPU-GPU 协同计算的经典结论一致：GPU offload 适合计算密集型任务（如大规模矩阵乘法），而非内存密集型的 ANN 搜索。
 
 \clearpage
 \section*{附录 A：开发工具使用说明}
@@ -1125,11 +1127,11 @@ sh test.sh 2 1
 以下命令用于复现正文 §6.5--§6.10 中的 trade-off 分析与对照实验：
 \begin{lstlisting}[language={},frame=single]
 # 1. inverted list 长度分布
-g++ tools/dump_ivf_hist.cc -o build/dump_ivf_hist.exe -O2 -mavx2 -mfma -std=c++11 -I.
+g++ tools/dump_ivf_hist.cc -o build/dump_ivf_hist.exe -O2 -mavx2 -mfma -std=c++11
 ./build/dump_ivf_hist.exe   # -> results/ivf_list_histogram.csv
 
 # 2. OMP schedule x chunk_size 二维 sweep
-g++ tools/sweep_omp_schedule.cc -o build/sweep_omp_schedule.exe -O2 -mavx2 -mfma -fopenmp -lpthread -std=c++11 -I.
+g++ tools/sweep_omp_schedule.cc -o build/sweep_omp_schedule.exe -O2 -mavx2 -mfma -fopenmp -lpthread -std=c++11
 for sched in "static" "static,1" "static,8" "static,64" "static,256" \
              "dynamic,1" "dynamic,8" "dynamic,64" "dynamic,256" \
              "guided,1" "guided,8" "guided,64"; do
@@ -1137,7 +1139,7 @@ for sched in "static" "static,1" "static,8" "static,64" "static,256" \
 done  # -> results/omp_schedule_sweep.txt
 
 # 3. N x T 交叉表
-g++ tools/sweep_n_threads.cc -o build/sweep_n_threads.exe -O2 -mavx2 -mfma -fopenmp -lpthread -std=c++11 -I.
+g++ tools/sweep_n_threads.cc -o build/sweep_n_threads.exe -O2 -mavx2 -mfma -fopenmp -lpthread -std=c++11
 for N in 10000 50000 100000; do
     for T in 1 2 4 8 16; do
         ./build/sweep_n_threads.exe $N $T
@@ -1154,7 +1156,7 @@ cmd /c "start /B /WAIT /AFFINITY FF000 build/sweep_n_threads.exe 100000  8"  # E
 cmd /c "start /B /WAIT /AFFINITY FFFFF build/sweep_n_threads.exe 100000 20"  # P+E
 
 # 6. HNSW ef sweep
-g++ tools/sweep_hnsw_ef.cc -o build/sweep_hnsw_ef.exe -O2 -mavx2 -mfma -fopenmp -lpthread -std=c++11 -I.
+g++ tools/sweep_hnsw_ef.cc -o build/sweep_hnsw_ef.exe -O2 -mavx2 -mfma -fopenmp -lpthread -std=c++11
 for ef in 10 25 50 100 200 400; do ./build/sweep_hnsw_ef.exe $ef; done  # -> results/hnsw_ef_sweep.txt
 \end{lstlisting}
 
@@ -1261,9 +1263,9 @@ q.parallel_for(sycl::range<2>(query_n, base_n),
 
 即使工具链可用，GPU offload 在当前问题规模下不具备性能优势：
 \begin{itemize}
-  \item \textbf{PCIe 传输开销}：base 数据 100K$\times$128$\times$4B $\approx$ 50 MB，PCIe 4.0 x16 带宽 16 GB/s，单次传输 $\sim$3 ms。
+  \item \textbf{PCIe 传输开销}：base 数据 100K$\times$96$\times$4B $\approx$ 37.5 MB，PCIe 4.0 x16 带宽 16 GB/s，单次传输 $\sim$2.3 ms。
   \item \textbf{CPU 搜索延迟}：IVF-PQ 134 $\mu$s/query，HNSW 65 $\mu$s/query。
-  \item \textbf{结论}：PCIe 传输延迟（3 ms）$\gg$ CPU 搜索延迟（0.065--0.134 ms），GPU offload 在内存密集型 ANN 搜索中不可行。GPU 适合计算密集型任务（如大规模矩阵乘法），而非带宽受限的近邻搜索。
+  \item \textbf{结论}：PCIe 传输延迟（2.3 ms）$\gg$ CPU 搜索延迟（0.065--0.134 ms），GPU offload 在内存密集型 ANN 搜索中不可行。GPU 适合计算密集型任务（如大规模矩阵乘法），而非带宽受限的近邻搜索。
 \end{itemize}
 
 \nocite{babenko2016efficient,jegou2011product,andre2015fastscan,malkov2020hnsw,johnson2021faiss,mattson2004patterns,openmp2018,sivic2003video,wang2016optimized}
