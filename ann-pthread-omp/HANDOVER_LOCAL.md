@@ -2,18 +2,18 @@
 
 > 本地工作副本，未入 git。每次跑实验、改源码或编辑 `report/main.tex` 后立即更新此文档。
 
-**Last updated:** 2026-05-13 (更新: 编程模型对比 + SYCL/OMP offload 代码 + 进阶项扩展)
+**Last updated:** 2026-05-24 (更新: 报告压缩到 25 页 + 编程模型代表性实测 + SYCL/OpenMP offload 环境修复记录)
 
 ## 当前状态总览
 
 - 项目：ANN Pthread / OpenMP 实验报告（SIMD 实验 ann-SIMD 的并行化扩展）
 - 项目根：`d:\Study\26sp\parallel\ann-pthread-omp\`
 - 主线评测平台：鲲鹏 920（ARM NEON）；本地 i9-13900H AVX2 作对照 + 全部新增 sweep 实验平台
-- 报告：`report/main.tex`，最新 28 页 PDF，xelatex + bibtex 编译通过
+- 报告：`report/main.tex`，最新 25 页 PDF，xelatex + bibtex 编译通过
 - 数据集：DEEP100K（N=100k, d=96, 前 2000 query, k=10）
 - 进阶项覆盖：5/6（多平台对比、std::thread 三方对比、AI 辅助、其他优化、编程工具对比分析）
 
-## 本轮 (2026-05-13) 新增工作
+## 本轮 (2026-05-24) 新增工作
 
 ### 1. 编程模型对比（进阶项第 5 项）
 
@@ -22,40 +22,39 @@
 i9-13900H 本地数据：
 | 方法 | T=1 | T=4 | T=8 | T=16 |
 |---|---|---|---|---|
-| std::thread | 6138 | 588 | 391 | 316 |
-| Pthread | 5370 | 596 | 337 | 254 |
-| OpenMP | 3774 | 595 | 343 | 317 |
+| std::thread | 6859.00 | 642.77 | 467.18 | 307.24 |
+| Pthread dynamic | 9054.76 | 692.96 | 378.16 | 337.33 |
+| OpenMP static | 8858.90 | 1492.31 | 356.51 | 357.38 |
 
-鲲鹏 920 数据（来自 `results/kunpeng/stdthread_comparison.txt`）：
+鲲鹏 920 旧数据（来自 `results/kunpeng/stdthread_comparison.txt`，最终报告的补充表仅采用本地代表性实测）：
 | 方法 | T=1 | T=2 | T=4 | T=8 |
 |---|---|---|---|---|
 | std::thread | 11983 | 3712 | 2183 | 1131 |
 | Pthread | 10870 | 4026 | 1941 | 1115 |
 | OpenMP | 9414 | 6006 | 3639 | 1625 |
 
-### 2. SYCL 与 OpenMP Offload 代码（已写未编译）
+### 2. SYCL 与 OpenMP Offload/CUDA 代码与环境状态
 
-已创建但因工具链限制无法编译运行的文件：
+已创建代表性样本文件：
 - `tools/flat_scan_sycl.cpp` — SYCL Flat scan（需 Intel oneAPI icpx 编译器）
 - `tools/flat_scan_omp_offload.cpp` — OpenMP offload Flat scan（需支持 GPU offload 的编译器）
 - `tools/flat_scan_cuda.cu` — CUDA Flat scan（需 nvcc，已有但课程不要求 CUDA）
 
-**工具链限制**：
-- LLVM/Clang 21.1.0 缺少 `libomptarget-nvptx.bc`，无法 OpenMP offload 到 NVIDIA GPU
-- NVIDIA HPC SDK 不支持 Windows
-- Intel oneAPI Base Toolkit 下载服务不可用
-- pip 安装的 `dpcpp-cpp-rt` 仅含运行时，不含 `icpx` 编译器
-- MSYS2 g++ 不支持 `-fsycl`
-- Clang SYCL 编译需要 Visual Studio C++ 构建工具（本机 VS 2022 目录为空）
+**当前工具链状态**：
+- OpenMP target host fallback 可编译运行：`results/omp_target_host_result.txt`，运行时 `OpenMP target devices=0`，不是 GPU 结果。
+- Clang OpenMP NVIDIA target 已尝试 `--cuda-path` + `--offload-arch=sm_89`，失败于缺少 `libomptarget-nvptx.bc`。
+- CUDA toolkit / `nvcc` 存在，但缺 MSVC `cl.exe`；尝试静默补装 VS C++ tools 被当前非提升权限进程拒绝，返回 5007。
+- `clang-cl` / Clang CUDA 路线也尝试过，失败于 CUDA runtime 与 MinGW 头文件冲突。
+- SYCL/oneAPI 仍缺 `icpx`/`dpcpp` 和 SYCL headers；conda-forge win-64 未找到可用 `dpcpp`/SYCL 编译器，Intel channel 返回 403。
 
-报告附录 C 包含 SYCL 和 OpenMP offload 代码片段 + PCIe 传输开销分析。
+报告正文“补充实验说明”已改为实测 + 环境修复尝试摘要，不再保留附录 C 大段未编译代码。
 
 ### 3. 报告进阶项说明更新
 
 - §进阶项说明 从 4 项扩展到 5 项
-- 新增双平台 std::thread 对比表（i9 + 鲲鹏合并）
-- 新增 GPU offload 可行性分析（PCIe 3ms >> CPU 50-130μs）
-- 附录 C：SYCL + OpenMP offload 代码（未编译运行）
+- 更新本地 std::thread / Pthread / OpenMP 代表性实测表
+- 新增 OpenMP target host fallback 结果与 GPU/SYCL/CUDA 真实编译失败记录
+- 删除附录 C 大段未编译代码，保留正文中的工具链边界和 PCIe 分析
 
 ### 4. 新增脚本
 

@@ -38,7 +38,7 @@ static __global__ void ip_distance_kernel(
     for (int j = 0; j < d; ++j) {
         sum += b[j] * q[j];
     }
-    dist[(size_t)qi * base_n + bi] = sum;
+    dist[(size_t)qi * base_n + bi] = 1.0f - sum;
 }
 
 struct CudaDeleter { void operator()(float* p) const { cudaFree(p); } };
@@ -91,7 +91,7 @@ int main(int argc, char** argv) {
         const float* row = host_dist.data() + (size_t)i * bn;
         for (int j = 0; j < bn; ++j) {
             if (heap.size() < k) heap.push({row[j], (uint32_t)j});
-            else if (row[j] > heap.top().first) { heap.pop(); heap.push({row[j], (uint32_t)j}); }
+            else if (row[j] < heap.top().first) { heap.pop(); heap.push({row[j], (uint32_t)j}); }
         }
         std::set<uint32_t> gtset;
         for (size_t j = 0; j < k; ++j) gtset.insert((uint32_t)gt[(size_t)i * gt_dim + j]);
@@ -101,6 +101,7 @@ int main(int argc, char** argv) {
     }
 
     // 端到端计时（含 top-k）
+    // End-to-end timing includes the host-side top-k pass.
     auto t3 = std::chrono::high_resolution_clock::now();
     double total_us = std::chrono::duration<double, std::micro>(t3 - t1).count();
 

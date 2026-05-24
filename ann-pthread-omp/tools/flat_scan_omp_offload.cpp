@@ -1,13 +1,14 @@
-// Flat scan OpenMP offload 实现 — 与 Pthread/SYCL/std::thread 对比
-// 编译 (Intel oneAPI): icpx -fiopenmp -fopenmp-targets=spir64 -O2 -std=c++17 -I. tools/flat_scan_omp_offload.cpp -o build/flat_scan_omp_offload.exe
-// 编译 (fallback CPU): icpx -fiopenmp -O2 -std=c++17 -I. tools/flat_scan_omp_offload.cpp -o build/flat_scan_omp_offload.exe
-// 运行: build/flat_scan_omp_offload.exe [threads]
+// Flat scan OpenMP target offload implementation - for comparison with Pthread/SYCL/std::thread
+// Build (Intel oneAPI): icpx -fiopenmp -fopenmp-targets=spir64 -O2 -std=c++17 -I. tools/flat_scan_omp_offload.cpp -o build/flat_scan_omp_offload.exe
+// Build (host fallback): icpx -fiopenmp -O2 -std=c++17 -I. tools/flat_scan_omp_offload.cpp -o build/flat_scan_omp_offload.exe
+// Run: build/flat_scan_omp_offload.exe
 
 #include <chrono>
 #include <cstdint>
 #include <cstdlib>
 #include <iomanip>
 #include <iostream>
+#include <omp.h>
 #include <queue>
 #include <set>
 #include <string>
@@ -16,12 +17,20 @@
 #include "simd/ann_bench_common.h"
 
 using Heap = std::priority_queue<std::pair<float, uint32_t>>;
+
 static inline void push_h(Heap& h, float v, uint32_t id, size_t k) {
-    if (h.size() < k) h.push({v, id});
-    else if (v < h.top().first) { h.pop(); h.push({v, id}); }
+    if (h.size() < k) {
+        h.push({v, id});
+    } else if (v < h.top().first) {
+        h.pop();
+        h.push({v, id});
+    }
 }
 
 int main(int argc, char** argv) {
+    (void)argc;
+    (void)argv;
+
     const size_t k = 10;
     size_t query_n = 0, query_d = 0, gt_n = 0, gt_dim = 0, base_n = 0, base_d = 0;
     const std::string dp = ann_bench::DefaultDataPath();
@@ -30,32 +39,25 @@ int main(int argc, char** argv) {
     auto base = ann_bench::LoadData<float>(dp + "DEEP100K.base.100k.fbin", base_n, base_d);
     query_n = std::min<size_t>(query_n, 2000);
 
-    const int bn = (int)base_n, qn = (int)query_n, d = (int)query_d;
+    const int bn = static_cast<int>(base_n);
+    const int qn = static_cast<int>(query_n);
+    const int d = static_cast<int>(query_d);
 
-    // 距离矩阵 (host pinned memory for faster transfers)
     std::vector<float> dist((size_t)qn * bn);
-
-    // 检测 offload 设备
-    #pragma omp target map(from: dist[0:0])
-    {
-        // 空 kernel 触发设备初始化
-    }
-    int dev_id = omp_get_default_device();
-    std::cout << "OpenMP offload device: " << dev_id
-              << " (" << omp_get_device_type_name(omp_get_device_type()) << ")\n";
-
-    // 计时
-    auto t1 = std::chrono::high_resolution_clock::now();
-
-    // OpenMP target offload: 计算所有 (query, base) 的内积距离
+    float* dist_ptr = dist.data();
     const float* base_ptr = base.get();
     const float* query_ptr = queries.get();
 
-    #pragma omp target data map(to: base_ptr[0:(size_t)bn*d], query_ptr[0:(size_t)qn*d]) \
-                            map(from: dist[0:(size_t)qn*bn])
+    const int default_dev = omp_get_default_device();
+    const int num_devices = omp_get_num_devices();
+    std::cout << "OpenMP target devices=" << num_devices
+              << ", default_device=" << default_dev << "\n";
+
+    auto t1 = std::chrono::high_resolution_clock::now();
+
+#pragma omp target data map(to : base_ptr[0 : (size_t)bn * d], query_ptr[0 : (size_t)qn * d]) map(from : dist_ptr[0 : (size_t)qn * bn])
     {
-        #pragma omp target teams distribute parallel for collapse(2) \
-                schedule(static) thread_limit(256)
+#pragma omp target teams distribute parallel for collapse(2) schedule(static) thread_limit(256)
         for (int qi = 0; qi < qn; ++qi) {
             for (int bi = 0; bi < bn; ++bi) {
                 float sum = 0.0f;
@@ -64,7 +66,7 @@ int main(int argc, char** argv) {
                 for (int j = 0; j < d; ++j) {
                     sum += b[j] * q[j];
                 }
-                dist[(size_t)qi * bn + bi] = sum;
+                dist_ptr[(size_t)qi * bn + bi] = 1.0f - sum;
             }
         }
     }
@@ -72,16 +74,24 @@ int main(int argc, char** argv) {
     auto t2 = std::chrono::high_resolution_clock::now();
     double compute_us = std::chrono::duration<double, std::micro>(t2 - t1).count();
 
-    // CPU 侧 top-k + recall
     double total_recall = 0.0;
     for (int i = 0; i < qn; ++i) {
         Heap heap;
         const float* row = dist.data() + (size_t)i * bn;
-        for (int j = 0; j < bn; ++j) push_h(heap, row[j], (uint32_t)j, k);
+        for (int j = 0; j < bn; ++j) {
+            push_h(heap, row[j], (uint32_t)j, k);
+        }
         std::set<uint32_t> gtset;
-        for (size_t j = 0; j < k; ++j) gtset.insert((uint32_t)gt[(size_t)i * gt_dim + j]);
+        for (size_t j = 0; j < k; ++j) {
+            gtset.insert((uint32_t)gt[(size_t)i * gt_dim + j]);
+        }
         size_t hits = 0;
-        while (!heap.empty()) { if (gtset.count(heap.top().second)) ++hits; heap.pop(); }
+        while (!heap.empty()) {
+            if (gtset.count(heap.top().second)) {
+                ++hits;
+            }
+            heap.pop();
+        }
         total_recall += (double)hits / k;
     }
 
@@ -89,9 +99,8 @@ int main(int argc, char** argv) {
     double total_us = std::chrono::duration<double, std::micro>(t3 - t1).count();
 
     std::cout << std::fixed << std::setprecision(5);
-    std::cout << "flat_omp_offload, recall=" << total_recall / qn
+    std::cout << "flat_omp_target, recall=" << total_recall / qn
               << ", latency_us=" << total_us / qn << "\n";
     std::cout << "compute_only_us=" << compute_us / qn << "\n";
-
     return 0;
 }
