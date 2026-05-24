@@ -77,3 +77,24 @@ Use the smallest command that verifies the touched area:
 
 If a command cannot be run locally because of data, compiler, or cluster
 requirements, say exactly what was not run and why.
+
+## LaTeX/PDF Report Validation
+
+Course reports are deliverables, not disposable generated output. When adding
+or substantially editing a report under a lab's `report/` directory:
+
+- Keep the source and final PDF together, for example
+  `ann-mpi/report/main.tex` and `ann-mpi/report/main.pdf`.
+- Rebuild with the report's existing engine, usually:
+  `latexmk -xelatex -interaction=nonstopmode -halt-on-error main.tex`.
+- Check the compiled PDF metadata/page count with `pdfinfo`, especially when
+  the user gives a page limit.
+- Search the LaTeX log for `LaTeX Error`, `Undefined`, `Overfull`, and missing
+  citation/reference warnings. Fix overfull boxes that indicate visible table,
+  path, or diagram overflow.
+- Use `pdftotext -layout` for a quick text sanity check, then render spot-check
+  pages with `pdftoppm` and inspect the title page, dense tables/figures, and
+  final page for overlap or garbling.
+- Leave auxiliary files (`*.aux`, `*.log`, `*.toc`, `*.xdv`, etc.) ignored;
+  commit only source, stable assets, and the final PDF unless a task explicitly
+  asks for build logs.

@@ -68,3 +68,37 @@ The user asked to check:
 - Redesigning report structure or changing the assignment's technical focus.
 - Editing unrelated labs, templates, or source code unless needed to verify a
   report claim.
+
+---
+
+## 2026-05-25 Scope Update: ANN MPI Report
+
+The user asked to write the MPI experiment report in the style of the previous
+two ANN reports, with a temporary page limit of 30 pages. The active task is
+therefore extended from report review to creating `ann-mpi/report/main.tex` and
+the generated `ann-mpi/report/main.pdf`.
+
+### Additional Requirements
+
+- Follow the title-page, section cadence, concise Chinese academic tone, table
+  style, and inline TikZ diagram style used by `ann-SIMD/report/main.tex` and
+  `ann-pthread-omp/report/main.tex`.
+- Cover the ANN MPI full-score evidence: MPI base partitioning, query
+  broadcast, local top-k search, rank-0 merge, MPI+OpenMP hybrid parallelism,
+  load-balance analysis, communication/merge overhead, graph-index options A/B/C,
+  dual-platform results, and reproducibility commands.
+- Use measured values from `ann-mpi/results/cross_platform_summary.txt` and
+  requirement mapping from `ann-mpi/results/full_score_checklist.md`.
+- Keep the rendered PDF within the current 30-page limit.
+- Compile the report with XeLaTeX and visually check the generated PDF.
+
+### Additional Acceptance Criteria
+
+- [x] `ann-mpi/report/main.tex` exists and follows the previous ANN report
+      style closely enough to feel like the same course-report series.
+- [x] `ann-mpi/report/main.pdf` is generated from the latest source.
+- [x] The PDF is under 30 pages.
+- [x] The report cites the recorded Windows, Kunpeng direct, and Kunpeng PBS
+      results without inventing unmeasured data.
+- [x] PDF text extraction and rendered-page spot checks show no obvious
+      garbling, overlap, missing title page, or table overflow.

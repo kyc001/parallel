@@ -1,1 +1,2 @@
-{"_example": "Fill with {\"file\": \"<path>\", \"reason\": \"<why>\"}. Put spec/research files only — no code paths. Run `python .trellis/scripts/get_context.py --mode packages` to list available specs. Delete this line once real entries are added."}
+{"file":".trellis/spec/backend/quality-guidelines.md","reason":"Report validation expectations for LaTeX build and PDF checks."}
+{"file":"ann-mpi/report/main.pdf","reason":"Final rendered PDF checked for page count, extractable text, and visual layout."}
