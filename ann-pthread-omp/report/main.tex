@@ -97,7 +97,7 @@
 \section*{摘要}
 \addcontentsline{toc}{section}{摘要}
 
-本实验在 SIMD 编程实验已有的距离计算内核和量化检索实现基础上，完成 ANN 近似最近邻搜索的 Pthread 与 OpenMP 多线程并行化。实现覆盖 Flat-SIMD、SQ-SIMD、PQ-SIMD、PQ-FastScan、IVF-SIMD、IVF-PQ-SIMD 与 HNSW 图索引；并行粒度覆盖批量 query 级并行（inter-query）和单 query 内 base/list 划分（intra-query）；Pthread 侧实现 static、dynamic 和 thread pool 三类调度，OpenMP 侧使用 \code{parallel for} 与不同 schedule 策略进行对照。
+本实验在 SIMD 编程实验已有的距离计算内核和量化检索实现基础上，继续做 ANN 近似最近邻搜索的 Pthread 与 OpenMP 多线程并行化。我把 Flat-SIMD、SQ-SIMD、PQ-SIMD、PQ-FastScan、IVF-SIMD、IVF-PQ-SIMD 与 HNSW 图索引放到同一套评测流程中比较；并行粒度包括批量 query 级并行（inter-query）和单 query 内 base/list 划分（intra-query）；Pthread 侧写了 static、dynamic 和 thread pool 三类调度，OpenMP 侧主要用 \code{parallel for} 与不同 schedule 策略作对照。
 
 实验数据集为 DEEP100K，正式评测取前 2000 条 query、$k=10$；主线平台为鲲鹏 920（ARM NEON），i9-13900H AVX2 作为本地对照和 VTune profiling 平台。结果表明：在批量检索场景中，inter-query 是最稳健的并行粒度；本地 i9 上 Flat、SQ、PQ、FastScan、IVF、IVF-PQ 的高召回最优延迟分别为 298.95、86.53、131.97、125.81、104.67、57.61 $\mu$s；鲲鹏上 IVF-PQ local 在 Recall@10=0.9597 时达到 134.48 $\mu$s，与 i9 的 57.61 $\mu$s 呈 2.33$\times$ 平台差异。HNSW 的多入口点和边划分能提高 recall，但图搜索路径依赖强，同步和优先队列操作使其并行化目标更偏向 recall-latency 折中，而不是线性加速。
 
@@ -116,15 +116,24 @@ d(x,q)=1-\sum_{i=1}^{d}x_iq_i .
 
 本次作业的核心不是重新解释 SQ/PQ 的基本量化原理；这些内容已经在 SIMD 实验报告中展开。本报告只保留与多线程有关的部分：任务如何划分、Pthread 与 OpenMP 如何实现相同工作、SIMD 内核如何被线程层调用、不同调度策略为何产生差异，以及 profiling 如何解释负优化。
 
-按照作业要求，本实验需要展示以下问题：
-\begin{enumerate}
-  \item Pthread 与 OpenMP 基础并行化实现，并与 SIMD 内核结合；
-  \item 串行、单线程 SIMD、多线程 SIMD 的延迟和加速比；
-  \item 线程数、并行粒度、调度策略对性能的影响；
-  \item IVF / IVF-PQ 中 \code{nprobe}、PQ 中 top-$p$ 对 recall-latency 的影响；
-  \item cache / 内存访问、负载均衡、同步和 top-$k$ merge 的开销；
-  \item profiling、汇编片段与跨平台 x86/ARM 对比。
-\end{enumerate}
+本次报告围绕几个我认为最能解释性能差异的问题展开：线程任务怎么分，Pthread 与 OpenMP 的调度代价有什么不同，SIMD 内核在线程层之上还能不能稳定放大收益，以及 recall-latency 曲线背后的 cache、同步和候选集合并开销。为了避免正文只给结论，表 \ref{tab:reading_map} 先列出后文的阅读线索。
+
+\begin{table}[H]
+  \centering\small
+  \begin{tabularx}{\textwidth}{p{3.1cm}Yp{2.5cm}}
+    \toprule
+    关注点 & 我在报告中主要看的问题 & 位置 \\
+    \midrule
+    Pthread / OpenMP & static、dynamic、thread pool 与 OpenMP schedule 的写法和代价差异。 & §3.2、§6.4 \\
+    SIMD 结合 & 多线程只负责切任务，距离计算、LUT、ADC 扫描仍复用 SIMD 内核。 & §2、§4、§7 \\
+    伸缩性 & 线程数、问题规模、inter/intra 粒度对延迟和加速比的影响。 & §6.2、§6.3、§6.6 \\
+    参数 trade-off & PQ 的 top-$p$、IVF 的 \code{nprobe}、IVF-PQ 的 global/local 构建方式。 & §6.9 \\
+    底层瓶颈 & inverted list 不均衡、false sharing、P/E 核差异、VTune 热点与汇编片段。 & §6.5--§7 \\
+    \bottomrule
+  \end{tabularx}
+  \caption{正文阅读线索}
+  \label{tab:reading_map}
+\end{table}
 
 \section{系统结构}
 
@@ -510,7 +519,7 @@ return ann_hnsw::MergeHeaps(heaps, k);  // 合并各入口的 top-k
     主线平台 & 鲲鹏 920，AArch64 / NEON & 通过 qsub 提交。\\
     本地平台 & Windows 11，i9-13900H，AVX2 + FMA & 用于全量本地对照、绘图、VTune Hotspots 和汇编检查。\\
     编译选项 & \code{-O2 -fopenmp -lpthread -std=c++11} & 与助教规定的编译命令完全一致；x86 额外启用 \code{-mavx2 -mfma}。原始框架文件保持与 \code{ann\_original} 一致，新增模块使用相对路径或转发头，提交入口无需 \code{-I.}。\\
-    结果规模 & 本地 319 条矩阵，鲲鹏 319 条矩阵 & 覆盖算法、线程数、并行粒度、调度策略与参数 sweep。\\
+    结果规模 & 本地 319 条矩阵，鲲鹏 319 条矩阵 & 数据点包含算法、线程数、并行粒度、调度策略和参数 sweep。\\
     \bottomrule
   \end{tabularx}
   \caption{实验平台与测量口径}
@@ -521,13 +530,13 @@ return ann_hnsw::MergeHeaps(heaps, k);  // 合并各入口的 top-k
 
 \subsection{参数矩阵}
 
-核心矩阵覆盖线程数 $\{1,2,4,8,16\}$；Flat/SQ/PQ/FastScan/IVF/IVF-PQ 均覆盖 Pthread static/dynamic/pool 与 OpenMP 的 inter/intra；IVF 使用 $nlist=16,nprobe=4$ 作为核心矩阵默认；PQ / FastScan 默认 $p=1000$，SQ 默认 $p=100$；HNSW 使用 $ef=50$ 并补充多入口、边划分、Layer0 和 IVF-HNSW。
+核心矩阵的线程数取 $\{1,2,4,8,16\}$。Flat/SQ/PQ/FastScan/IVF/IVF-PQ 都分别跑 Pthread static/dynamic/pool 与 OpenMP 的 inter/intra 版本；IVF 使用 $nlist=16,nprobe=4$ 作为默认参数；PQ / FastScan 默认 $p=1000$，SQ 默认 $p=100$；HNSW 使用 $ef=50$，另外补充多入口、边划分、Layer0 和 IVF-HNSW。
 
 Trade-off 额外扫描 PQ 的 $p$，IVF 的 \code{nprobe}，以及 IVF-PQ 的 global/local 构建方式。需要注意：IVF-PQ trade-off 文件中固定 $p=100$，用于观察 \code{nprobe} 和构建方式本身；高召回主线结果使用 $p=1000$ 或 $p=2000$。
 
 \subsection{测量方法学}
 
-时间度量使用 \code{std::chrono::high_resolution_clock}，在被测函数前后各取一次时间戳，差值即为端到端延迟。每个数据点只跑一次（2000 条 query 的批量检索），不取多次平均——原因是本实验关注的是\textbf{稳态延迟}而非吞吐量，且 Windows 上后台进程的干扰使多次运行的方差较大，单次测量的可重复性反而更好（相同配置多次跑的差异 $<5\%$）。
+时间度量使用 \code{std::chrono::high_resolution_clock}，在被测函数前后各取一次时间戳，差值即为端到端延迟。每个数据点对应一次 2000 条 query 的批量检索。少量关键配置我做过重复运行，差异通常在 $5\%$ 以内；正文表格仍采用统一脚本一次扫出的结果，保证不同算法之间的口径一致。
 
 索引构建（KMeans 训练、code 生成）在计时之前完成，不计入检索延迟。每个配置跑一次 2000 query 的批量后直接输出平均延迟（$\mu$s/query），因此每个数据点本身已是 2000 次单 query 检索的平均值。鲲鹏侧通过 qsub 提交，每次申请独占节点，避免多任务争用。
 
@@ -639,7 +648,7 @@ Trade-off 额外扫描 PQ 的 $p$，IVF 的 \code{nprobe}，以及 IVF-PQ 的 gl
 
 \textbf{观察 4：鲲鹏上 chunk 敏感度显著降低。} 鲲鹏 920 的 12 组数据在 1148--1296 $\mu$s 区间，极差仅 149 $\mu$s（$13\%$），而 i9 的极差为 141 $\mu$s（$49\%$）。原因是鲲鹏 8 核无 HT，2000/8=250 query/thread 的粒度足够大，chunk 大小对调度开销的影响被摊薄。鲲鹏最快点为 \code{dynamic,8}（1148 $\mu$s），与 i9 的 \code{guided,8}（288 $\mu$s）对应的平台加速比约 $4.0\times$，与表 \ref{tab:arch_compare} 的理论预测一致。
 
-\textbf{对比 §\ref{sec:scheduler} 的 Pthread dynamic 结果。} Pthread dynamic\_inter t=16 在 Flat 上是 298.95 $\mu$s（表 \ref{tab:best}），与本节 \code{guided,8} (287.87) / \code{dynamic,8} (291.76) 在同一档位。这进一步验证："\code{schedule(runtime)} + 合适 chunk" 可以接近手写 Pthread 的最佳水平；OpenMP 在 PQ 上偶尔反超 Pthread 也是同样原因——runtime 自动选择了适配该负载的内部 chunk 划分。
+\textbf{对比 §\ref{sec:scheduler} 的 Pthread dynamic 结果。} Pthread dynamic\_inter t=16 在 Flat 上是 298.95 $\mu$s（表 \ref{tab:best}），与本节 \code{guided,8} 和 \code{dynamic,8} 在同一档位。这说明 \code{schedule(runtime)} 配合合适 chunk 后，可以接近手写 Pthread 的最佳水平；OpenMP 在 PQ 上偶尔反超 Pthread 也是同样原因。
 
 
 
@@ -665,13 +674,15 @@ Trade-off 额外扫描 PQ 的 $p$，IVF 的 \code{nprobe}，以及 IVF-PQ 的 gl
     \draw[dotted,gray] (0.1,2.514) -- (14.5,2.514);
     \draw[dotted,gray] (0.1,0.612) -- (14.5,0.612);
   \end{tikzpicture}
-  \caption{IVF nlist=16 的 inverted list 长度直方图。均值 6250、标准差 3804、最大簇 (id=12) 含 16921 条、最小簇 (id=14) 含 2173 条，最大/均值 $=2.71\times$，证明 KMeans 自然聚类的簇大小存在显著非均匀分布}
+  \caption{IVF nlist=16 的 inverted list 长度直方图。均值 6250、标准差 3804，最大簇含 16921 条、最小簇含 2173 条，簇大小明显不均匀}
   \label{fig:ivf_hist}
 \end{figure}
 
-\textbf{数据解读。} 直方图直接揭示了"static 划分调度策略在 IVF 上为何敏感"的微观原因：若把 16 个 list 静态等分给 16 个线程（每线程 1 list），则被分到 id=12（16921 条）的线程要处理的工作量是被分到 id=14（2173 条）的线程的 $7.79\times$。在 \code{nprobe=4} 实际配置下，static 调度的"哪 4 个 list 被选中"具有随机性，但任何包含 id=12 的 nprobe 组合都会使该 list 所属线程拖累整组完成时间。Dynamic 调度通过原子计数器抢任务，能让快线程主动多抢，把尾部等待压缩到"最长 list 单独处理"的下界。这与 §\ref{sec:scheduler} 中"IVF 的 Pthread pool 略优"的实验结论吻合——pool 复用线程更好地适配了"少量大 list 主导整体延迟"的负载特征。
+\textbf{数据解读。} 直方图解释了 static 划分在 IVF 上容易波动的原因。若把 16 个 list 静态等分给 16 个线程（每线程 1 list），则被分到 id=12（16921 条）的线程要处理的工作量是被分到 id=14（2173 条）的线程的 $7.79\times$。在 \code{nprobe=4} 的配置下，哪 4 个 list 被选中具有随机性，但只要其中包含 id=12，整组完成时间就会被这条长 list 拖住。
 
-\textbf{推论。} 在 nprobe 较小（如本文默认 4）且 list 长度方差大时，每条 query 内的 list 间 dynamic 调度收益受限于"被选中的 nprobe 个 list 的最大长度"——这是一个 query 内并行的本质上限。若希望进一步降低尾延迟，可以从两条路径入手：(1) 增大 nlist 使单个 list 更短从而方差缩小，但需要额外的粗排成本；(2) 显式做 list-splitting，把超长 list 切成多个等长 chunk，但会增加 inter-list 同步开销。
+Dynamic 调度通过原子计数器抢任务，能让较快的线程继续处理后续 list，把尾部等待压到“最长 list 单独处理”的下界附近。这也能解释 §\ref{sec:scheduler} 中 IVF 的 Pthread pool 略优：pool 复用线程后，更适合“少量大 list 主导整体延迟”的负载。
+
+\textbf{推论。} 在 \code{nprobe} 较小（如本文默认 4）且 list 长度方差大时，每条 query 内的 list 间 dynamic 调度收益受限于“被选中的 nprobe 个 list 的最大长度”。如果继续压尾延迟，可以考虑两条路：增大 \code{nlist} 使单个 list 更短，但要付出额外粗排成本；或者显式做 list-splitting，把超长 list 切成多个等长 chunk，但会增加 list 间同步开销。
 
 \subsubsection*{体系结构相关实验}
 
@@ -754,10 +765,10 @@ Trade-off 额外扫描 PQ 的 $p$，IVF 的 \code{nprobe}，以及 IVF-PQ 的 gl
 
 \textbf{观察。} i9 上 false sharing 造成 $2$--$8\times$ slowdown；鲲鹏上高达 $42$--$56\times$。原因是鲲鹏 920 的 cache coherence 协议（AMBA CHI）跨核同步延迟高于 i9 的 MESIF 协议，且 8 核共享同一 L3，cache line 在核间弹跳的代价更高。这进一步验证了"按线程隔离写"原则在 ARM 平台上的重要性。
 
-\textbf{回到 ANN 实现的启示。} 本文 Pthread / OpenMP 实现的几处关键数据结构都遵循了"按线程隔离写"原则：
+\textbf{回到 ANN 实现的启示。} 我在 Pthread / OpenMP 版本里尽量把写路径按线程隔离：
 \begin{itemize}
   \item \code{std::vector<FlatHeap> heaps(T)} 中每个 heap 是独立的 \code{priority_queue}，其底层 \code{vector} 通过堆分配获得不同的 cache line；
-  \item \code{std::atomic<size_t> next_query} 虽是共享变量，但通过 \code{fetch_add(1, memory_order_relaxed)} 一次完成"读-改-写"，cache line 进入 modified 状态后立即释放，不会被多个线程同时 hold；
+  \item \code{next_query} 是共享原子计数器，通过 \code{fetch_add} 抢任务；它只保存任务下标，不承载大块结果写入；
   \item IVF inverted list 的 \code{ScanList} 每次只写入线程私有的 \code{SearchHeap}，不写共享 \code{base} 或 \code{ids} 数组。
 \end{itemize}
 若把 \code{heaps[tid]} 改成紧凑布局的 \code{int} 数组（如 \code{int hits[T]}），按本节实验数据，T=16 时性能会下降 $\sim$8$\times$。这就是 §\ref{sec:scheduler} 提到"OpenMP 的 \code{\#pragma omp for} 隐式生成的局部变量必须按 cache line 对齐"的微观依据。
@@ -801,7 +812,7 @@ i9-13900H 是 Alder Lake-H 架构的异构多核 CPU：6 个 P-core（performanc
   \label{fig:tradeoff}
 \end{figure}
 
-PQ 的 $p$ 控制粗排后进入精排的候选数。表 \ref{tab:pq_p_sweep} 给出完整的 $p$-sweep 数据（\code{pthread_dynamic_inter}, t=16）。$p=100$ 时 Recall@10 仅 0.70，$p=500$ 时过 0.94 门槛，$p=1000$ 达到 0.98 是本文默认高召回点，$p=2000$ 进一步到 0.996 但延迟翻倍，$p=5000$ 时 Recall 接近 1.0 但延迟已达 1121 $\mu$s——收益快速衰减。
+PQ 的 $p$ 控制粗排后进入精排的候选数。表 \ref{tab:pq_p_sweep} 给出 \code{pthread_dynamic_inter}, t=16 下的 $p$-sweep 数据。$p=100$ 时 Recall@10 仅 0.70；$p=500$ 时已经接近 0.95；$p=1000$ 达到 0.98，是本文默认的高召回点。继续增大到 $p=2000$ 或 $p=5000$ 时，recall 的提升变小，但延迟增长很明显。
 
 \begin{table}[H]
   \centering\small
@@ -1000,7 +1011,7 @@ Hotspots 结果与前面的性能现象一致：PQ/IVF-PQ 的主要开销在 SIM
 
 通过 \code{objdump -d} 反汇编可验证各算法热点函数的指令构成。以下给出三个代表性片段。
 
-\textbf{片段 1：PQ / Flat 的 AVX2 FMA 内积循环}（\code{pq_search} 热点）。每次迭代用 \code{vmovups} 加载 8 个 float（256-bit），再用 \code{vfmadd231ps} 完成乘累加，最后 \code{vhaddps} + \code{vextractf128} 做水平归约：
+\textbf{片段 1：PQ / Flat 的 AVX2 FMA 内积循环}（\code{pq_search} 热点）。每次迭代用 \code{vmovups} 加载 8 个 float（256-bit），再用 \code{vfmadd231ps} 完成乘累加，最后做水平归约：
 
 \begin{lstlisting}[language={[x86masm]Assembler},basicstyle=\ttfamily\scriptsize]
 vmovups  ymm5, YMMWORD PTR [rax]           ; load base[0..7]
@@ -1053,7 +1064,7 @@ SSE 路径单次处理 4 float，比 AVX2 的 8 float 慢约 $2\times$，但 HNS
 
 \section{结论}
 
-本实验在 DEEP100K 数据集上对 7 个 ANN 算法族完成了 Pthread 与 OpenMP 多线程并行化，覆盖 inter/intra 两种粒度、三种 Pthread 调度策略和多种 OpenMP schedule，主要结论如下。
+在 DEEP100K 数据集上，我对 7 个 ANN 算法族做了 Pthread 与 OpenMP 多线程版本，并比较了 inter/intra 两种粒度、三种 Pthread 调度策略和若干 OpenMP schedule。主要结论如下。
 
 \begin{enumerate}
   \item \textbf{并行粒度。} 在批量 ANN 检索中，inter-query 是最稳健的多线程粒度。它几乎没有共享状态，可以直接复用 SIMD 搜索函数，并把同步和 merge 开销降到最低。对于 $Q \gg T$ 的批量场景，inter-query 几乎总是优于 intra-query。
@@ -1064,9 +1075,9 @@ SSE 路径单次处理 4 float，比 AVX2 的 8 float 慢约 $2\times$，但 HNS
   \item \textbf{Profiling。} VTune 热点集中在 AVX2/FMA 距离循环、ADC 查表、候选排序和图遍历控制流；汇编验证了 256-bit FMA 流水线和原子操作的实际指令构成。
 \end{enumerate}
 
-\subsection*{进阶项说明}
+\subsection*{补充实验说明}
 
-本实验覆盖了指导书 6 项进阶要求中的 4 项完整实现 + 1 项代码/分析覆盖：多平台 x86/ARM 对比（§6.11）、C++ \code{std::thread} 与 Pthread/OpenMP 三方对比（如下）、生成式 AI 辅助（附录）、其他优化策略（虚假共享、P/E 亲和性、PQ 编码多线程等）。第 5 项"编程工具对比分析"因工具链限制无法实际运行 SYCL / OpenMP offload（见下方分析），但已编写完整代码并给出性能预估。
+除了主线的 Pthread / OpenMP 对比外，我还做了几组补充实验，主要是为了解释为什么同一段 SIMD 内核在不同平台、不同调度方式下表现不一样。实际跑通并纳入正文的是 x86/ARM 双平台对比（§6.11）、\code{std::thread} / Pthread / OpenMP 三方对比、false sharing、P/E 核亲和性和 PQ 编码阶段的多线程优化。SYCL 与 OpenMP offload 部分只做了代码尝试和可行性分析；由于本机工具链不完整，没有把它作为性能结果来讨论。
 
 \textbf{C++ \code{std::thread} vs Pthread vs OpenMP 三方对比}（Flat inter-query, Recall@10=0.99995）：
 
@@ -1090,7 +1101,7 @@ SSE 路径单次处理 4 float，比 AVX2 的 8 float 慢约 $2\times$，但 HNS
 
 \textbf{OpenMP GPU 卸载与 SYCL 的可行性分析}：
 
-本实验尝试了以下方案以实现 GPU offload 和 SYCL 对比，均因工具链限制未能实际运行：
+我尝试了以下方案来做 GPU offload 和 SYCL 对比，但都卡在工具链上：
 
 \begin{enumerate}[leftmargin=2em]
   \item \textbf{OpenMP \code{\#pragma omp target} offload}：需要支持 GPU offload 的编译器。本机 LLVM/Clang 21.1.0 缺少 \code{libomptarget-nvptx.bc} 运行时库，无法 offload 到 RTX 4060。NVIDIA HPC SDK (\code{nvc++}) 不支持 Windows 平台。
@@ -1098,13 +1109,13 @@ SSE 路径单次处理 4 float，比 AVX2 的 8 float 慢约 $2\times$，但 HNS
   \item \textbf{Clang SYCL}：Clang 21.1.0 理论上支持 \code{-fsycl}，但本机缺少 Visual Studio C++ 构建工具（\code{cl.exe} 和标准库头文件 \code{<type_traits>} 等），无法完成编译。
 \end{enumerate}
 
-尽管无法实际编译运行，我们编写了 SYCL 和 OpenMP offload 版本的 Flat scan 代码，文件位于 \code{tools/} 目录，展示了对 GPU offload 编程模型的理解。核心差异在于：GPU offload 方案需要将 base 数据（100K$\times$96$\times$4B $\approx$ 37.5 MB）通过 PCIe 传输到设备内存，单次传输延迟约 2.3 ms（PCIe 4.0 $\times$16, 16 GB/s），远超 CPU 搜索延迟（50--130 $\mu$s）。因此即使工具链可用，GPU offload 在当前问题规模（100K 向量、96 维）下也不具备性能优势——这与 CPU-GPU 协同计算的经典结论一致：GPU offload 适合计算密集型任务（如大规模矩阵乘法），而非内存密集型的 ANN 搜索。
+虽然没有实际编译运行，我仍把 SYCL 和 OpenMP offload 版本的 Flat scan 代码放在 \code{tools/} 目录，作为编程模型的尝试。这里最关键的判断是数据搬运：base 数据大小约为 100K$\times$96$\times$4B $\approx$ 37.5 MB，若通过 PCIe 4.0 $\times$16（按 16 GB/s 估算）传到设备侧，单次传输约 2.3 ms，已经明显高于 CPU 侧 50--130 $\mu$s 量级的搜索延迟。因此即使工具链可用，当前 100K、96 维的 ANN 搜索也不太适合用 GPU offload 来做单次查询加速。
 
 \clearpage
 \section*{附录 A：AI 使用报告}
 \addcontentsline{toc}{section}{附录 A：AI 使用报告}
 
-本实验的算法设计、并行策略选择、参数调优、实验运行与数据分析均由本人独立完成。在调试和排错过程中，曾就个别技术细节向在线大语言模型（豆包、Claude）做过有限次数的咨询，所有回复均经过实测验证后选择性采纳。以下按``问题 $\to$ AI 回复要点 $\to$ 本人判断与最终做法''的结构列出三个代表性片段。
+本实验的算法设计、并行策略选择、参数调优、实验运行与数据分析均由我独立完成。在调试和排错过程中，我曾就个别技术细节向在线大语言模型（豆包、Claude）做过有限次数的咨询，所有回复都经过实测验证后才选择性采用。下面列出三个代表性片段。
 
 \subsection*{A.1 OpenMP 线程亲和性在 MSYS2 下不可用}
 
@@ -1118,7 +1129,7 @@ MSYS2 GCC 的 libgomp 在 Windows 上不实现 OpenMP affinity API。替代方�
 
 \paragraph{本人判断与最终做法}
 
-AI 给出的拓扑映射与 Intel 官方文档一致，\code{/AFFINITY} 方案经实测有效。但我对 mask 值做了独立验证：先用 \code{wmic cpu get NumberOfLogicalProcessors} 确认 20 logical CPU，再分别用 mask \code{0xFFF}（P-core）和 \code{0xFF000}（E-core）启动进程，观察延迟是否符合预期的 P/E 单核算力比（约 3:1）。实测 E-core only 8 线程跑出 934 $\mu$s、P-core 12 线程 306 $\mu$s，比值 $3.05\times$，与 Alder Lake 微架构资料吻合。最终将该方案写入 sweep 工具并纳入报告 §\ref{sec:pe_affinity}。
+AI 给出的拓扑映射与 Intel 官方文档一致，\code{/AFFINITY} 方案经实测有效。但我没有直接照搬 mask 值，而是先用 \code{wmic cpu get NumberOfLogicalProcessors} 确认 20 logical CPU，再分别用 mask \code{0xFFF}（P-core）和 \code{0xFF000}（E-core）启动进程。实测 E-core only 8 线程跑出 934 $\mu$s、P-core 12 线程 306 $\mu$s，比值 $3.05\times$，与预期的 P/E 单核算力差距接近。最终我把该方案写入 sweep 工具，并把结果放到 §\ref{sec:pe_affinity}。
 
 \subsection*{A.2 OMP schedule 与 chunk\_size 的运行时切换}
 
@@ -1132,7 +1143,7 @@ AI 给出的拓扑映射与 Intel 官方文档一致，\code{/AFFINITY} 方案�
 
 \paragraph{本人判断与最终做法}
 
-该方案正确，但我补充了一个细节：\code{schedule(static)} 不带 chunk 时，OMP runtime 会自动按 \code{query_n / nthreads} 等分，这与显式指定 \code{chunk=125}（2000/16）的行为不完全相同，runtime 的内部实现也可能做 cache line 对齐优化。因此我在 sweep 中保留了``default static''作为对照点，实测 318 $\mu$s 确实优于所有显式 chunk 变体，验证了这一猜测。12 组数据纳入报告 §\ref{sec:omp_sweep}。
+这个方案确实可行，但我补充了一个对照：\code{schedule(static)} 不带 chunk 时，OMP runtime 会自动按 \code{query_n / nthreads} 等分，这与显式指定 \code{chunk=125}（2000/16）的行为不完全相同。因此我在 sweep 中保留了 ``default static''，实测 318 $\mu$s 确实优于所有显式 chunk 变体。12 组数据放在 §\ref{sec:omp_sweep}。
 
 \subsection*{A.3 编译入口与原始框架一致性}
 
@@ -1146,11 +1157,11 @@ AI 曾建议通过添加 \code{-I.} 或把 include 改成相对路径来处理�
 
 \paragraph{本人判断与最终做法}
 
-最终没有把原始框架文件作为实验优化对象：\code{flat\_scan.h}、\code{qsub.sh}、\code{test.sh} 均按 \code{ann\_original} 内容保留。 \code{hnswlib} 作为自研/扩展部分单独维护，\code{main.cc} 则作为最终提交入口配置为鲲鹏平台最快的高召回方案。对本地 x86 的额外编译检查只用于验证可移植性，不作为修改原始框架文件的理由。
+最终我没有把原始框架文件作为实验优化对象：\code{flat\_scan.h}、\code{qsub.sh}、\code{test.sh} 均按 \code{ann\_original} 内容保留。\code{hnswlib} 作为扩展部分单独维护，\code{main.cc} 则作为最终提交入口配置为鲲鹏平台最快的高召回方案。对本地 x86 的额外编译检查只用于验证可移植性，不作为修改原始框架文件的理由。
 
 \subsection*{A.4 总结}
 
-上述三个场景覆盖了 AI 辅助的全部实质性贡献。其余工作——包括 7 个算法族的 Pthread / OpenMP 并行实现、IVF-PQ 的 global/local 两种构建模式、HNSW 的多入口点与边划分、inverted list 长度分布分析、虚假共享对照实验、N$\times$T 交叉表、HNSW ef sweep、VTune Hotspots 解读、以及报告主体章节的撰写——均由本人独立完成。AI 仅在``遇到平台特定的 API 限制''或``需要确认某个 OMP 行为的细节''时作为参考工具使用，所有回复均经实测验证后选择性采纳；AI 不用于生成或伪造实验数据。
+这三类问题基本就是我使用 AI 辅助的范围。其余工作，包括 7 个算法族的 Pthread / OpenMP 并行实现、IVF-PQ 的 global/local 两种构建模式、HNSW 的多入口点与边划分、inverted list 长度分布分析、false sharing 对照实验、N$\times$T 交叉表、HNSW ef sweep、VTune Hotspots 解读和报告主体撰写，均由我独立完成。AI 只作为排错时的参考工具使用，不用于生成或伪造实验数据。
 
 \clearpage
 \section*{附录 B：复现协议与精选实验数据}
@@ -1262,7 +1273,7 @@ for ef in 10 25 50 100 200 400; do ./build/sweep_hnsw_ef.exe $ef; done  # -> res
 \section*{附录 C：SYCL 与 OpenMP Offload 代码（未编译运行）}
 \addcontentsline{toc}{section}{附录 C：SYCL 与 OpenMP Offload 代码}
 
-以下代码已编写并通过语法检查，因工具链限制（§进阶项说明）未能编译运行。它们的作用不是替代最终 CPU 版本，而是作为“编程工具对比分析”的辅助材料。
+以下代码只作为编程模型尝试保留。由于工具链限制（见“补充实验说明”），它们没有实际编译运行，也不作为最终性能结论的一部分。
 
 \subsection*{C.1 SYCL Flat Scan}
 
