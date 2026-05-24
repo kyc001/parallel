@@ -1,51 +1,53 @@
-# Quality Guidelines
+# Presentation Quality Guidelines
 
-> Code quality standards for frontend development.
+## Build or Syntax Check Edited Documents
 
----
+When local tooling is available, rebuild edited deliverables:
 
-## Overview
+- LaTeX reports generally need XeLaTeX; run BibTeX too when citations changed.
+- Typst slides should be rebuilt from the `.typ` source when `slides.pdf`
+  changes.
+- Plot scripts should be rerun when a generated figure changes.
 
-<!--
-Document your project's quality standards here.
+If the toolchain is unavailable, report exactly what was not run and why.
 
-Questions to answer:
-- What patterns are forbidden?
-- What linting rules do you enforce?
-- What are your testing requirements?
-- What code review standards apply?
--->
+## Source/PDF Consistency
 
-(To be filled by the team)
+Because final PDFs are part of coursework deliverables, source and PDF should
+match when both are edited. Do not regenerate a PDF for an unrelated dirty
+source file. The current tree has user modifications in
+`ann-pthread-omp/report/main.tex` and `ann-pthread-omp/report/main.pdf`; treat
+those as existing work unless explicitly asked to edit that report.
 
----
+## Report Review Checklist
 
-## Forbidden Patterns
+Before considering a report edit complete, check:
 
-<!-- Patterns that should never be used and why -->
+- Figures referenced in `\includegraphics` exist at the referenced path.
+- `\label{...}` values are unique and referenced with the right type.
+- Tables fit the page width and use consistent units.
+- Bibliography keys used in `\cite{...}` exist in the local `.bib`.
+- New claims about measured performance have a result file, code output, or
+  explicit source.
+- Generated figure filenames match the script outputs.
 
-(To be filled by the team)
+## Plot Review Checklist
 
----
+For plot/script changes, check:
 
-## Required Patterns
+- The script creates its output directory.
+- Axes include units.
+- Hard-coded data includes a comment tying it to a measured run or source.
+- Fonts support Chinese labels when Chinese text is present.
+- Figures are closed after saving to avoid cross-figure state leaks.
 
-<!-- Patterns that must always be used -->
+## Avoid These Patterns
 
-(To be filled by the team)
-
----
-
-## Testing Requirements
-
-<!-- What level of testing is expected -->
-
-(To be filled by the team)
-
----
-
-## Code Review Checklist
-
-<!-- What reviewers should check -->
-
-(To be filled by the team)
+- Do not edit generated PDFs without updating the source when the source is
+  available.
+- Do not change result tables based on memory alone; trace the number to a
+  result file or rerun.
+- Do not use decorative figures that do not support a report claim.
+- Do not commit LaTeX intermediates or profiler databases.
+- Do not rewrite template files under `参考模板/` while working on an active lab
+  report.

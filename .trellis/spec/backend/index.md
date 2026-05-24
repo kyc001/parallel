@@ -1,38 +1,37 @@
 # Backend Development Guidelines
 
-> Best practices for backend development in this project.
+> Project-specific guidance for the C++ benchmark and algorithm layer.
 
----
-
-## Overview
-
-This directory contains guidelines for backend development. Fill in each file with your project's specific conventions.
-
----
+This repository is a parallel-programming coursework workspace, not a web
+service. In this spec layer, "backend" means the runnable systems code:
+C++ kernels, ANN search variants, profiling drivers, build scripts, and
+benchmark data handling.
 
 ## Guidelines Index
 
 | Guide | Description | Status |
 |-------|-------------|--------|
-| [Directory Structure](./directory-structure.md) | Module organization and file layout | To fill |
-| [Database Guidelines](./database-guidelines.md) | ORM patterns, queries, migrations | To fill |
-| [Error Handling](./error-handling.md) | Error types, handling strategies | To fill |
-| [Quality Guidelines](./quality-guidelines.md) | Code standards, forbidden patterns | To fill |
-| [Logging Guidelines](./logging-guidelines.md) | Structured logging, log levels | To fill |
+| [Directory Structure](./directory-structure.md) | Where lab code, ANN variants, scripts, results, and reports live | Filled |
+| [Data and Build Guidelines](./data-and-build-guidelines.md) | Dataset paths, compiler flags, platform switches, and benchmark outputs | Filled |
+| [Error Handling](./error-handling.md) | How command-line tools report failures and platform limitations | Filled |
+| [Logging Guidelines](./logging-guidelines.md) | Console/result-file output formats for reproducible experiments | Filled |
+| [Quality Guidelines](./quality-guidelines.md) | Review, testing, benchmark, and portability expectations | Filled |
 
----
+## Pre-Development Checklist
 
-## How to Fill These Guidelines
+- Identify the lab or experiment directory first: `lab1-CPU架构编程/`,
+  `ann-SIMD/`, `ann-pthread-omp/`, `OT-协程技术调研/`, or `ann_original/`.
+- Search for the existing variant closest to the requested change before
+  creating a new kernel, script, or result format.
+- Preserve the course entry points unless the task explicitly changes them:
+  `main.cc`, `test.sh`, `qsub.sh`, `Makefile`, and report source files.
+- Check platform assumptions before editing: Windows PowerShell, Linux Bash,
+  x86 AVX2/FMA, ARM NEON, Kunpeng `/anndata/`, or local `../files/`.
+- Keep generated build/profiling noise out of source changes; `.gitignore`
+  already ignores common C/C++, Python, LaTeX, and profiling artifacts.
 
-For each guideline file:
+## Non-Applicable Template Areas
 
-1. Document your project's **actual conventions** (not ideals)
-2. Include **code examples** from your codebase
-3. List **forbidden patterns** and why
-4. Add **common mistakes** your team has made
-
-The goal is to help AI assistants and new team members understand how YOUR project works.
-
----
-
-**Language**: All documentation should be written in **English**.
+There is no backend database, web routing layer, HTTP API, ORM, or server-side
+framework in the current repository. Do not introduce those concepts into task
+plans unless a future task actually adds them.

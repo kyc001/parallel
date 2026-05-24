@@ -1,51 +1,70 @@
-# Error Handling
+# Error Handling Guidelines
 
-> How errors are handled in this project.
+## Command-Line Tools
 
----
+Small benchmark executables use simple process-level failure handling:
 
-## Overview
+- Print a concise diagnostic to `std::cerr`.
+- Return non-zero from `main`.
+- Include relevant dimensions, file names, or platform limitations in the
+  message.
 
-<!--
-Document your project's error handling conventions here.
+Examples already in the repo:
 
-Questions to answer:
-- What error types do you define?
-- How are errors propagated?
-- How are errors logged?
-- How are errors returned to clients?
--->
+- `lab1-CPU架构编程/src/main.cpp` wraps all experiments in `try/catch`,
+  prints `benchmark failed: ...`, and returns `1`.
+- `ann-pthread-omp/mains/flat_bench_common.h` returns `2` on base/query
+  dimension mismatch and prints both dimensions.
+- `ann-pthread-omp/main.cc` checks `base_d != query_d` before benchmarking and
+  returns `1`.
 
-(To be filled by the team)
+Follow that style for standalone tools. Do not abort with assertions for
+recoverable input or environment problems.
 
----
+## Library-Like Helpers
 
-## Error Types
+Reusable helpers may throw when the caller is a benchmark driver that already
+has a top-level handler:
 
-<!-- Custom error classes/types -->
+- `ann-pthread-omp/simd/ann_bench_common.h::LoadData` throws
+  `std::runtime_error` when a binary file cannot be opened, its header cannot
+  be read, or its payload is incomplete.
+- Lab1 helpers report unavailable hardware counters by returning a
+  `PerfReadings` object with `available = false` and `error` populated rather
+  than crashing on Windows or restricted Linux environments.
 
-(To be filled by the team)
+When adding shared helpers, choose either exception-based failure or explicit
+status fields and keep the pattern consistent with the owning module.
 
----
+## Platform Limitations
 
-## Error Handling Patterns
+Platform limitations are normal in this repo and should be reported as
+capabilities, not hidden:
 
-<!-- Try-catch patterns, error propagation -->
+- Windows profiling may require external VTune collection.
+- Linux `perf_event_open` can fail because of kernel permissions.
+- OpenMP offload and SYCL experiments in `ann-pthread-omp/tools/` may be
+  source-only when the local toolchain cannot compile them.
 
-(To be filled by the team)
+Document such limits in the handover/report or result notes instead of making
+the build silently skip important evidence.
 
----
+## Shell and PowerShell Scripts
 
-## API Error Responses
+Scripts should fail early enough that incomplete benchmark runs are obvious:
 
-<!-- Standard error response format -->
+- Bash scripts should use clear `echo`/`printf` diagnostics before long-running
+  compile or submit steps.
+- PowerShell scripts should check whether generated binaries and expected
+  result files exist before summarizing.
+- Avoid deleting result directories unless the script is explicitly a clean
+  operation; many reports depend on checked-in summaries.
 
-(To be filled by the team)
+## Avoid These Patterns
 
----
-
-## Common Mistakes
-
-<!-- Error handling mistakes your team has made -->
-
-(To be filled by the team)
+- Do not ignore failed file opens for benchmark datasets.
+- Do not print only `failed` without the file, command, or platform involved.
+- Do not hard-code one local absolute path when `ANN_DATA_PATH` or relative
+  course paths can serve the same purpose.
+- Do not use assertions to enforce user-controlled arguments such as thread
+  counts; clamp or reject them with a diagnostic.

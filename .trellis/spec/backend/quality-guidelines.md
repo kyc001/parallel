@@ -1,51 +1,79 @@
-# Quality Guidelines
+# Backend Quality Guidelines
 
-> Code quality standards for backend development.
+## Preserve Reproducibility
 
----
+Every code change in this repo should keep experiments reproducible:
 
-## Overview
+- Record the data path or keep using the shared `ANN_DATA_PATH` resolution.
+- Keep thread counts, schedule policies, `nlist`, `nprobe`, rerank `p`, and
+  recall cutoffs visible in either code, output, or result filenames.
+- When changing benchmark logic, update the corresponding report source or
+  handover note if the old numbers are no longer valid.
 
-<!--
-Document your project's quality standards here.
+## Verify Correctness Before Speed
 
-Questions to answer:
-- What patterns are forbidden?
-- What linting rules do you enforce?
-- What are your testing requirements?
-- What code review standards apply?
--->
+Performance code still needs a correctness check:
 
-(To be filled by the team)
+- ANN variants should report Recall@10 against the provided ground truth before
+  comparing latency.
+- `ann-pthread-omp/tests/pq_final_assignment_test.cc` is the local example of a
+  focused regression test: it builds synthetic data, recomputes expected PQ
+  assignments, and exits non-zero on mismatch.
+- Lab1 experiments use deterministic data generation in
+  `lab1-CPU架构编程/src/data_utils.cpp`, which makes diffs stable.
 
----
+Add small synthetic tests for algorithmic changes where possible. Do not rely
+only on "it ran faster" for correctness.
 
-## Forbidden Patterns
+## Portability Expectations
 
-<!-- Patterns that should never be used and why -->
+The repo targets multiple environments:
 
-(To be filled by the team)
+- Windows local development and PowerShell scripts.
+- Linux/macOS shell scripts for local runs.
+- Kunpeng/AArch64 server runs with NEON and PBS-style `qsub.sh` submission.
+- x86 systems with AVX2/FMA.
 
----
+Keep platform assumptions local and explicit. If a change only works on one
+platform, name that in the file, script, and report text.
 
-## Required Patterns
+## C++ Style
 
-<!-- Patterns that must always be used -->
+Follow the local C++ style:
 
-(To be filled by the team)
+- Headers use `#pragma once`.
+- Standard includes appear before local includes in many ANN files; Lab1 files
+  include their matching local header first.
+- Prefer `size_t` for vector counts and dimensions, with explicit casts when
+  calling intrinsic helpers that require `int`.
+- Use RAII containers (`std::vector`, `std::unique_ptr`) for owned data.
+- Keep hot loops simple and avoid hidden allocations inside per-query work.
+- Clamp thread counts to at least one, as in
+  `ann-pthread-omp/mains/flat_bench_common.h::ParseThreads`.
 
----
+## Parallel-Code Review Checks
 
-## Testing Requirements
+Before accepting Pthread/OpenMP changes, check:
 
-<!-- What level of testing is expected -->
+- Work partitioning covers all queries or base-vector ranges exactly once.
+- Shared result vectors are either pre-sized by query or protected by a clear
+  synchronization strategy.
+- Thread-pool tasks signal completion for every queued item.
+- OpenMP schedules are intentional and documented when benchmarked.
+- No false-sharing-prone shared counters are added in hot loops without padding
+  or aggregation.
 
-(To be filled by the team)
+## Validation Commands
 
----
+Use the smallest command that verifies the touched area:
 
-## Code Review Checklist
+- `make` in `ann-pthread-omp/` builds the variant matrix selected for the
+  current architecture.
+- `bash run_all.sh` or `./run_all.ps1` runs full local ANN sweeps.
+- `bash test.sh 2 1` is the course submission path for ANN jobs.
+- Lab1 uses the local build/run scripts under `lab1-CPU架构编程/`.
+- LaTeX reports should be rebuilt with the same engine already used by that
+  report, usually XeLaTeX plus BibTeX when citations changed.
 
-<!-- What reviewers should check -->
-
-(To be filled by the team)
+If a command cannot be run locally because of data, compiler, or cluster
+requirements, say exactly what was not run and why.

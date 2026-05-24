@@ -1,39 +1,32 @@
-# Frontend Development Guidelines
+# Presentation and Report Guidelines
 
-> Best practices for frontend development in this project.
+> Project-specific guidance for the user-facing deliverables: reports, slides,
+> figures, plotting scripts, and result artifacts.
 
----
-
-## Overview
-
-This directory contains guidelines for frontend development. Fill in each file with your project's specific conventions.
-
----
+This repository has no browser frontend or React-style component layer. The
+generated `frontend/` spec folder is repurposed for presentation/report work,
+because those are the visible outputs users inspect.
 
 ## Guidelines Index
 
 | Guide | Description | Status |
 |-------|-------------|--------|
-| [Directory Structure](./directory-structure.md) | Module organization and file layout | To fill |
-| [Component Guidelines](./component-guidelines.md) | Component patterns, props, composition | To fill |
-| [Hook Guidelines](./hook-guidelines.md) | Custom hooks, data fetching patterns | To fill |
-| [State Management](./state-management.md) | Local state, global state, server state | To fill |
-| [Quality Guidelines](./quality-guidelines.md) | Code standards, forbidden patterns | To fill |
-| [Type Safety](./type-safety.md) | Type patterns, validation | To fill |
+| [Directory Structure](./directory-structure.md) | Report, slide, figure, and template layout | Filled |
+| [Report Guidelines](./report-guidelines.md) | LaTeX/Typst structure, citations, tables, and figures | Filled |
+| [Plotting and Script Guidelines](./plotting-and-script-guidelines.md) | Python plotting and visualization scripts | Filled |
+| [Result Artifact Management](./result-artifact-management.md) | How measured data, summaries, figures, and PDFs relate | Filled |
+| [Quality Guidelines](./quality-guidelines.md) | Build checks, visual checks, and report review expectations | Filled |
+| [Data and Type Safety](./data-type-safety.md) | Numeric precision, units, encodings, and table consistency | Filled |
 
----
+## Pre-Development Checklist
 
-## How to Fill These Guidelines
-
-For each guideline file:
-
-1. Document your project's **actual conventions** (not ideals)
-2. Include **code examples** from your codebase
-3. List **forbidden patterns** and why
-4. Add **common mistakes** your team has made
-
-The goal is to help AI assistants and new team members understand how YOUR project works.
-
----
-
-**Language**: All documentation should be written in **English**.
+- Identify the owning deliverable before editing: `report/main.tex`,
+  `main.tex`, `report.tex`, `slides.typ`, plot scripts, or result CSVs.
+- Check whether figures are generated from scripts or hand-authored before
+  editing image files directly.
+- Preserve relative paths to `style/`, `fig/`, `reference.bib`, and `NKU.png`
+  assets.
+- When changing cited claims, update the relevant `.bib` file or cite an
+  existing entry already used by the document.
+- Rebuild or at least syntax-check the edited document whenever the local
+  toolchain is available.
