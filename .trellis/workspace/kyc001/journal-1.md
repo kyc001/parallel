@@ -38,3 +38,36 @@ Populated project-specific Trellis specs for the parallel-programming coursework
 ### Next Steps
 
 - None - task complete
+
+
+## Session 2: ANN MPI cross-platform validation
+
+**Date**: 2026-05-25
+**Task**: ANN MPI cross-platform validation
+**Branch**: `master`
+
+### Summary
+
+Completed ann-mpi cleanup, MPI/PBS scripts, Windows and Kunpeng same-parameter IVF-PQ and block-HNSW validation, and reproducible result records.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `c0569bf` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
