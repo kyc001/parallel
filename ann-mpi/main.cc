@@ -4,8 +4,9 @@
 //   1. Rank 0 loads DEEP100K base/query/ground-truth files.
 //   2. Base vectors are partitioned contiguously and scattered to MPI ranks.
 //   3. Query vectors are broadcast to all ranks for the online phase.
-//   4. Each rank builds an IVF-PQ index for its local base shard and searches
-//      all queries with OpenMP query-level parallelism.
+//   4. Each rank builds a local index for its base shard and searches all
+//      queries with OpenMP parallelism. Supported modes are IVF-PQ,
+//      block-HNSW, nested IVF+HNSW, and HNSW-on-HNSW.
 //   5. Rank 0 gathers per-rank local top-k candidates and merges them into the
 //      global top-k used for Recall@10.
 //
@@ -38,6 +39,8 @@
 #endif
 
 #include "ivf/ivf_pq_omp.h"
+#include "hnsw/hnsw_ivf_nested.h"
+#include "hnsw/hnsw_on_hnsw.h"
 #include "hnsw/hnsw_search_omp.h"
 #include "simd/ann_bench_common.h"
 
@@ -56,6 +59,8 @@ struct Params {
     size_t query_limit;
     ann_ivfpq::BuildMode mode;
     bool use_hnsw;
+    bool use_nested_hnsw;
+    bool use_hnsw_on_hnsw;
 };
 
 struct DataBundle {
@@ -122,6 +127,16 @@ bool IsHnswArg(const std::string& value) {
     return value == "hnsw" || value == "block-hnsw" || value == "graph";
 }
 
+bool IsNestedHnswArg(const std::string& value) {
+    return value == "ivf-hnsw" || value == "nested-hnsw" ||
+           value == "hnsw-ivf" || value == "nested";
+}
+
+bool IsHnswOnHnswArg(const std::string& value) {
+    return value == "hnsw-on-hnsw" || value == "hnsw-hnsw" ||
+           value == "hier-hnsw" || value == "hierarchical-hnsw";
+}
+
 Params ParseParams(int argc, char** argv) {
     Params params;
     params.nthreads = ParseIntArg(argc, argv, 1, EnvInt("OMP_NUM_THREADS", 2));
@@ -132,11 +147,31 @@ Params ParseParams(int argc, char** argv) {
     params.query_limit = ParseSizeArg(argc, argv, 5, 2000);
     params.mode = ParseMode(argc, argv, 6, ann_ivfpq::BuildMode::IVFLocalPQ);
     params.use_hnsw = false;
+    params.use_nested_hnsw = false;
+    params.use_hnsw_on_hnsw = false;
     if (argc > 6 && IsHnswArg(std::string(argv[6]))) {
         params.use_hnsw = true;
     }
     if (argc > 7 && IsHnswArg(std::string(argv[7]))) {
         params.use_hnsw = true;
+    }
+    if (argc > 6 && IsNestedHnswArg(std::string(argv[6]))) {
+        params.use_nested_hnsw = true;
+    }
+    if (argc > 7 && IsNestedHnswArg(std::string(argv[7]))) {
+        params.use_nested_hnsw = true;
+    }
+    if (argc > 6 && IsHnswOnHnswArg(std::string(argv[6]))) {
+        params.use_hnsw_on_hnsw = true;
+    }
+    if (argc > 7 && IsHnswOnHnswArg(std::string(argv[7]))) {
+        params.use_hnsw_on_hnsw = true;
+    }
+    if (params.use_nested_hnsw || params.use_hnsw_on_hnsw) {
+        params.use_hnsw = false;
+    }
+    if (params.use_hnsw_on_hnsw) {
+        params.use_nested_hnsw = false;
     }
     return params;
 }
@@ -283,6 +318,31 @@ void SearchLocalHnsw(const std::vector<float>& local_base,
     }
 }
 
+void SearchLocalNestedHnsw(const ann_hnsw_nested::NestedIndex& nested,
+                           const float* queries,
+                           size_t d, size_t query_n,
+                           const Params& params, size_t ef,
+                           std::vector<SearchHeap>& local_results) {
+    local_results.assign(query_n, SearchHeap());
+    for (size_t i = 0; i < query_n; ++i) {
+        local_results[i] = hnsw_ivf_nested_search_omp(
+            nested, queries + i * d, kTopK, ef,
+            params.nprobe, params.nthreads);
+    }
+}
+
+void SearchLocalHnswOnHnsw(const ann_hnsw_on_hnsw::HierarchicalIndex& index,
+                           const float* queries, size_t d, size_t query_n,
+                           const Params& params, size_t ef,
+                           std::vector<SearchHeap>& local_results) {
+    local_results.assign(query_n, SearchHeap());
+    for (size_t i = 0; i < query_n; ++i) {
+        local_results[i] = ann_hnsw_on_hnsw::hnsw_on_hnsw_search_omp(
+            index, queries + i * d, kTopK, ef, params.nprobe,
+            params.nthreads);
+    }
+}
+
 #ifndef ANN_NO_MPI
 
 void BroadcastSize(size_t& value) {
@@ -362,10 +422,21 @@ int RunMpi(int argc, char** argv) {
             1, std::min(params.nlist, local_n));
         const size_t hnsw_m = std::max<size_t>(4, params.nlist);
         const size_t hnsw_ef = std::max(params.nprobe, kTopK);
+        const size_t nested_ef = std::max(params.rerank_p, kTopK);
+        const size_t hnsw_on_hnsw_ef = std::max(params.rerank_p, kTopK);
 
         ann_ivfpq::IVFPQIndex ivfpq_index;
         ann_hnsw::HnswHolder hnsw_holder;
-        if (params.use_hnsw) {
+        ann_hnsw_nested::NestedIndex nested_index;
+        ann_hnsw_on_hnsw::HierarchicalIndex hnsw_on_hnsw_index;
+        if (params.use_hnsw_on_hnsw) {
+            hnsw_on_hnsw_index.build(local_base.data(), local_n, base_d,
+                                     local_nlist, hnsw_m, 120,
+                                     hnsw_on_hnsw_ef);
+        } else if (params.use_nested_hnsw) {
+            nested_index.build(local_base.data(), local_n, base_d, local_nlist,
+                               hnsw_m, 120, 8);
+        } else if (params.use_hnsw) {
             hnsw_holder = ann_hnsw::BuildIndex(
                 local_base.data(), local_n, base_d, hnsw_m, 120, hnsw_ef);
         } else {
@@ -381,7 +452,14 @@ int RunMpi(int argc, char** argv) {
 
         std::vector<SearchHeap> local_results;
         const double search_begin = MPI_Wtime();
-        if (params.use_hnsw) {
+        if (params.use_hnsw_on_hnsw) {
+            SearchLocalHnswOnHnsw(hnsw_on_hnsw_index, queries.data(), base_d,
+                                  query_n, params, hnsw_on_hnsw_ef,
+                                  local_results);
+        } else if (params.use_nested_hnsw) {
+            SearchLocalNestedHnsw(nested_index, queries.data(), base_d, query_n,
+                                  params, nested_ef, local_results);
+        } else if (params.use_hnsw) {
             local_results.assign(query_n, SearchHeap());
             for (size_t i = 0; i < query_n; ++i) {
                 local_results[i] = hnsw_search_multi_entry_omp(
@@ -439,7 +517,26 @@ int RunMpi(int argc, char** argv) {
             const double comm_merge_us = std::max(0.0, total_us - max_search_us);
 
             std::cout << std::fixed << std::setprecision(5);
-            if (params.use_hnsw) {
+            if (params.use_hnsw_on_hnsw) {
+                std::cout << "hnsw_on_hnsw_mpi_omp"
+                          << ", mpi_procs=" << world_size
+                          << ", nthreads=" << params.nthreads
+                          << ", nblocks=" << local_nlist
+                          << ", nprobe=" << params.nprobe
+                          << ", hnsw_m=" << hnsw_m
+                          << ", ef=" << hnsw_on_hnsw_ef
+                          << ", query_n=" << query_n << "\n";
+            } else if (params.use_nested_hnsw) {
+                std::cout << "ivf_hnsw_nested_mpi_omp"
+                          << ", mpi_procs=" << world_size
+                          << ", nthreads=" << params.nthreads
+                          << ", nlist=" << params.nlist
+                          << ", local_nlist=" << local_nlist
+                          << ", nprobe=" << params.nprobe
+                          << ", hnsw_m=" << hnsw_m
+                          << ", ef=" << nested_ef
+                          << ", query_n=" << query_n << "\n";
+            } else if (params.use_hnsw) {
                 std::cout << "block_hnsw_mpi_omp_multi_entry"
                           << ", mpi_procs=" << world_size
                           << ", nthreads=" << params.nthreads
@@ -486,9 +583,20 @@ int RunNoMpi(int argc, char** argv) {
     std::vector<SearchHeap> local_results;
     const size_t hnsw_m = std::max<size_t>(4, params.nlist);
     const size_t hnsw_ef = std::max(params.nprobe, kTopK);
+    const size_t nested_ef = std::max(params.rerank_p, kTopK);
+    const size_t hnsw_on_hnsw_ef = std::max(params.rerank_p, kTopK);
     ann_ivfpq::IVFPQIndex ivfpq_index;
     ann_hnsw::HnswHolder hnsw_holder;
-    if (params.use_hnsw) {
+    ann_hnsw_nested::NestedIndex nested_index;
+    ann_hnsw_on_hnsw::HierarchicalIndex hnsw_on_hnsw_index;
+    if (params.use_hnsw_on_hnsw) {
+        hnsw_on_hnsw_index.build(data.base.get(), data.base_n, data.base_d,
+                                 local_nlist, hnsw_m, 120,
+                                 hnsw_on_hnsw_ef);
+    } else if (params.use_nested_hnsw) {
+        nested_index.build(data.base.get(), data.base_n, data.base_d,
+                           local_nlist, hnsw_m, 120, 8);
+    } else if (params.use_hnsw) {
         hnsw_holder = ann_hnsw::BuildIndex(
             data.base.get(), data.base_n, data.base_d, hnsw_m, 120, hnsw_ef);
     } else {
@@ -497,7 +605,15 @@ int RunNoMpi(int argc, char** argv) {
     }
 
     const auto begin = std::chrono::high_resolution_clock::now();
-    if (params.use_hnsw) {
+    if (params.use_hnsw_on_hnsw) {
+        SearchLocalHnswOnHnsw(hnsw_on_hnsw_index, data.queries.get(),
+                              data.base_d, data.query_n, params,
+                              hnsw_on_hnsw_ef, local_results);
+    } else if (params.use_nested_hnsw) {
+        SearchLocalNestedHnsw(nested_index, data.queries.get(),
+                              data.base_d, data.query_n, params, nested_ef,
+                              local_results);
+    } else if (params.use_hnsw) {
         local_results.assign(data.query_n, SearchHeap());
         for (size_t i = 0; i < data.query_n; ++i) {
             local_results[i] = hnsw_search_multi_entry_omp(
@@ -517,7 +633,26 @@ int RunNoMpi(int argc, char** argv) {
                                     data.query_n, data.gt_dim, kTopK);
 
     std::cout << std::fixed << std::setprecision(5);
-    if (params.use_hnsw) {
+    if (params.use_hnsw_on_hnsw) {
+        std::cout << "hnsw_on_hnsw_no_mpi_omp"
+                  << ", mpi_procs=1"
+                  << ", nthreads=" << params.nthreads
+                  << ", nblocks=" << local_nlist
+                  << ", nprobe=" << params.nprobe
+                  << ", hnsw_m=" << hnsw_m
+                  << ", ef=" << hnsw_on_hnsw_ef
+                  << ", query_n=" << data.query_n << "\n";
+    } else if (params.use_nested_hnsw) {
+        std::cout << "ivf_hnsw_nested_no_mpi_omp"
+                  << ", mpi_procs=1"
+                  << ", nthreads=" << params.nthreads
+                  << ", nlist=" << params.nlist
+                  << ", local_nlist=" << local_nlist
+                  << ", nprobe=" << params.nprobe
+                  << ", hnsw_m=" << hnsw_m
+                  << ", ef=" << nested_ef
+                  << ", query_n=" << data.query_n << "\n";
+    } else if (params.use_hnsw) {
         std::cout << "block_hnsw_no_mpi_omp_multi_entry"
                   << ", mpi_procs=1"
                   << ", nthreads=" << params.nthreads

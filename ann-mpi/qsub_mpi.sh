@@ -15,6 +15,7 @@ NPROBE=${NPROBE:-4}
 RERANK_P=${RERANK_P:-1000}
 HNSW_M=${HNSW_M:-16}
 HNSW_EF=${HNSW_EF:-50}
+HNSW_ON_HNSW_NPROBE=${HNSW_ON_HNSW_NPROBE:-$NLIST}
 export OMP_NUM_THREADS
 
 NODES=$(sort -u "$PBS_NODEFILE")
@@ -35,6 +36,12 @@ fi
 
 /usr/local/bin/mpiexec -np "$NP" -machinefile "$PBS_NODEFILE" \
     "/home/${USER}/main" "$OMP_NUM_THREADS" "$HNSW_M" "$HNSW_EF" "$RERANK_P" "$QUERY_N" hnsw
+
+/usr/local/bin/mpiexec -np "$NP" -machinefile "$PBS_NODEFILE" \
+    "/home/${USER}/main" "$OMP_NUM_THREADS" "$NLIST" "$NPROBE" "$HNSW_EF" "$QUERY_N" ivf-hnsw
+
+/usr/local/bin/mpiexec -np "$NP" -machinefile "$PBS_NODEFILE" \
+    "/home/${USER}/main" "$OMP_NUM_THREADS" "$NLIST" "$HNSW_ON_HNSW_NPROBE" "$HNSW_EF" "$QUERY_N" hnsw-on-hnsw
 
 if [ -d /home/${USER}/files ]; then
     scp -r "/home/${USER}/files/" "master_ubss1:/home/${USER}/${PROJECT}/" 2>&1

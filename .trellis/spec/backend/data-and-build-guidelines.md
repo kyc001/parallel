@@ -65,19 +65,27 @@ Signatures:
   `mpiexec -np <np> ./main <threads> <nlist> <nprobe> <rerank_p> <query_n> local`
 - Block-HNSW run:
   `mpiexec -np <np> ./main <threads> <hnsw_m> <ef> <unused_p> <query_n> hnsw`
+- IVF+HNSW nested run:
+  `mpiexec -np <np> ./main <threads> <nlist> <nprobe> <ef> <query_n> ivf-hnsw`
+- HNSW-on-HNSW run:
+  `mpiexec -np <np> ./main <threads> <nblocks> <nprobe_blocks> <ef> <query_n> hnsw-on-hnsw`
 - PBS smoke:
-  `qsub -v NP=<np>,OMP_NUM_THREADS=<threads>,QUERY_N=<query_n>,NLIST=<nlist>,NPROBE=<nprobe>,RERANK_P=<p>,HNSW_M=<m>,HNSW_EF=<ef> qsub_mpi.sh`
+  `qsub -v NP=<np>,OMP_NUM_THREADS=<threads>,QUERY_N=<query_n>,NLIST=<nlist>,NPROBE=<nprobe>,RERANK_P=<p>,HNSW_M=<m>,HNSW_EF=<ef>,HNSW_ON_HNSW_NPROBE=<nprobe_blocks> qsub_mpi.sh`
 
 Environment contracts:
 
 - Kunpeng data should be selected with `ANN_DATA_PATH=/anndata` when
   `/anndata` exists.
 - PBS scripts should accept `NP`, `OMP_NUM_THREADS`, `QUERY_N`, `NLIST`,
-  `NPROBE`, `RERANK_P`, `HNSW_M`, and `HNSW_EF` overrides so small smoke jobs
-  are reproducible without editing the script.
+  `NPROBE`, `RERANK_P`, `HNSW_M`, `HNSW_EF`, and `HNSW_ON_HNSW_NPROBE`
+  overrides so small smoke jobs are reproducible without editing the script.
 - Result logs for MPI ANN runs must include MPI process count, OpenMP thread
   count, algorithm parameters, Recall@10, average latency, max local search
   latency, and communication plus merge latency.
+- Full-score MPI ANN result logs should cover IVF-PQ, block-HNSW, IVF+HNSW
+  nested, and HNSW-on-HNSW when those modes are present. HNSW-on-HNSW is
+  expected to be a recall-latency trade-off datapoint rather than the fastest
+  path when `HNSW_ON_HNSW_NPROBE` probes all blocks.
 
 Validation/error matrix:
 
@@ -92,7 +100,7 @@ Validation/error matrix:
 Good/base/bad cases:
 
 - Good: direct `mpiexec -np 2` and PBS smoke both finish and emit the stable
-  latency/recall fields.
+  latency/recall fields for every selected mode.
 - Base: local Windows uses MS-MPI for MPI compile/run and `-DANN_NO_MPI` for a
   single-process fallback compile.
 - Bad: old copied `test.sh`, `qsub.sh`, `build/`, report outputs, or transfer
@@ -101,7 +109,8 @@ Good/base/bad cases:
 Tests required:
 
 - Local `-DANN_NO_MPI` compile.
-- Local MPI compile plus `mpiexec -n 2` smoke for IVF-PQ and block-HNSW.
+- Local MPI compile plus `mpiexec -n 2` smoke for IVF-PQ, block-HNSW,
+  IVF+HNSW nested, and HNSW-on-HNSW.
 - Kunpeng `mpic++` build and direct or PBS `mpiexec -np 2` smoke.
 
 Wrong vs correct:

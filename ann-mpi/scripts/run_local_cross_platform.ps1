@@ -3,6 +3,7 @@ param(
     [int]$Np = 2,
     [int]$Threads = 2,
     [int]$QueryN = 200,
+    [int]$HnswOnHnswNprobe = 16,
     [string]$DataPath = "D:\Study\26sp\parallel\files",
     [string]$Mpiexec = "C:\Program Files\Microsoft MPI\Bin\mpiexec.exe"
 )
@@ -67,6 +68,7 @@ Set-Content -LiteralPath $Log -Value @(
     "NP=$Np",
     "THREADS=$Threads",
     "QUERY_N=$QueryN",
+    "HNSW_ON_HNSW_NPROBE=$HnswOnHnswNprobe",
     "ANN_DATA_PATH=$DataPath",
     "",
     "This run uses the same algorithm parameters as results/kunpeng_smoke.txt."
@@ -90,6 +92,16 @@ Invoke-Logged "MPI IVF-PQ cross-platform run" $Mpiexec @(
 Invoke-Logged "MPI block-HNSW cross-platform run" $Mpiexec @(
     "-n", "$Np", ".\build\main_mpi_cross_platform.exe", "$Threads",
     "16", "50", "1000", "$QueryN", "hnsw"
+)
+
+Invoke-Logged "MPI IVF+HNSW nested cross-platform run" $Mpiexec @(
+    "-n", "$Np", ".\build\main_mpi_cross_platform.exe", "$Threads",
+    "16", "4", "50", "$QueryN", "ivf-hnsw"
+)
+
+Invoke-Logged "MPI HNSW-on-HNSW cross-platform run" $Mpiexec @(
+    "-n", "$Np", ".\build\main_mpi_cross_platform.exe", "$Threads",
+    "16", "$HnswOnHnswNprobe", "50", "$QueryN", "hnsw-on-hnsw"
 )
 
 Get-Content -LiteralPath $Log | Select-Object -Last 80
