@@ -71,3 +71,36 @@ Completed ann-mpi cleanup, MPI/PBS scripts, Windows and Kunpeng same-parameter I
 ### Next Steps
 
 - None - task complete
+
+
+## Session 3: Strengthen ANN MPI full-score coverage
+
+**Date**: 2026-05-25
+**Task**: Strengthen ANN MPI full-score coverage
+**Branch**: `master`
+
+### Summary
+
+Completed the ANN MPI full-score reinforcement: added HNSW-on-HNSW graph option C, preserved IVF-PQ/block-HNSW/IVF-HNSW modes, updated reproducible Windows and Kunpeng scripts, recorded direct and PBS cross-platform results, and added a requirement-to-evidence checklist.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `88f6711` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
