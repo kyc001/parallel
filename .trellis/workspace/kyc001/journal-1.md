@@ -104,3 +104,36 @@ Completed the ANN MPI full-score reinforcement: added HNSW-on-HNSW graph option 
 ### Next Steps
 
 - None - task complete
+
+
+## Session 4: Write ANN MPI experiment report
+
+**Date**: 2026-05-25
+**Task**: Write ANN MPI experiment report
+**Branch**: `master`
+
+### Summary
+
+Wrote the ANN MPI experiment report in the style of the previous ANN reports, generated the PDF under the 30-page limit, validated XeLaTeX build, page count, text extraction, and rendered-page layout, and recorded the report validation convention.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `1841acb` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
