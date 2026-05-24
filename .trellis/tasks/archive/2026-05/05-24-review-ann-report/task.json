@@ -1,0 +1,31 @@
+{
+  "id": "review-ann-report",
+  "name": "review-ann-report",
+  "title": "Write ANN MPI report",
+  "description": "Write the ANN MPI experiment report in the style of the previous two reports, with a temporary 30-page limit.",
+  "status": "completed",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P2",
+  "creator": "kyc001",
+  "assignee": "kyc001",
+  "createdAt": "2026-05-24",
+  "completedAt": "2026-05-25",
+  "branch": null,
+  "base_branch": "master",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [
+    "ann-mpi/report/main.tex",
+    "ann-mpi/report/main.pdf",
+    "ann-mpi/results/cross_platform_summary.txt",
+    "ann-mpi/results/full_score_checklist.md"
+  ],
+  "notes": "Repurposed from the earlier report-review task after the user asked for the ANN MPI report.",
+  "meta": {}
+}
