@@ -3,14 +3,14 @@
 //
 // 选择: 鲲鹏 ARM NEON 主线平台上端到端速度最快的配置
 //   ivfpq_local + pthread_dynamic_inter + t=8, nlist=16, nprobe=4, p=1000
-//   单 query 延迟 134.48 μs, Recall@10=0.9597 (见报告 §6.1 表 tab:best)
+//   单 query 延迟 134.48 us, Recall@10=0.9597 (见报告 §6.1 表 tab:best)
 //
 // 逻辑直接展开自 mains/ivf/pthread/dynamic/inter/main_ivfpq.cc 与
 // mains/ivfpq_bench_common.h 的 RunInter, 所有参数硬编码以确保
 // 在课程框架 `bash test.sh 2 1` 工作流下 (qsub 调用时无 argv) 仍按最快
 // 配置运行.
 //
-// 编译: g++ main.cc -o main -O2 -fopenmp -lpthread -std=c++17 -I.
+// 编译: g++ main.cc -o main -O2 -fopenmp -lpthread -std=c++11
 //        (鲲鹏 GCC 13 NEON 自动激活; 本地 x86 需追加 -mavx2 -mfma)
 // 运行: bash test.sh 2 1  (会经 qsub 在单节点上提交并执行 ./main)
 // 数据: /anndata/DEEP100K.{base.100k.fbin, query.fbin, gt.query.100k.top100.bin}

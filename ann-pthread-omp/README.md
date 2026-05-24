@@ -4,7 +4,7 @@
 
 ## 最终提交入口
 
-`main.cc` 当前配置为鲲鹏平台最快方案：**IVF-PQ local + pthread_dynamic_inter（t=8, nlist=16, nprobe=4, p=1000）**，延迟 134.48μs，Recall@10=0.9597。
+`main.cc` 当前配置为鲲鹏平台最快方案：**IVF-PQ local + pthread_dynamic_inter（t=8, nlist=16, nprobe=4, p=1000）**，延迟 134.48 us，Recall@10=0.9597。
 
 ```bash
 bash test.sh 2 1
@@ -119,7 +119,7 @@ Windows / PowerShell：
 
 ```bash
 cp mains/pthread/static/inter/main_flat.cc main.cc
-g++ main.cc -o main -O2 -fopenmp -lpthread -std=c++17 -I. -mavx2 -mfma
+g++ main.cc -o main -O2 -fopenmp -lpthread -std=c++11 -mavx2 -mfma
 ./main 4                     # 参数：线程数
 ```
 

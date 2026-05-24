@@ -1,3 +1,4 @@
+// 禁止修改该文件
 #pragma once
 #include <queue>
 
@@ -26,3 +27,4 @@ std::priority_queue<std::pair<float, uint32_t> > flat_search(float* base, float*
     }
     return q;
 }
+
