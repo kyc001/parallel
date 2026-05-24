@@ -1,8 +1,8 @@
 param(
-    [string]$Log = "results/local_cross_platform.txt",
-    [int]$Np = 2,
+    [string]$Log = "results/local_cross_platform_full.txt",
+    [int]$Np = 8,
     [int]$Threads = 2,
-    [int]$QueryN = 200,
+    [int]$QueryN = 2000,
     [int]$HnswOnHnswNprobe = 16,
     [string]$DataPath = "D:\Study\26sp\parallel\files",
     [string]$Mpiexec = "C:\Program Files\Microsoft MPI\Bin\mpiexec.exe"
@@ -71,7 +71,7 @@ Set-Content -LiteralPath $Log -Value @(
     "HNSW_ON_HNSW_NPROBE=$HnswOnHnswNprobe",
     "ANN_DATA_PATH=$DataPath",
     "",
-    "This run uses the same algorithm parameters as results/kunpeng_smoke.txt."
+    "This run uses the selected full experiment parameters for Windows MS-MPI."
 )
 
 Invoke-Logged "compile no-MPI fallback" "g++" @(

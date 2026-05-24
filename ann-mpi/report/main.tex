@@ -100,7 +100,7 @@
 
 本实验在前两次 ANN 实验已有的 SIMD 距离内核、IVF-PQ 和 HNSW 结构基础上，将搜索任务迁移到 MPI 多进程环境，并在每个 MPI rank 内继续使用 OpenMP 做进程内并行。程序采用统一入口 \code{main.cc}，支持四种搜索模式：IVF-PQ、分块 HNSW、IVF+HNSW 嵌套索引，以及 HNSW-on-HNSW 分层图索引。MPI 层负责 base 向量划分、query 广播、候选集 gather 和 rank 0 的 top-$k$ 合并；OpenMP 层负责本地倒排表、HNSW 块或候选块之间的并行搜索。
 
-实验使用 DEEP100K 数据集，距离度量为内积距离，统一评价 Recall@10、平均单 query 延迟、本地最慢 rank 搜索时间以及通信与合并开销。报告给出 Windows 本地 MS-MPI、鲲鹏服务器直接 \code{mpiexec} 和 PBS \code{qsub} 三条路径的同参数结果。结果表明：相同参数下两平台 Recall 完全一致；在 \code{np=2, threads=2, query=200} 的验证规模中，通信与 merge 占比始终小于约 1.3\%，主要瓶颈仍在各 rank 的本地 ANN 搜索。图索引方面，block-HNSW 和 HNSW-on-HNSW 均达到 Recall@10=1.00000；HNSW-on-HNSW 在全 block 探测配置下召回率最高但延迟较大，体现了典型的 recall-latency trade-off。
+实验使用 DEEP100K 数据集，距离度量为内积距离，统一评价 Recall@10、平均单 query 延迟、本地最慢 rank 搜索时间以及通信与合并开销。报告给出 Windows 本地 MS-MPI、鲲鹏服务器直接 \code{mpiexec} 和 PBS \code{qsub} 三条路径的同参数结果。结果表明：相同参数下两平台 Recall 完全一致；在 \code{np=8, threads=2, query=2000} 的全量验证规模中，通信与 merge 占比始终小于约 1.4\%，主要瓶颈仍在各 rank 的本地 ANN 搜索。图索引方面，block-HNSW 达到 Recall@10=1.00000，HNSW-on-HNSW 达到 Recall@10=0.99995；HNSW-on-HNSW 在全 block 探测配置下保持接近满召回但延迟较大，体现了典型的 recall-latency trade-off。
 
 \noindent\textbf{关键词：} ANN；MPI；OpenMP；IVF-PQ；HNSW；HNSW-on-HNSW；负载均衡；通信开销
 
@@ -200,7 +200,7 @@ Range PartitionRange(size_t n, int rank, int world_size) {
 \[
 O(QPk\log k),
 \]
-其中 $Q$ 是 query 数。与本地搜索的 IVF 或 HNSW 访问相比，当 $P$ 和 $k$ 不大时，这部分开销很小。实验中 $P=2,k=10,Q=200$，每个 rank 只需发送约 $Qk(4+8)\approx 24$ KB 候选数据，query 广播约 $Qd\cdot4\approx 75$ KB，因此通信量远小于本地索引搜索的访存量。
+其中 $Q$ 是 query 数。与本地搜索的 IVF 或 HNSW 访问相比，当 $P$ 和 $k$ 不大时，这部分开销很小。正式全量实验中 $P=8,k=10,Q=2000$，每个 rank 发送约 $Qk(4+8)\approx 234$ KiB 候选数据，query 广播约 $Qd\cdot4\approx 750$ KiB，因此通信量仍小于本地索引搜索的访存量。
 
 \subsection{代码组织与数据路径}
 
@@ -300,7 +300,7 @@ IVF-PQ 是从上一阶段多线程版本迁移到 MPI 的基础方案。多线�
 
 \textbf{方案 B：分块 HNSW。}MPI 本身已经把 base 划分成多个 shard，因此每个 rank 的 HNSW 可以视为一个独立 block graph。所有 rank 并行搜索自己的图，rank 0 再合并结果。该方案实现直接、召回较高，但每个局部 HNSW 的搜索路径具有串行依赖，OpenMP 只能在多入口或多 query 层面分摊，不能把单条贪心路径线性拆开。
 
-\textbf{方案 C：HNSW-on-HNSW。}本实验进一步实现了分层图：每个 rank 把本地 base 分成多个 block，先计算 block centroid 并建立 top-level HNSW；每个 block 内再建立 bottom-level HNSW。搜索时先在 centroid graph 上选择若干 block，再并行搜索被选中的 block graph。它能表达“图上再建图”的组合策略；当 \code{nprobe_blocks} 取满 16 时，召回达到 1.00000，但因为实际搜索了所有 block，延迟明显上升。
+\textbf{方案 C：HNSW-on-HNSW。}本实验进一步实现了分层图：每个 rank 把本地 base 分成多个 block，先计算 block centroid 并建立 top-level HNSW；每个 block 内再建立 bottom-level HNSW。搜索时先在 centroid graph 上选择若干 block，再并行搜索被选中的 block graph。它能表达“图上再建图”的组合策略；当 \code{nprobe_blocks} 取满 16 时，全量实验 Recall@10 达到 0.99995，但因为实际搜索了所有 block，延迟明显上升。
 
 \subsection{混合并行边界}
 
@@ -351,7 +351,7 @@ if (rank == 0) {
 
 \subsection{平台与数据集}
 
-实验使用 DEEP100K 数据集：base 向量 $N=100000$，维度 $d=96$，query 和 ground truth 使用课程提供的二进制文件。为了在本地和服务器上快速、稳定地完成双平台验证，本报告采用相同 smoke 参数：\code{np=2}，每进程 \code{threads=2}，前 \code{query_n=200} 条 query，$k=10$。平台信息见表 \ref{tab:env}。
+实验使用 DEEP100K 数据集：base 向量 $N=100000$，维度 $d=96$，query 和 ground truth 使用课程提供的二进制文件。本报告的正式实验采用相同全量参数：\code{np=8}，每进程 \code{threads=2}，前 \code{query_n=2000} 条 query，$k=10$。平台信息见表 \ref{tab:env}。
 
 \begin{table}[H]
   \centering\small
@@ -362,7 +362,7 @@ if (rank == 0) {
     Windows 本地 & MS-MPI，MinGW-w64 编译环境，AVX2/FMA 参数 &
     本地开发、no-MPI fallback 编译、MPI 四模式交叉验证。\\
     鲲鹏直接运行 & AArch64 Linux，服务器 MPI 编译器与运行器 &
-    服务器直接构建与 \code{mpiexec -np 2} 运行。\\
+    服务器直接构建与 \code{mpiexec -np 8} 运行。\\
     鲲鹏 PBS & \code{qsub_mpi.sh}，\code{nodes=2:ppn=8}，共享 \code{/anndata} &
     按提交指南验证 PBS 作业路径，并记录队列运行结果。\\
     \bottomrule
@@ -377,16 +377,16 @@ if (rank == 0) {
 \begin{lstlisting}[language=bash]
 make clean
 make
-ANN_DATA_PATH=/anndata /usr/local/bin/mpiexec -np 2 ./main 2 16 4 1000 200 local
-ANN_DATA_PATH=/anndata /usr/local/bin/mpiexec -np 2 ./main 2 16 50 1000 200 hnsw
-ANN_DATA_PATH=/anndata /usr/local/bin/mpiexec -np 2 ./main 2 16 4 50 200 ivf-hnsw
-ANN_DATA_PATH=/anndata /usr/local/bin/mpiexec -np 2 ./main 2 16 16 50 200 hnsw-on-hnsw
+ANN_DATA_PATH=/anndata /usr/local/bin/mpiexec -np 8 ./main 2 16 4 1000 2000 local
+ANN_DATA_PATH=/anndata /usr/local/bin/mpiexec -np 8 ./main 2 16 50 1000 2000 hnsw
+ANN_DATA_PATH=/anndata /usr/local/bin/mpiexec -np 8 ./main 2 16 4 50 2000 ivf-hnsw
+ANN_DATA_PATH=/anndata /usr/local/bin/mpiexec -np 8 ./main 2 16 16 50 2000 hnsw-on-hnsw
 \end{lstlisting}
 
 PBS 提交脚本通过环境变量控制参数，报告中保存的作业使用：
 \begin{lstlisting}[language=bash]
-NP=2 OMP_NUM_THREADS=2 QUERY_N=200 \
-HNSW_ON_HNSW_NPROBE=16 scripts/submit_kunpeng_pbs_smoke.sh
+NP=8 OMP_NUM_THREADS=2 QUERY_N=2000 \
+HNSW_ON_HNSW_NPROBE=16 scripts/submit_kunpeng_pbs_full.sh
 \end{lstlisting}
 
 Windows 本地验证使用：
@@ -406,7 +406,7 @@ powershell -ExecutionPolicy Bypass -File scripts/run_local_cross_platform.ps1
 
 \subsection{结果可复现性}
 
-本次报告没有只摘录屏幕上的最后几行，而是把运行路径固定在脚本中，并保存完整日志。Windows 本地脚本会先编译 \code{-DANN_NO_MPI} fallback，再编译 MPI 版本并依次运行四种模式；鲲鹏 direct 脚本记录 \code{mpic++} 构建命令和四次 \code{mpiexec}；PBS 脚本记录 \code{qsub -v} 参数、job id、\code{qstat} 轮询结果以及 \code{test.o/test.e} 尾部输出。三个日志最终汇总到 \code{results/cross_platform_summary.txt}。
+本次报告没有只摘录屏幕上的最后几行，而是把运行路径固定在脚本中，并保存完整日志。Windows 本地脚本会先编译 \code{-DANN_NO_MPI} fallback，再编译 MPI 版本并依次运行四种模式；鲲鹏 direct 脚本记录 \code{mpic++} 构建命令和四次 \code{mpiexec}；PBS 脚本记录 \code{qsub -v} 参数、job id、\code{qstat} 轮询结果以及 \code{test.o/test.e} 尾部输出。三个全量日志最终汇总到 \code{results/cross_platform_summary.txt}。
 
 为了让结果表中的数字可追溯，表 \ref{tab:repro} 列出报告中使用的日志来源。若重新实验，只需覆盖这些日志并重新整理汇总表；报告中的参数、平台和结果字段就能对应更新。
 
@@ -417,7 +417,7 @@ powershell -ExecutionPolicy Bypass -File scripts/run_local_cross_platform.ps1
     实验路径 & 日志标识 & 记录内容 \\
     \midrule
     Windows local & \code{local} & 本地 no-MPI 编译、MPI 编译、MS-MPI 四模式运行结果。\\
-    Kunpeng direct & \code{direct} & 服务器 \code{mpic++} 构建和 \code{mpiexec -np 2} 四模式运行结果。\\
+    Kunpeng direct & \code{direct} & 服务器 \code{mpic++} 构建和 \code{mpiexec -np 8} 四模式运行结果。\\
     Kunpeng PBS & \code{pbs} & PBS 提交命令、job 状态、标准输出尾部和四模式结果。\\
     汇总表 & \code{summary} & 同参数的 Recall、latency、max local 和 comm/merge 汇总。\\
     \bottomrule
@@ -438,20 +438,20 @@ powershell -ExecutionPolicy Bypass -File scripts/run_local_cross_platform.ps1
     \toprule
     平台 / 路径 & 算法 & Recall@10 & latency & local max & comm \\
     \midrule
-    Windows MS-MPI & IVF-PQ & 0.95650 & 229.98250 & 228.59550 & 1.38700 \\
-    Windows MS-MPI & block-HNSW & 1.00000 & 269.52450 & 266.72200 & 2.80250 \\
-    Windows MS-MPI & IVF+HNSW & 0.95400 & 154.56800 & 152.57050 & 1.99750 \\
-    Windows MS-MPI & HNSW-on-HNSW & 1.00000 & 461.18750 & 459.42100 & 1.76650 \\
+    Windows MS-MPI & IVF-PQ & 0.96515 & 297.55775 & 295.03885 & 2.51890 \\
+    Windows MS-MPI & block-HNSW & 1.00000 & 188.02760 & 185.85775 & 2.16985 \\
+    Windows MS-MPI & IVF+HNSW & 0.96450 & 245.04700 & 241.75430 & 3.29270 \\
+    Windows MS-MPI & HNSW-on-HNSW & 0.99995 & 764.20575 & 761.49210 & 2.71365 \\
     \midrule
-    鲲鹏 direct & IVF-PQ & 0.95650 & 360.83221 & 358.91652 & 1.91569 \\
-    鲲鹏 direct & block-HNSW & 1.00000 & 277.39286 & 275.66791 & 1.72496 \\
-    鲲鹏 direct & IVF+HNSW & 0.95400 & 567.97028 & 565.60040 & 2.36988 \\
-    鲲鹏 direct & HNSW-on-HNSW & 1.00000 & 1851.95684 & 1849.49517 & 2.46167 \\
+    鲲鹏 direct & IVF-PQ & 0.96515 & 487.62608 & 484.26139 & 3.36468 \\
+    鲲鹏 direct & block-HNSW & 1.00000 & 809.64017 & 806.35250 & 3.28767 \\
+    鲲鹏 direct & IVF+HNSW & 0.96450 & 875.92983 & 871.55020 & 4.37963 \\
+    鲲鹏 direct & HNSW-on-HNSW & 0.99995 & 2652.38655 & 2648.72622 & 3.66032 \\
     \midrule
-    鲲鹏 PBS & IVF-PQ & 0.95650 & 438.50303 & 436.80668 & 1.69635 \\
-    鲲鹏 PBS & block-HNSW & 1.00000 & 260.82397 & 259.23848 & 1.58548 \\
-    鲲鹏 PBS & IVF+HNSW & 0.95400 & 512.36391 & 510.55074 & 1.81317 \\
-    鲲鹏 PBS & HNSW-on-HNSW & 1.00000 & 1741.80984 & 1740.05032 & 1.75953 \\
+    鲲鹏 PBS & IVF-PQ & 0.96515 & 498.40915 & 494.64178 & 3.76737 \\
+    鲲鹏 PBS & block-HNSW & 1.00000 & 803.68006 & 800.99261 & 2.68745 \\
+    鲲鹏 PBS & IVF+HNSW & 0.96450 & 735.86738 & 732.93114 & 2.93624 \\
+    鲲鹏 PBS & HNSW-on-HNSW & 0.99995 & 2465.35361 & 2462.41915 & 2.93446 \\
     \bottomrule
   \end{tabular}
   \caption{双平台四模式实验结果。所有延迟单位均为 $\mu$s/query。}
@@ -460,7 +460,7 @@ powershell -ExecutionPolicy Bypass -File scripts/run_local_cross_platform.ps1
 
 \subsection{通信与 merge 开销}
 
-表 \ref{tab:comm_ratio} 给出通信与 merge 占总延迟的比例。该比例在所有记录中都低于 1.3\%，说明在本实验规模下，性能主要由本地 ANN 搜索决定，而不是 MPI 通信。换句话说，当进程数为 2、候选数为 $k=10$ 时，rank 0 的合并没有成为瓶颈；如果未来扩大到更多进程或更大的候选池，才需要重点考虑树形归约或分层 merge。
+表 \ref{tab:comm_ratio} 给出通信与 merge 占总延迟的比例。该比例在所有记录中都低于 1.4\%，说明在本实验规模下，性能主要由本地 ANN 搜索决定，而不是 MPI 通信。换句话说，当进程数为 8、候选数为 $k=10$ 时，rank 0 的合并仍没有成为瓶颈；如果未来扩大到更多进程或更大的候选池，才需要重点考虑树形归约或分层 merge。
 
 \begin{table}[H]
   \centering\small
@@ -468,9 +468,9 @@ powershell -ExecutionPolicy Bypass -File scripts/run_local_cross_platform.ps1
     \toprule
     平台 / 路径 & IVF-PQ & block-HNSW & IVF+HNSW & HNSW-on-HNSW \\
     \midrule
-    Windows MS-MPI & 0.60\% & 1.04\% & 1.29\% & 0.38\% \\
-    鲲鹏 direct & 0.53\% & 0.62\% & 0.42\% & 0.13\% \\
-    鲲鹏 PBS & 0.39\% & 0.61\% & 0.35\% & 0.10\% \\
+    Windows MS-MPI & 0.85\% & 1.15\% & 1.34\% & 0.36\% \\
+    鲲鹏 direct & 0.69\% & 0.41\% & 0.50\% & 0.14\% \\
+    鲲鹏 PBS & 0.76\% & 0.33\% & 0.40\% & 0.12\% \\
     \bottomrule
   \end{tabular}
   \caption{通信与 merge 占平均总延迟比例}
@@ -479,27 +479,27 @@ powershell -ExecutionPolicy Bypass -File scripts/run_local_cross_platform.ps1
 
 \subsection{Recall-latency 分析}
 
-IVF-PQ 与 IVF+HNSW 都使用“先筛选、再精排或图搜索”的思路，因此延迟低但召回略低。本地 Windows 上 IVF+HNSW 只有 154.568 $\mu$s/query，是四种模式中最快的；但 Recall@10 为 0.95400，略低于 block-HNSW 和 HNSW-on-HNSW。IVF-PQ 的 Recall@10 为 0.95650，延迟在 Windows 上为 229.98250 $\mu$s/query，在鲲鹏 PBS 上为 438.50303 $\mu$s/query。
+IVF-PQ 与 IVF+HNSW 都使用“先筛选、再精排或图搜索”的思路，因此延迟较低但召回略低。本地 Windows 上 block-HNSW 为 188.02760 $\mu$s/query，是四种模式中最快的；IVF+HNSW 的 Recall@10 为 0.96450，略低于 block-HNSW 和 HNSW-on-HNSW。IVF-PQ 的 Recall@10 为 0.96515，延迟在 Windows 上为 297.55775 $\mu$s/query，在鲲鹏 PBS 上为 498.40915 $\mu$s/query。
 
-block-HNSW 在三条路径上都达到 Recall@10=1.00000，延迟也比较稳定：Windows 为 269.52450 $\mu$s/query，鲲鹏 direct 为 277.39286 $\mu$s/query，PBS 为 260.82397 $\mu$s/query。它说明在本 smoke 配置下，分块图索引是高召回和较低实现复杂度之间较好的折中。
+block-HNSW 在三条路径上都达到 Recall@10=1.00000。Windows 上该模式延迟最低；鲲鹏 direct 和 PBS 上约为 0.8 ms/query，明显慢于 Windows，但仍保持满召回。这说明分块图索引是高召回和较低实现复杂度之间较好的折中，同时也对不同平台的图访问、优先队列和分支预测更敏感。
 
-HNSW-on-HNSW 同样达到 Recall@10=1.00000，但在鲲鹏上延迟达到 1.7--1.85 ms/query。原因在于本报告为了验证方案 C 的召回上限，将 \code{nprobe_blocks=16} 设置为探测所有 block；top-level HNSW 选块之后，bottom-level 搜索仍覆盖全部局部 block，因此它更适合作为“高召回但高搜索代价”的对照点。若实际追求低延迟，应进一步 sweep \code{nprobe_blocks}，观察从少量 block 到全 block 的召回曲线。
+HNSW-on-HNSW 达到 Recall@10=0.99995，但在鲲鹏上延迟达到 2.46--2.65 ms/query。原因在于本报告为了验证方案 C 的召回上限，将 \code{nprobe_blocks=16} 设置为探测所有 block；top-level HNSW 选块之后，bottom-level 搜索仍覆盖全部局部 block，因此它更适合作为“高召回但高搜索代价”的对照点。若实际追求低延迟，应进一步 sweep \code{nprobe_blocks}，观察从少量 block 到全 block 的召回曲线。
 
 \subsection{平台差异}
 
-Windows 与鲲鹏的 Recall 完全一致，说明浮点距离、候选 id 偏移和 rank 0 merge 逻辑在两个平台上保持一致。延迟上，IVF-PQ 与 IVF+HNSW 在 Windows 上更快，而 block-HNSW 在鲲鹏 direct/PBS 中与 Windows 接近甚至略快。这个现象说明不同算法对硬件的敏感点不同：IVF-PQ 更依赖顺序数组访问、PQ 查表和 rerank；HNSW 更依赖图访问、优先队列和分支路径。PBS 与 direct 的差异还受到队列节点位置和共享负载影响，因此报告同时保留两份服务器日志，而不只引用一次运行。
+Windows 与鲲鹏的 Recall 完全一致，说明浮点距离、候选 id 偏移和 rank 0 merge 逻辑在两个平台上保持一致。延迟上，Windows 本地在四种模式中整体更快，鲲鹏 direct/PBS 的图索引模式更慢。这个现象说明不同算法对硬件的敏感点不同：IVF-PQ 更依赖顺序数组访问、PQ 查表和 rerank；HNSW 更依赖图访问、优先队列和分支路径。PBS 与 direct 的差异还受到队列节点位置和共享负载影响，因此报告同时保留两份服务器日志，而不只引用一次运行。
 
 \subsection{结果可信性检查}
 
-本次结果首先看正确性，再看速度。四种模式在 Windows、鲲鹏 direct 和 PBS 中的 Recall 完全复现，尤其是 IVF-PQ 的 0.95650、IVF+HNSW 的 0.95400 以及两个高召回图索引的 1.00000 在三条路径中一致，这说明候选 id 的全局偏移、跨 rank gather 顺序和 top-$k$ merge 没有平台相关错误。
+本次结果首先看正确性，再看速度。四种模式在 Windows、鲲鹏 direct 和 PBS 中的 Recall 完全复现，尤其是 IVF-PQ 的 0.96515、IVF+HNSW 的 0.96450、block-HNSW 的 1.00000 以及 HNSW-on-HNSW 的 0.99995 在三条路径中一致，这说明候选 id 的全局偏移、跨 rank gather 顺序和 top-$k$ merge 没有平台相关错误。
 
 其次看计时拆分。所有记录中都有
 \[
 \text{latency}\approx \text{max local search}+\text{comm+merge}.
 \]
-例如 Windows IVF-PQ 中 $228.59550+1.38700=229.98250$，与总延迟完全对齐；鲲鹏 PBS 的 HNSW-on-HNSW 中 $1740.05032+1.75953=1741.80985$，只存在四舍五入误差。这说明 \code{comm+merge latency} 的计算口径稳定，不是事后人为估计。
+例如 Windows IVF-PQ 中 $295.03885+2.51890=297.55775$，与总延迟完全对齐；鲲鹏 PBS 的 HNSW-on-HNSW 中 $2462.41915+2.93446=2465.35361$，与总延迟完全对齐。这说明 \code{comm+merge latency} 的计算口径稳定，不是事后人为估计。
 
-最后看双平台解释。PBS 和 direct 的延迟并不完全相同，但 Recall 一致，说明性能波动主要来自服务器环境和运行路径，而不是算法逻辑改变。报告中没有把 smoke 结果夸大为完整强扩展实验，而是在“问题与改进方向”中单独说明还需要补充 \code{np=1,2,4,8} 的多进程 sweep。
+最后看双平台解释。PBS 和 direct 的延迟并不完全相同，但 Recall 一致，说明性能波动主要来自服务器环境和运行路径，而不是算法逻辑改变。报告中的全量实验固定在 \code{np=8}，因此仍不是完整强扩展实验；在“问题与改进方向”中单独说明还需要补充 \code{np=1,2,4,8} 的多进程 sweep。
 
 \section{满分要求对照}
 
@@ -517,7 +517,7 @@ Windows 与鲲鹏的 Recall 完全一致，说明浮点距离、候选 id 偏移
     局部 top-$k$ 与全局 merge & 各 rank 打包本地 top-$k$，\code{MPI_Gather} 到 rank 0 后调用 \code{MergeGatheredCandidates}。& 完成\\
     MPI + OpenMP 混合并行 & MPI 做进程级 shard，OpenMP 做 rank 内 query/list/block 级并行。& 完成\\
     负载均衡分析 & base 划分最大差 1；输出 \code{max local search latency} 观察最慢 rank。& 完成\\
-    通信/merge 分析 & 输出 \code{comm+merge latency}，表 \ref{tab:comm_ratio} 显示占比低于 1.3\%。& 完成\\
+    通信/merge 分析 & 输出 \code{comm+merge latency}，表 \ref{tab:comm_ratio} 显示占比低于 1.4\%。& 完成\\
     图索引 A & \code{ivf-hnsw} 实现 IVF+HNSW 嵌套索引。& 完成\\
     图索引 B & \code{hnsw} 实现分块/分 rank HNSW 搜索。& 完成\\
     图索引 C & \code{hnsw-on-hnsw} 实现 centroid HNSW + block HNSW。& 完成\\
@@ -530,7 +530,7 @@ Windows 与鲲鹏的 Recall 完全一致，说明浮点距离、候选 id 偏移
 
 \section{问题与改进方向}
 
-\textbf{更多进程数的扩展性。}本报告以 \code{np=2} 做双平台稳定验证，已经能证明 MPI 数据流、合并逻辑和 PBS 提交流程正确。但要更系统地分析扩展性，还应补充 \code{np=1,2,4,8} 的 sweep，并在服务器负载较低时重复多次取中位数。预计当进程数增大时，本地搜索时间会下降，但候选 gather 和 rank 0 merge 会逐渐变得更明显。
+\textbf{更多进程数的扩展性。}本报告以 \code{np=8} 做双平台全量验证，已经能证明 MPI 数据流、合并逻辑和 PBS 提交流程正确。但要更系统地分析扩展性，还应补充 \code{np=1,2,4,8} 的 sweep，并在服务器负载较低时重复多次取中位数。预计当进程数增大时，本地搜索时间会下降，但候选 gather 和 rank 0 merge 会逐渐变得更明显。
 
 \textbf{HNSW-on-HNSW 参数。}\code{nprobe_blocks=16} 是偏向高召回的配置，相当于在 top-level graph 之后仍搜索全部 block。后续可以设置 \code{nprobe_blocks=1,2,4,8,16}，画出 Recall@10 与延迟曲线，找到召回刚刚接近 1.0 的拐点。
 
@@ -540,9 +540,9 @@ Windows 与鲲鹏的 Recall 完全一致，说明浮点距离、候选 id 偏移
 
 \section{结论}
 
-本实验完成了 ANN 搜索从单机多线程到 MPI 多进程环境的迁移，并保留 OpenMP 作为 rank 内并行层。IVF-PQ 验证了基础倒排索引迁移；block-HNSW、IVF+HNSW 和 HNSW-on-HNSW 分别覆盖了图索引要求中的 B、A、C 三类方案。双平台结果显示，相同参数下 Recall 在 Windows 与鲲鹏上完全一致，说明分布式 top-$k$ 合并逻辑正确；通信与 merge 开销在本验证规模中很小，主要瓶颈仍是本地 ANN 搜索。
+本实验完成了 ANN 搜索从单机多线程到 MPI 多进程环境的迁移，并保留 OpenMP 作为 rank 内并行层。IVF-PQ 验证了基础倒排索引迁移；block-HNSW、IVF+HNSW 和 HNSW-on-HNSW 分别覆盖了图索引要求中的 B、A、C 三类方案。双平台全量结果显示，相同参数下 Recall 在 Windows 与鲲鹏上完全一致，说明分布式 top-$k$ 合并逻辑正确；通信与 merge 开销在本验证规模中很小，主要瓶颈仍是本地 ANN 搜索。
 
-从算法效果看，IVF+HNSW 在 Windows 上延迟最低但召回略低；block-HNSW 在三条路径上都达到 Recall@10=1.00000 且延迟较稳，是当前最均衡的图索引方案；HNSW-on-HNSW 证明了方案 C 的可行性和高召回能力，但全 block 探测配置带来了明显延迟代价。整体来看，本次实现满足了 MPI 划分、混合并行、通信/merge 分析、图索引 A/B/C 和跨平台复现实验的要求。
+从算法效果看，IVF-PQ 与 IVF+HNSW 的召回略低但保持较好的筛选效率；block-HNSW 在三条路径上都达到 Recall@10=1.00000，是当前最可靠的高召回图索引方案；HNSW-on-HNSW 证明了方案 C 的可行性和高召回能力，但全 block 探测配置带来了明显延迟代价。整体来看，本次实现满足了 MPI 划分、混合并行、通信/merge 分析、图索引 A/B/C 和跨平台复现实验的要求。
 
 \begin{thebibliography}{9}
 \bibitem{mpi}
