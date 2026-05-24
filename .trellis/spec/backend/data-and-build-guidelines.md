@@ -48,6 +48,73 @@ in submission paths unless the task explicitly narrows the target platform.
 `lab1-CPU架构编程/src/fs_compat.hpp` exists because portability has already
 been a real issue.
 
+### MPI ANN Submission Contract
+
+MPI ANN labs use `ann-mpi/` as the owning directory and keep the submission
+entry at `ann-mpi/main.cc`.
+
+Signatures:
+
+- Server build: `mpic++ main.cc -o main -O2 -std=c++11 -I. -fopenmp -lpthread`
+- `ann-mpi/Makefile` must set `CXX = mpic++`, not `CXX ?= mpic++`, because
+  GNU make's built-in `CXX=g++` can otherwise select `g++` and fail on
+  `#include "mpi.h"`.
+- Local no-MPI fallback:
+  `g++ main.cc -o build/main_no_mpi.exe -O2 -std=c++11 -I. -fopenmp -lpthread -mavx2 -mfma -DANN_NO_MPI`
+- IVF-PQ run:
+  `mpiexec -np <np> ./main <threads> <nlist> <nprobe> <rerank_p> <query_n> local`
+- Block-HNSW run:
+  `mpiexec -np <np> ./main <threads> <hnsw_m> <ef> <unused_p> <query_n> hnsw`
+- PBS smoke:
+  `qsub -v NP=<np>,OMP_NUM_THREADS=<threads>,QUERY_N=<query_n>,NLIST=<nlist>,NPROBE=<nprobe>,RERANK_P=<p>,HNSW_M=<m>,HNSW_EF=<ef> qsub_mpi.sh`
+
+Environment contracts:
+
+- Kunpeng data should be selected with `ANN_DATA_PATH=/anndata` when
+  `/anndata` exists.
+- PBS scripts should accept `NP`, `OMP_NUM_THREADS`, `QUERY_N`, `NLIST`,
+  `NPROBE`, `RERANK_P`, `HNSW_M`, and `HNSW_EF` overrides so small smoke jobs
+  are reproducible without editing the script.
+- Result logs for MPI ANN runs must include MPI process count, OpenMP thread
+  count, algorithm parameters, Recall@10, average latency, max local search
+  latency, and communication plus merge latency.
+
+Validation/error matrix:
+
+- Missing MPI compiler/runtime -> record the failed `mpic++` or `mpiexec`
+  command and exit code in `ann-mpi/results/`.
+- Missing `/anndata` on Kunpeng -> fall back only to an explicit
+  `ANN_DATA_PATH` or staged `/home/$USER/files`; do not silently invent a new
+  data path.
+- PBS queue/job failure -> save `qsub`, `qstat`, `test.o`, and `test.e`
+  excerpts in `ann-mpi/results/kunpeng_pbs_smoke.txt`.
+
+Good/base/bad cases:
+
+- Good: direct `mpiexec -np 2` and PBS smoke both finish and emit the stable
+  latency/recall fields.
+- Base: local Windows uses MS-MPI for MPI compile/run and `-DANN_NO_MPI` for a
+  single-process fallback compile.
+- Bad: old copied `test.sh`, `qsub.sh`, `build/`, report outputs, or transfer
+  archives are kept in the MPI submission directory.
+
+Tests required:
+
+- Local `-DANN_NO_MPI` compile.
+- Local MPI compile plus `mpiexec -n 2` smoke for IVF-PQ and block-HNSW.
+- Kunpeng `mpic++` build and direct or PBS `mpiexec -np 2` smoke.
+
+Wrong vs correct:
+
+```bash
+# Wrong: assumes course data is copied into the source tree.
+scp -r files compute-node:/home/$USER/
+
+# Correct: prefer the shared Kunpeng data mount, with explicit fallback.
+export ANN_DATA_PATH=/anndata
+/usr/local/bin/mpiexec -np 2 ./main 2 16 4 1000 200 local
+```
+
 ## Platform Branches
 
 Use compile-time platform checks for low-level system APIs:

@@ -1,0 +1,44 @@
+﻿Local smoke validation
+Date: 2026-05-25
+Host: Windows local, MSYS2 g++ 14.2.0, MS-MPI runtime
+ANN_DATA_PATH=D:\Study\26sp\parallel\files
+
+---
+STEP: create build directory
+COMMAND: New-Item -ItemType Directory -Force build | Out-Null
+EXIT: 0
+---
+STEP: compile no-MPI fallback
+COMMAND: g++ main.cc -o build/main_no_mpi.exe -O2 -std=c++11 -I. -fopenmp -lpthread -mavx2 -mfma -DANN_NO_MPI
+EXIT: 0
+---
+STEP: compile MPI binary
+COMMAND: mpic++ main.cc -o build/main_mpi_compile.exe -O2 -std=c++11 -I. -fopenmp -lpthread -mavx2 -mfma
+EXIT: 0
+---
+STEP: run no-MPI IVF-PQ smoke
+COMMAND: .\build\main_no_mpi.exe 2 4 2 100 20 local
+ivfpq_local_no_mpi_omp_inter, mpi_procs=1, nthreads=2, nlist=4, local_nlist=4, nprobe=2, p=100, query_n=20, mode=local
+average recall: 0.76000
+average latency (us): 213.52000
+max local search latency (us): 213.52000
+comm+merge latency (us): 0.00000
+EXIT: 0
+---
+STEP: run MPI IVF-PQ smoke
+COMMAND: & 'C:\Program Files\Microsoft MPI\Bin\mpiexec.exe' -n 2 .\build\main_mpi_compile.exe 1 4 2 100 20 local
+ivfpq_local_mpi_omp_inter, mpi_procs=2, nthreads=1, nlist=4, local_nlist=4, nprobe=2, p=100, query_n=20, mode=local
+average recall: 0.85000
+average latency (us): 233.82500
+max local search latency (us): 227.84500
+comm+merge latency (us): 5.98000
+EXIT: 0
+---
+STEP: run MPI block-HNSW smoke
+COMMAND: & 'C:\Program Files\Microsoft MPI\Bin\mpiexec.exe' -n 2 .\build\main_mpi_compile.exe 1 8 20 100 20 hnsw
+block_hnsw_mpi_omp_multi_entry, mpi_procs=2, nthreads=1, hnsw_m=8, ef=20, query_n=20
+average recall: 0.90500
+average latency (us): 108.00500
+max local search latency (us): 96.51500
+comm+merge latency (us): 11.49000
+EXIT: 0

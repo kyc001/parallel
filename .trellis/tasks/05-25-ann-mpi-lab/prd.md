@@ -15,6 +15,8 @@ workspace, reproducible local validation, and Kunpeng server validation.
   `qsub_mpi.sh`, and use server account `s2413575`.
 - Keep the two-platform workflow: validate locally first, then sync to the
   Kunpeng server and run there.
+- Run the same experiment parameter set on both Windows local and the Kunpeng
+  server so the report can compare platforms directly.
 - Record results promptly and keep runs reproducible.
 
 ## Requirements
@@ -38,6 +40,9 @@ workspace, reproducible local validation, and Kunpeng server validation.
 - Preserve reusable source code directories and assignment documents.
 - Record local and server commands/results under stable files so the report can
   cite exact evidence.
+- Include a cross-platform comparison using identical MPI process count,
+  OpenMP thread count, query count, IVF-PQ parameters, and block-HNSW
+  parameters on both platforms.
 
 ## Known Environment
 
@@ -59,6 +64,8 @@ workspace, reproducible local validation, and Kunpeng server validation.
       or any server blocker is recorded with exact command output.
 - [ ] Reproducible commands and observed outputs are recorded in
       `ann-mpi/results/`.
+- [ ] Windows local and Kunpeng results include the same IVF-PQ and block-HNSW
+      experiment parameters and are summarized for direct comparison.
 
 ## Out of Scope
 

@@ -1,4 +1,4 @@
-CXX ?= mpic++
+CXX = mpic++
 LOCAL_CXX ?= g++
 BUILD_DIR ?= build
 TARGET ?= main

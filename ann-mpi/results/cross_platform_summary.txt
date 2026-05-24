@@ -1,0 +1,34 @@
+ANN MPI cross-platform comparison
+Date: 2026-05-25
+
+Same experiment parameters
+- MPI processes: 2
+- OpenMP threads per process: 2
+- Query count: 200
+- IVF-PQ: nlist=16, nprobe=4, rerank_p=1000, mode=local
+- Block-HNSW: hnsw_m=16, ef=50, unused_p=1000
+- Local data path: D:\Study\26sp\parallel\files
+- Kunpeng data path: /anndata
+
+Source logs
+- Local Windows: results/local_cross_platform.txt
+- Kunpeng direct mpiexec: results/kunpeng_smoke.txt
+- Kunpeng PBS qsub: results/kunpeng_pbs_smoke.txt
+
+Results
+
+| Platform / path | Algorithm | Recall@10 | latency_us | max_local_us | comm_merge_us |
+|---|---:|---:|---:|---:|---:|
+| Windows local MS-MPI | IVF-PQ | 0.95650 | 248.07400 | 246.27550 | 1.79850 |
+| Windows local MS-MPI | block-HNSW | 1.00000 | 137.30300 | 135.69350 | 1.60950 |
+| Kunpeng direct mpiexec | IVF-PQ | 0.95650 | 411.59749 | 409.88803 | 1.70946 |
+| Kunpeng direct mpiexec | block-HNSW | 1.00000 | 264.42528 | 262.60138 | 1.82390 |
+| Kunpeng PBS qsub | IVF-PQ | 0.95650 | 702.38233 | 700.93632 | 1.44601 |
+| Kunpeng PBS qsub | block-HNSW | 1.00000 | 259.40418 | 257.59816 | 1.80602 |
+
+Notes
+- Recall is identical across platforms for the same algorithm parameters.
+- Communication plus merge overhead is small compared with local search time
+  in all recorded runs.
+- PBS IVF-PQ latency is higher than direct mpiexec in this smoke run; keep both
+  logs because queue/node placement and shared cluster load can affect timing.

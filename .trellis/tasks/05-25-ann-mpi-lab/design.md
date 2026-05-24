@@ -63,3 +63,17 @@ the program output fields:
 - average latency;
 - max local search latency;
 - communication plus merge latency.
+
+## Cross-Platform Comparison
+
+Windows local and Kunpeng runs use the same comparison parameters:
+
+- MPI processes: 2;
+- OpenMP threads per process: 2;
+- query count: 200;
+- IVF-PQ: `nlist=16`, `nprobe=4`, `p=1000`, `mode=local`;
+- block-HNSW: `hnsw_m=16`, `ef=50`, unused `p=1000`.
+
+The owning summary is `ann-mpi/results/cross_platform_summary.txt`; raw command
+transcripts remain in `local_cross_platform.txt`, `kunpeng_smoke.txt`, and
+`kunpeng_pbs_smoke.txt`.
