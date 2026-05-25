@@ -1,0 +1,21 @@
+Function	CPU Time	CPU Time:Effective Time	CPU Time:Spin Time	CPU Time:Spin Time:Imbalance or Serial Spinning	CPU Time:Spin Time:Lock Contention	CPU Time:Spin Time:Other	CPU Time:Overhead Time	CPU Time:Overhead Time:Creation	CPU Time:Overhead Time:Scheduling	CPU Time:Overhead Time:Reduction	CPU Time:Overhead Time:Atomics	CPU Time:Overhead Time:Other	Module	Function (Full)	Source File	Start Address
+func@0x140001650	14.061807	14.061807	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	main_no_mpi.exe	func@0x140001650	[Unknown]	0x140001650
+func@0x14000f480	5.817656	5.817656	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	main_no_mpi.exe	func@0x14000f480	[Unknown]	0x14000f480
+pthread_mutex_lock	3.675855	0.0	3.675855	0.0	0.0	3.675855	0.0	0.0	0.0	0.0	0.0	0.0	libwinpthread-1.dll	pthread_mutex_lock	[Unknown]	0x2e3652ef0
+func@0x140015440	2.412343	2.412343	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	main_no_mpi.exe	func@0x140015440	[Unknown]	0x140015440
+func@0x14000fe80	1.121539	1.121539	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	main_no_mpi.exe	func@0x14000fe80	[Unknown]	0x14000fe80
+malloc	0.976605	0.976605	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	msvcrt.dll	malloc	[Unknown]	0x18001d640
+pthread_mutex_unlock	0.457802	0.0	0.457802	0.0	0.0	0.457802	0.0	0.0	0.0	0.0	0.0	0.0	libwinpthread-1.dll	pthread_mutex_unlock	[Unknown]	0x2e36531c0
+func@0x140001f10	0.437794	0.437794	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	main_no_mpi.exe	func@0x140001f10	[Unknown]	0x140001f10
+WaitForMultipleObjects	0.376942	0.0	0.376942	0.0	0.0	0.376942	0.0	0.0	0.0	0.0	0.0	0.0	KERNELBASE.dll	WaitForMultipleObjects	[Unknown]	0x180034ba0
+free	0.357749	0.357749	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	msvcrt.dll	free	[Unknown]	0x18001d5f0
+func@0x140001700	0.340520	0.340520	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	main_no_mpi.exe	func@0x140001700	[Unknown]	0x140001700
+func@0x140006eb0	0.112839	0.112839	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	main_no_mpi.exe	func@0x140006eb0	[Unknown]	0x140006eb0
+func@0x140005fd0	0.110165	0.110165	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	main_no_mpi.exe	func@0x140005fd0	[Unknown]	0x140005fd0
+func@0x3be9798a8	0.063001	0.063001	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	libstdc++-6.dll	func@0x3be9798a8	[Unknown]	0x3be9798a8
+operator new	0.060595	0.060595	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	libstdc++-6.dll	operator new(unsigned long long)	[Unknown]	0x3beab1b00
+func@0x140007970	0.042497	0.042497	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	main_no_mpi.exe	func@0x140007970	[Unknown]	0x140007970
+memcpy	0.040369	0.040369	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	msvcrt.dll	memcpy	[Unknown]	0x18007b180
+func@0x14000a980	0.038028	0.038028	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	main_no_mpi.exe	func@0x14000a980	[Unknown]	0x14000a980
+func@0x18007bd00	0.028345	0.028345	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	0.0	msvcrt.dll	func@0x18007bd00	[Unknown]	0x18007bd00
+SleepEx	0.027424	0.0	0.027424	0.0	0.0	0.027424	0.0	0.0	0.0	0.0	0.0	0.0	KERNELBASE.dll	SleepEx	[Unknown]	0x18006f2b0

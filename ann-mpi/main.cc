@@ -140,6 +140,21 @@ void GatherUint64Helper(uint64_t* send_buf, int send_count, uint64_t* recv_buf,
                    0, MPI_COMM_WORLD);
     }
 }
+
+void GatherDoubleHelper(double* send_buf, int send_count, double* recv_buf,
+                        int recv_count, bool nonblocking) {
+    if (nonblocking) {
+        MPI_Request req;
+        MPI_Igather(send_buf, send_count, MPI_DOUBLE,
+                    recv_buf, recv_count, MPI_DOUBLE,
+                    0, MPI_COMM_WORLD, &req);
+        MPI_Wait(&req, MPI_STATUS_IGNORE);
+    } else {
+        MPI_Gather(send_buf, send_count, MPI_DOUBLE,
+                   recv_buf, recv_count, MPI_DOUBLE,
+                   0, MPI_COMM_WORLD);
+    }
+}
 #endif
 
 size_t ParseSizeArg(int argc, char** argv, int index, size_t fallback) {
@@ -553,6 +568,15 @@ int RunMpi(int argc, char** argv) {
         MPI_Reduce(&search_us, &max_search_us, 1, MPI_DOUBLE, MPI_MAX, 0,
                    MPI_COMM_WORLD);
 
+        std::vector<double> all_search_us;
+        if (rank == 0) {
+            all_search_us.resize(world_size);
+        }
+        double rank_search_us = search_us;
+        GatherDoubleHelper(&rank_search_us, 1,
+                           rank == 0 ? all_search_us.data() : NULL, 1,
+                           use_nonblocking);
+
         if (rank == 0) {
             std::vector<SearchHeap> merged;
             MergeGatheredCandidates(all_distances, all_ids, world_size,
@@ -608,6 +632,13 @@ int RunMpi(int argc, char** argv) {
                       << max_search_us / static_cast<double>(query_n) << "\n";
             std::cout << "comm+merge latency (us): "
                       << comm_merge_us / static_cast<double>(query_n) << "\n";
+
+            std::cout << "per-rank search latency (us):";
+            for (int r = 0; r < world_size; ++r) {
+                std::cout << " rank" << r << "="
+                          << all_search_us[r] / static_cast<double>(query_n);
+            }
+            std::cout << "\n";
         }
     } catch (const std::exception& ex) {
         std::cerr << "[rank " << rank << "] " << ex.what() << "\n";

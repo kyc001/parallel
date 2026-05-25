@@ -79,13 +79,28 @@ Environment contracts:
 - PBS scripts should accept `NP`, `OMP_NUM_THREADS`, `QUERY_N`, `NLIST`,
   `NPROBE`, `RERANK_P`, `HNSW_M`, `HNSW_EF`, and `HNSW_ON_HNSW_NPROBE`
   overrides so small smoke jobs are reproducible without editing the script.
+- Kunpeng automation scripts that connect through the jump host must read the
+  server password from `KUNPENG_PASSWORD`; do not hard-code credentials in new
+  scripts or committed reproduction commands.
 - Result logs for MPI ANN runs must include MPI process count, OpenMP thread
   count, algorithm parameters, Recall@10, average latency, max local search
-  latency, and communication plus merge latency.
+  latency, communication plus merge latency, and per-rank search latency.
+- Blocking/non-blocking communication comparisons must print `comm_mode` and
+  preserve identical algorithm parameters between the two runs.
 - Full-score MPI ANN result logs should cover IVF-PQ, block-HNSW, IVF+HNSW
   nested, and HNSW-on-HNSW when those modes are present. HNSW-on-HNSW is
   expected to be a recall-latency trade-off datapoint rather than the fastest
   path when `HNSW_ON_HNSW_NPROBE` probes all blocks.
+- Windows PowerShell scripts that run MS-MPI should launch `mpiexec.exe` with
+  `Start-Process`, redirect stdout/stderr to temporary files, and check the
+  process exit code after completion. Direct calls such as
+  `& $MPIEXEC ... 2>&1 | Tee-Object ...` can turn normal MPI/runtime stderr
+  progress messages into `NativeCommandError`/`RemoteException` and abort a
+  valid benchmark.
+- VTune wrappers around MPI launchers must include a timeout and process-tree
+  cleanup path. MS-MPI child wrapping can hang before benchmark output when
+  command quoting or profiler injection fails, so scripts should fail with a
+  saved log instead of waiting indefinitely.
 
 Validation/error matrix:
 
@@ -94,17 +109,24 @@ Validation/error matrix:
 - Missing `/anndata` on Kunpeng -> fall back only to an explicit
   `ANN_DATA_PATH` or staged `/home/$USER/files`; do not silently invent a new
   data path.
+- Missing `KUNPENG_PASSWORD` in automation -> print a short diagnostic and
+  return non-zero before opening any SSH connection.
 - PBS queue/job failure -> save `qsub`, `qstat`, `test.o`, and `test.e`
   excerpts in `ann-mpi/results/kunpeng_pbs_smoke.txt`.
+- Windows MPI script stderr/progress output -> capture it as run evidence, but
+  fail only when the launched process exit code is non-zero or required result
+  fields such as Recall/latency are missing.
 
 Good/base/bad cases:
 
 - Good: direct `mpiexec -np 2` and PBS smoke both finish and emit the stable
-  latency/recall fields for every selected mode.
+  latency/recall/per-rank fields for every selected mode; PBS full sweeps are
+  used for report-visible Kunpeng results when the task requires queue runs.
 - Base: local Windows uses MS-MPI for MPI compile/run and `-DANN_NO_MPI` for a
   single-process fallback compile.
 - Bad: old copied `test.sh`, `qsub.sh`, `build/`, report outputs, or transfer
-  archives are kept in the MPI submission directory.
+  archives are kept in the MPI submission directory; new automation scripts
+  commit plaintext server passwords.
 
 Tests required:
 
@@ -112,6 +134,11 @@ Tests required:
 - Local MPI compile plus `mpiexec -n 2` smoke for IVF-PQ, block-HNSW,
   IVF+HNSW nested, and HNSW-on-HNSW.
 - Kunpeng `mpic++` build and direct or PBS `mpiexec -np 2` smoke.
+- Full-report runs should also rerun the parser/plot script after all logs are
+  collected and before LaTeX compilation.
+- Windows full-report scripts should be syntax-checked with PowerShell's parser
+  after edits, especially when they build `cmd /AFFINITY`, MS-MPI, or VTune
+  command lines.
 
 Wrong vs correct:
 
@@ -122,6 +149,13 @@ scp -r files compute-node:/home/$USER/
 # Correct: prefer the shared Kunpeng data mount, with explicit fallback.
 export ANN_DATA_PATH=/anndata
 /usr/local/bin/mpiexec -np 2 ./main 2 16 4 1000 200 local
+
+# Wrong: commits credentials in a reproduction script.
+PASSWORD="server-password"
+
+# Correct: require the caller to provide credentials through the environment.
+export KUNPENG_PASSWORD="<server-password>"
+python scripts/run_kunpeng_pbs_sweep_auto.py
 ```
 
 ## Platform Branches

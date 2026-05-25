@@ -1,0 +1,39 @@
+Date: 2026-05-25T18:05:00+08:00
+Raw result directory: results/vtune_uarch_hnsw_admin
+Target: build/main_no_mpi_profile.exe 2 16 50 1000 2000 hnsw
+ANN_DATA_PATH: D:\Study\26sp\parallel\files
+VTune: C:\Program Files (x86)\Intel\oneAPI\vtune\latest\bin64\vtune.exe
+Collection: uarch-exploration
+PMU collection mode: detailed
+
+Driver check:
+  results/vtune_exports/sampling_driver_check.txt
+  User has admin rights: OK
+  sepdrv5, sepdal, and vtss services available
+
+Successful exports:
+  results/vtune_exports/uarch_admin_summary.txt
+  results/vtune_exports/uarch_admin_top_down.txt
+  results/vtune_exports/uarch_admin_hw_events.csv
+  results/vtune_exports/uarch_admin_hotspots.csv
+  results/vtune_exports/uarch_admin_collect_log.txt
+  results/vtune_exports/sampling_driver_check.txt
+
+Key metrics used in report:
+  Elapsed Time: 49.970 s
+  Clockticks: 12,105,790,000
+  Instructions Retired: 8,242,240,000
+  CPI Rate: 1.469
+  MUX Reliability: 0.952
+  E-core Retiring: 19.7%
+  E-core Front-End Bound: 9.0%
+  E-core Bad Speculation: 11.2%
+  E-core Back-End Bound: 60.1%
+  E-core Memory Bound: 50.4%
+  E-core L1 Bound: 12.1%
+  E-core Load STLB Miss: 11.2%
+  E-core DRAM Bound: 30.1%
+
+Notes:
+  The raw VTune result directory is ignored by git. The report cites only
+  curated text/CSV exports under results/vtune_exports/.

@@ -1,0 +1,1916 @@
+﻿358-   1400014c1:	0f 01 d0             	xgetbv
+359-   1400014c4:	48 f7 d0             	not    rax
+360-   1400014c7:	a8 06                	test   al,0x6
+361-   1400014c9:	0f 94 c1             	sete   cl
+362-   1400014cc:	89 c8                	mov    eax,ecx
+363-   1400014ce:	44 21 c8             	and    eax,r9d
+364-   1400014d1:	5b                   	pop    rbx
+365-   1400014d2:	c3                   	ret
+366-   1400014d3:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+367-   1400014da:	00 00 00 00
+368-   1400014de:	66 90                	xchg   ax,ax
+369-
+370:00000001400014e0 <hnswlib::InnerProductDistance(void const*, void const*, void const*)>:
+371-   1400014e0:	4d 8b 08             	mov    r9,QWORD PTR [r8]
+372-   1400014e3:	4d 85 c9             	test   r9,r9
+373:   1400014e6:	74 48                	je     140001530 <hnswlib::InnerProductDistance(void const*, void const*, void const*)+0x50>
+374-   1400014e8:	45 31 c0             	xor    r8d,r8d
+375-   1400014eb:	c5 f0 57 c9          	vxorps xmm1,xmm1,xmm1
+376-   1400014ef:	31 c0                	xor    eax,eax
+377-   1400014f1:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+378-   1400014f8:	00 00 00 00
+379-   1400014fc:	0f 1f 40 00          	nop    DWORD PTR [rax+0x0]
+380-   140001500:	c5 fa 10 04 81       	vmovss xmm0,DWORD PTR [rcx+rax*4]
+381-   140001505:	c5 fa 59 04 82       	vmulss xmm0,xmm0,DWORD PTR [rdx+rax*4]
+382-   14000150a:	41 8d 40 01          	lea    eax,[r8+0x1]
+383-   14000150e:	49 89 c0             	mov    r8,rax
+384-   140001511:	c5 f2 58 c8          	vaddss xmm1,xmm1,xmm0
+385-   140001515:	4c 39 c8             	cmp    rax,r9
+386:   140001518:	72 e6                	jb     140001500 <hnswlib::InnerProductDistance(void const*, void const*, void const*)+0x20>
+387-   14000151a:	c5 fa 10 05 7a 83 01 	vmovss xmm0,DWORD PTR [rip+0x1837a]        # 14001989c <.rdata+0x89c>
+388-   140001521:	00
+389-   140001522:	c5 fa 5c c1          	vsubss xmm0,xmm0,xmm1
+390-   140001526:	c3                   	ret
+391-   140001527:	66 0f 1f 84 00 00 00 	nop    WORD PTR [rax+rax*1+0x0]
+392-   14000152e:	00 00
+393-   140001530:	c5 fa 10 05 64 83 01 	vmovss xmm0,DWORD PTR [rip+0x18364]        # 14001989c <.rdata+0x89c>
+394-   140001537:	00
+395-   140001538:	c3                   	ret
+396-   140001539:	0f 1f 80 00 00 00 00 	nop    DWORD PTR [rax+0x0]
+397-
+398:0000000140001540 <hnswlib::InnerProductSIMD4ExtSSE(void const*, void const*, void const*)>:
+399-   140001540:	4d 8b 08             	mov    r9,QWORD PTR [r8]
+400-   140001543:	4d 89 cb             	mov    r11,r9
+401-   140001546:	49 c1 e9 02          	shr    r9,0x2
+402-   14000154a:	49 c1 eb 04          	shr    r11,0x4
+403-   14000154e:	49 c1 e1 04          	shl    r9,0x4
+404-   140001552:	49 c1 e3 06          	shl    r11,0x6
+405-   140001556:	49 01 c9             	add    r9,rcx
+406-   140001559:	4e 8d 14 19          	lea    r10,[rcx+r11*1]
+407-   14000155d:	4c 39 d1             	cmp    rcx,r10
+408:   140001560:	0f 83 ba 00 00 00    	jae    140001620 <hnswlib::InnerProductSIMD4ExtSSE(void const*, void const*, void const*)+0xe0>
+409-   140001566:	49 89 d0             	mov    r8,rdx
+410-   140001569:	48 89 c8             	mov    rax,rcx
+411-   14000156c:	c5 f0 57 c9          	vxorps xmm1,xmm1,xmm1
+412-   140001570:	c4 c1 78 10 00       	vmovups xmm0,XMMWORD PTR [r8]
+413-   140001575:	c5 f8 59 00          	vmulps xmm0,xmm0,XMMWORD PTR [rax]
+414-   140001579:	48 83 c0 40          	add    rax,0x40
+415-   14000157d:	49 83 c0 40          	add    r8,0x40
+416-   140001581:	c5 f8 10 50 f0       	vmovups xmm2,XMMWORD PTR [rax-0x10]
+417-   140001586:	c5 f8 58 c1          	vaddps xmm0,xmm0,xmm1
+418-   14000158a:	c4 c1 78 10 48 d0    	vmovups xmm1,XMMWORD PTR [r8-0x30]
+419-   140001590:	c5 f0 59 48 d0       	vmulps xmm1,xmm1,XMMWORD PTR [rax-0x30]
+420-   140001595:	c5 f8 58 c1          	vaddps xmm0,xmm0,xmm1
+421-   140001599:	c4 c1 78 10 48 e0    	vmovups xmm1,XMMWORD PTR [r8-0x20]
+422-   14000159f:	c5 f0 59 48 e0       	vmulps xmm1,xmm1,XMMWORD PTR [rax-0x20]
+423-   1400015a4:	c5 f8 58 c1          	vaddps xmm0,xmm0,xmm1
+424-   1400015a8:	c4 c1 78 10 48 f0    	vmovups xmm1,XMMWORD PTR [r8-0x10]
+425-   1400015ae:	c5 f0 59 ca          	vmulps xmm1,xmm1,xmm2
+426-   1400015b2:	c5 f0 58 c8          	vaddps xmm1,xmm1,xmm0
+427-   1400015b6:	4c 39 d0             	cmp    rax,r10
+428:   1400015b9:	72 b5                	jb     140001570 <hnswlib::InnerProductSIMD4ExtSSE(void const*, void const*, void const*)+0x30>
+429-   1400015bb:	4c 01 d9             	add    rcx,r11
+430-   1400015be:	4c 01 da             	add    rdx,r11
+431:   1400015c1:	eb 35                	jmp    1400015f8 <hnswlib::InnerProductSIMD4ExtSSE(void const*, void const*, void const*)+0xb8>
+432-   1400015c3:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+433-   1400015ca:	00 00 00 00
+434-   1400015ce:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+435-   1400015d5:	00 00 00 00
+436-   1400015d9:	0f 1f 80 00 00 00 00 	nop    DWORD PTR [rax+0x0]
+437-   1400015e0:	c5 f8 10 01          	vmovups xmm0,XMMWORD PTR [rcx]
+438-   1400015e4:	c5 f8 10 12          	vmovups xmm2,XMMWORD PTR [rdx]
+439-   1400015e8:	48 83 c1 10          	add    rcx,0x10
+440-   1400015ec:	48 83 c2 10          	add    rdx,0x10
+441-   1400015f0:	c5 f8 59 c2          	vmulps xmm0,xmm0,xmm2
+442-   1400015f4:	c5 f0 58 c8          	vaddps xmm1,xmm1,xmm0
+443-   1400015f8:	4c 39 c9             	cmp    rcx,r9
+444:   1400015fb:	72 e3                	jb     1400015e0 <hnswlib::InnerProductSIMD4ExtSSE(void const*, void const*, void const*)+0xa0>
+445-   1400015fd:	c5 f0 c6 d1 55       	vshufps xmm2,xmm1,xmm1,0x55
+446-   140001602:	c5 f2 58 c2          	vaddss xmm0,xmm1,xmm2
+447-   140001606:	c5 f0 15 d1          	vunpckhps xmm2,xmm1,xmm1
+448-   14000160a:	c5 f0 c6 c9 ff       	vshufps xmm1,xmm1,xmm1,0xff
+449-   14000160f:	c5 fa 58 c2          	vaddss xmm0,xmm0,xmm2
+450-   140001613:	c5 fa 58 c1          	vaddss xmm0,xmm0,xmm1
+451-   140001617:	c3                   	ret
+452-   140001618:	0f 1f 84 00 00 00 00 	nop    DWORD PTR [rax+rax*1+0x0]
+453-   14000161f:	00
+454-   140001620:	c5 f0 57 c9          	vxorps xmm1,xmm1,xmm1
+455:   140001624:	eb d2                	jmp    1400015f8 <hnswlib::InnerProductSIMD4ExtSSE(void const*, void const*, void const*)+0xb8>
+456-   140001626:	66 2e 0f 1f 84 00 00 	cs nop WORD PTR [rax+rax*1+0x0]
+457-   14000162d:	00 00 00
+458-
+459:0000000140001630 <hnswlib::InnerProductDistanceSIMD4ExtSSE(void const*, void const*, void const*)>:
+460-   140001630:	48 83 ec 28          	sub    rsp,0x28
+461:   140001634:	e8 07 ff ff ff       	call   140001540 <hnswlib::InnerProductSIMD4ExtSSE(void const*, void const*, void const*)>
+462-   140001639:	c5 fa 10 0d 5b 82 01 	vmovss xmm1,DWORD PTR [rip+0x1825b]        # 14001989c <.rdata+0x89c>
+463-   140001640:	00
+464-   140001641:	c5 f2 5c c0          	vsubss xmm0,xmm1,xmm0
+465-   140001645:	48 83 c4 28          	add    rsp,0x28
+466-   140001649:	c3                   	ret
+467-   14000164a:	66 0f 1f 44 00 00    	nop    WORD PTR [rax+rax*1+0x0]
+468-
+469:0000000140001650 <hnswlib::InnerProductSIMD16ExtAVX(void const*, void const*, void const*)>:
+470-   140001650:	49 8b 00             	mov    rax,QWORD PTR [r8]
+471-   140001653:	48 c1 e8 04          	shr    rax,0x4
+472-   140001657:	48 c1 e0 06          	shl    rax,0x6
+473-   14000165b:	48 01 c8             	add    rax,rcx
+474-   14000165e:	48 39 c1             	cmp    rcx,rax
+475:   140001661:	0f 83 89 00 00 00    	jae    1400016f0 <hnswlib::InnerProductSIMD16ExtAVX(void const*, void const*, void const*)+0xa0>
+476-   140001667:	c5 f8 57 c0          	vxorps xmm0,xmm0,xmm0
+477-   14000166b:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+478-   140001672:	00 00 00 00
+479-   140001676:	66 2e 0f 1f 84 00 00 	cs nop WORD PTR [rax+rax*1+0x0]
+480-   14000167d:	00 00 00
+481-   140001680:	c5 fc 10 0a          	vmovups ymm1,YMMWORD PTR [rdx]
+482-   140001684:	c5 f4 59 09          	vmulps ymm1,ymm1,YMMWORD PTR [rcx]
+483-   140001688:	48 83 c1 40          	add    rcx,0x40
+484-   14000168c:	48 83 c2 40          	add    rdx,0x40
+485-   140001690:	c5 fc 10 52 e0       	vmovups ymm2,YMMWORD PTR [rdx-0x20]
+486-   140001695:	c5 f4 58 c0          	vaddps ymm0,ymm1,ymm0
+487-   140001699:	c5 fc 10 49 e0       	vmovups ymm1,YMMWORD PTR [rcx-0x20]
+488-   14000169e:	c5 f4 59 ca          	vmulps ymm1,ymm1,ymm2
+489-   1400016a2:	c5 f4 58 c0          	vaddps ymm0,ymm1,ymm0
+490-   1400016a6:	48 39 c1             	cmp    rcx,rax
+491:   1400016a9:	72 d5                	jb     140001680 <hnswlib::InnerProductSIMD16ExtAVX(void const*, void const*, void const*)+0x30>
+492-   1400016ab:	c5 f8 c6 c8 55       	vshufps xmm1,xmm0,xmm0,0x55
+493-   1400016b0:	c5 f2 58 c8          	vaddss xmm1,xmm1,xmm0
+494-   1400016b4:	c5 f8 15 d8          	vunpckhps xmm3,xmm0,xmm0
+495-   1400016b8:	c5 f8 c6 d0 ff       	vshufps xmm2,xmm0,xmm0,0xff
+496-   1400016bd:	c4 e3 7d 19 c0 01    	vextractf128 xmm0,ymm0,0x1
+497-   1400016c3:	c5 f2 58 cb          	vaddss xmm1,xmm1,xmm3
+498-   1400016c7:	c5 f2 58 ca          	vaddss xmm1,xmm1,xmm2
+499-   1400016cb:	c5 f8 c6 d0 55       	vshufps xmm2,xmm0,xmm0,0x55
+500-   1400016d0:	c5 f2 58 c8          	vaddss xmm1,xmm1,xmm0
+501-   1400016d4:	c5 f2 58 ca          	vaddss xmm1,xmm1,xmm2
+502-   1400016d8:	c5 f8 15 d0          	vunpckhps xmm2,xmm0,xmm0
+503-   1400016dc:	c5 f8 c6 c0 ff       	vshufps xmm0,xmm0,xmm0,0xff
+504-   1400016e1:	c5 f2 58 ca          	vaddss xmm1,xmm1,xmm2
+505-   1400016e5:	c5 f2 58 c0          	vaddss xmm0,xmm1,xmm0
+506-   1400016e9:	c5 f8 77             	vzeroupper
+507-   1400016ec:	c3                   	ret
+508-   1400016ed:	0f 1f 00             	nop    DWORD PTR [rax]
+509-   1400016f0:	c5 f8 57 c0          	vxorps xmm0,xmm0,xmm0
+510-   1400016f4:	c3                   	ret
+511-   1400016f5:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+512-   1400016fc:	00 00 00 00
+513-
+514:0000000140001700 <hnswlib::InnerProductDistanceSIMD16ExtAVX(void const*, void const*, void const*)>:
+515-   140001700:	48 83 ec 28          	sub    rsp,0x28
+516:   140001704:	e8 47 ff ff ff       	call   140001650 <hnswlib::InnerProductSIMD16ExtAVX(void const*, void const*, void const*)>
+517-   140001709:	c5 fa 10 0d 8b 81 01 	vmovss xmm1,DWORD PTR [rip+0x1818b]        # 14001989c <.rdata+0x89c>
+518-   140001710:	00
+519-   140001711:	c5 f2 5c c0          	vsubss xmm0,xmm1,xmm0
+520-   140001715:	48 83 c4 28          	add    rsp,0x28
+521-   140001719:	c3                   	ret
+522-   14000171a:	66 0f 1f 44 00 00    	nop    WORD PTR [rax+rax*1+0x0]
+523-
+524:0000000140001720 <hnswlib::InnerProductSIMD16ExtSSE(void const*, void const*, void const*)>:
+525-   140001720:	49 8b 00             	mov    rax,QWORD PTR [r8]
+526-   140001723:	48 c1 e8 04          	shr    rax,0x4
+527-   140001727:	48 c1 e0 06          	shl    rax,0x6
+528-   14000172b:	48 01 c8             	add    rax,rcx
+529-   14000172e:	48 39 c1             	cmp    rcx,rax
+530:   140001731:	73 75                	jae    1400017a8 <hnswlib::InnerProductSIMD16ExtSSE(void const*, void const*, void const*)+0x88>
+531-   140001733:	c5 f0 57 c9          	vxorps xmm1,xmm1,xmm1
+532-   140001737:	66 0f 1f 84 00 00 00 	nop    WORD PTR [rax+rax*1+0x0]
+533-   14000173e:	00 00
+534-   140001740:	c5 f8 10 02          	vmovups xmm0,XMMWORD PTR [rdx]
+535-   140001744:	c5 f8 59 01          	vmulps xmm0,xmm0,XMMWORD PTR [rcx]
+536-   140001748:	48 83 c1 40          	add    rcx,0x40
+537-   14000174c:	48 83 c2 40          	add    rdx,0x40
+538-   140001750:	c5 f8 10 52 f0       	vmovups xmm2,XMMWORD PTR [rdx-0x10]
+539-   140001755:	c5 f8 58 c1          	vaddps xmm0,xmm0,xmm1
+540-   140001759:	c5 f8 10 4a d0       	vmovups xmm1,XMMWORD PTR [rdx-0x30]
+541-   14000175e:	c5 f0 59 49 d0       	vmulps xmm1,xmm1,XMMWORD PTR [rcx-0x30]
+542-   140001763:	c5 f8 58 c1          	vaddps xmm0,xmm0,xmm1
+543-   140001767:	c5 f8 10 4a e0       	vmovups xmm1,XMMWORD PTR [rdx-0x20]
+544-   14000176c:	c5 f0 59 49 e0       	vmulps xmm1,xmm1,XMMWORD PTR [rcx-0x20]
+545-   140001771:	c5 f8 58 c1          	vaddps xmm0,xmm0,xmm1
+546-   140001775:	c5 f8 10 49 f0       	vmovups xmm1,XMMWORD PTR [rcx-0x10]
+547-   14000177a:	c5 f0 59 ca          	vmulps xmm1,xmm1,xmm2
+548-   14000177e:	c5 f0 58 c8          	vaddps xmm1,xmm1,xmm0
+549-   140001782:	48 39 c1             	cmp    rcx,rax
+550:   140001785:	72 b9                	jb     140001740 <hnswlib::InnerProductSIMD16ExtSSE(void const*, void const*, void const*)+0x20>
+551-   140001787:	c5 f0 c6 d1 55       	vshufps xmm2,xmm1,xmm1,0x55
+552-   14000178c:	c5 f2 58 c2          	vaddss xmm0,xmm1,xmm2
+553-   140001790:	c5 f0 15 d1          	vunpckhps xmm2,xmm1,xmm1
+554-   140001794:	c5 f0 c6 c9 ff       	vshufps xmm1,xmm1,xmm1,0xff
+555-   140001799:	c5 fa 58 c2          	vaddss xmm0,xmm0,xmm2
+556-   14000179d:	c5 fa 58 c1          	vaddss xmm0,xmm0,xmm1
+557-   1400017a1:	c3                   	ret
+558-   1400017a2:	66 0f 1f 44 00 00    	nop    WORD PTR [rax+rax*1+0x0]
+559-   1400017a8:	c5 f8 57 c0          	vxorps xmm0,xmm0,xmm0
+560-   1400017ac:	c3                   	ret
+561-   1400017ad:	0f 1f 00             	nop    DWORD PTR [rax]
+562-
+563:00000001400017b0 <hnswlib::InnerProductDistanceSIMD16ExtSSE(void const*, void const*, void const*)>:
+564-   1400017b0:	48 83 ec 28          	sub    rsp,0x28
+565:   1400017b4:	e8 67 ff ff ff       	call   140001720 <hnswlib::InnerProductSIMD16ExtSSE(void const*, void const*, void const*)>
+566-   1400017b9:	c5 fa 10 0d db 80 01 	vmovss xmm1,DWORD PTR [rip+0x180db]        # 14001989c <.rdata+0x89c>
+567-   1400017c0:	00
+568-   1400017c1:	c5 f2 5c c0          	vsubss xmm0,xmm1,xmm0
+569-   1400017c5:	48 83 c4 28          	add    rsp,0x28
+570-   1400017c9:	c3                   	ret
+571-   1400017ca:	66 0f 1f 44 00 00    	nop    WORD PTR [rax+rax*1+0x0]
+572-
+573:00000001400017d0 <hnswlib::InnerProductDistanceSIMD16ExtResiduals(void const*, void const*, void const*)>:
+574-   1400017d0:	57                   	push   rdi
+575-   1400017d1:	56                   	push   rsi
+576-   1400017d2:	53                   	push   rbx
+577-   1400017d3:	48 83 ec 30          	sub    rsp,0x30
+578-   1400017d7:	49 8b 18             	mov    rbx,QWORD PTR [r8]
+579-   1400017da:	48 89 d8             	mov    rax,rbx
+580-   1400017dd:	48 83 e0 f0          	and    rax,0xfffffffffffffff0
+581-   1400017e1:	48 89 d7             	mov    rdi,rdx
+582-   1400017e4:	48 89 44 24 28       	mov    QWORD PTR [rsp+0x28],rax
+583-   1400017e9:	48 89 ce             	mov    rsi,rcx
+584-   1400017ec:	4c 8d 44 24 28       	lea    r8,[rsp+0x28]
+585:   1400017f1:	ff 15 21 68 01 00    	call   QWORD PTR [rip+0x16821]        # 140018018 <hnswlib::InnerProductSIMD16Ext>
+586-   1400017f7:	48 8b 54 24 28       	mov    rdx,QWORD PTR [rsp+0x28]
+587-   1400017fc:	48 29 d3             	sub    rbx,rdx
+588-   1400017ff:	49 89 d9             	mov    r9,rbx
+589:   140001802:	74 54                	je     140001858 <hnswlib::InnerProductDistanceSIMD16ExtResiduals(void const*, void const*, void const*)+0x88>
+590-   140001804:	45 31 c0             	xor    r8d,r8d
+591-   140001807:	c5 e8 57 d2          	vxorps xmm2,xmm2,xmm2
+592-   14000180b:	31 c0                	xor    eax,eax
+593-   14000180d:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+594-   140001814:	00 00 00 00
+595-   140001818:	0f 1f 84 00 00 00 00 	nop    DWORD PTR [rax+rax*1+0x0]
+596-   14000181f:	00
+597-   140001820:	48 01 d0             	add    rax,rdx
+598-   140001823:	c5 fa 10 0c 86       	vmovss xmm1,DWORD PTR [rsi+rax*4]
+599-   140001828:	c5 f2 59 0c 87       	vmulss xmm1,xmm1,DWORD PTR [rdi+rax*4]
+600-   14000182d:	41 8d 40 01          	lea    eax,[r8+0x1]
+601-   140001831:	49 89 c0             	mov    r8,rax
+602-   140001834:	c5 ea 58 d1          	vaddss xmm2,xmm2,xmm1
+603-   140001838:	4c 39 c8             	cmp    rax,r9
+604:   14000183b:	72 e3                	jb     140001820 <hnswlib::InnerProductDistanceSIMD16ExtResiduals(void const*, void const*, void const*)+0x50>
+605-   14000183d:	c5 fa 58 ca          	vaddss xmm1,xmm0,xmm2
+606-   140001841:	c5 fa 10 05 53 80 01 	vmovss xmm0,DWORD PTR [rip+0x18053]        # 14001989c <.rdata+0x89c>
+607-   140001848:	00
+608-   140001849:	c5 fa 5c c1          	vsubss xmm0,xmm0,xmm1
+609-   14000184d:	48 83 c4 30          	add    rsp,0x30
+610-   140001851:	5b                   	pop    rbx
+611-   140001852:	5e                   	pop    rsi
+612-   140001853:	5f                   	pop    rdi
+613-   140001854:	c3                   	ret
+614-   140001855:	0f 1f 00             	nop    DWORD PTR [rax]
+615-   140001858:	c5 e8 57 d2          	vxorps xmm2,xmm2,xmm2
+616:   14000185c:	eb df                	jmp    14000183d <hnswlib::InnerProductDistanceSIMD16ExtResiduals(void const*, void const*, void const*)+0x6d>
+617-   14000185e:	66 90                	xchg   ax,ax
+618-
+619:0000000140001860 <hnswlib::InnerProductDistanceSIMD4ExtResiduals(void const*, void const*, void const*)>:
+620-   140001860:	57                   	push   rdi
+621-   140001861:	56                   	push   rsi
+622-   140001862:	53                   	push   rbx
+623-   140001863:	48 83 ec 30          	sub    rsp,0x30
+624-   140001867:	49 8b 18             	mov    rbx,QWORD PTR [r8]
+625-   14000186a:	48 89 d8             	mov    rax,rbx
+626-   14000186d:	48 83 e0 fc          	and    rax,0xfffffffffffffffc
+627-   140001871:	48 89 d7             	mov    rdi,rdx
+628-   140001874:	48 89 44 24 28       	mov    QWORD PTR [rsp+0x28],rax
+629-   140001879:	48 89 ce             	mov    rsi,rcx
+630-   14000187c:	4c 8d 44 24 28       	lea    r8,[rsp+0x28]
+631:   140001881:	ff 15 89 67 01 00    	call   QWORD PTR [rip+0x16789]        # 140018010 <hnswlib::InnerProductSIMD4Ext>
+632-   140001887:	48 8b 54 24 28       	mov    rdx,QWORD PTR [rsp+0x28]
+633-   14000188c:	48 29 d3             	sub    rbx,rdx
+634-   14000188f:	49 89 d9             	mov    r9,rbx
+635:   140001892:	74 44                	je     1400018d8 <hnswlib::InnerProductDistanceSIMD4ExtResiduals(void const*, void const*, void const*)+0x78>
+636-   140001894:	45 31 c0             	xor    r8d,r8d
+637-   140001897:	c5 e8 57 d2          	vxorps xmm2,xmm2,xmm2
+638-   14000189b:	31 c0                	xor    eax,eax
+639-   14000189d:	0f 1f 00             	nop    DWORD PTR [rax]
+640-   1400018a0:	48 01 d0             	add    rax,rdx
+641-   1400018a3:	c5 fa 10 0c 86       	vmovss xmm1,DWORD PTR [rsi+rax*4]
+642-   1400018a8:	c5 f2 59 0c 87       	vmulss xmm1,xmm1,DWORD PTR [rdi+rax*4]
+643-   1400018ad:	41 8d 40 01          	lea    eax,[r8+0x1]
+644-   1400018b1:	49 89 c0             	mov    r8,rax
+645-   1400018b4:	c5 ea 58 d1          	vaddss xmm2,xmm2,xmm1
+646-   1400018b8:	4c 39 c8             	cmp    rax,r9
+647:   1400018bb:	72 e3                	jb     1400018a0 <hnswlib::InnerProductDistanceSIMD4ExtResiduals(void const*, void const*, void const*)+0x40>
+648-   1400018bd:	c5 fa 58 ca          	vaddss xmm1,xmm0,xmm2
+649-   1400018c1:	c5 fa 10 05 d3 7f 01 	vmovss xmm0,DWORD PTR [rip+0x17fd3]        # 14001989c <.rdata+0x89c>
+650-   1400018c8:	00
+651-   1400018c9:	c5 fa 5c c1          	vsubss xmm0,xmm0,xmm1
+652-   1400018cd:	48 83 c4 30          	add    rsp,0x30
+653-   1400018d1:	5b                   	pop    rbx
+654-   1400018d2:	5e                   	pop    rsi
+655-   1400018d3:	5f                   	pop    rdi
+656-   1400018d4:	c3                   	ret
+657-   1400018d5:	0f 1f 00             	nop    DWORD PTR [rax]
+658-   1400018d8:	c5 e8 57 d2          	vxorps xmm2,xmm2,xmm2
+659:   1400018dc:	eb df                	jmp    1400018bd <hnswlib::InnerProductDistanceSIMD4ExtResiduals(void const*, void const*, void const*)+0x5d>
+660-   1400018de:	66 90                	xchg   ax,ax
+661-
+662:00000001400018e0 <hnswlib::InnerProductSIMD4ExtAVX(void const*, void const*, void const*)>:
+663-   1400018e0:	4d 8b 08             	mov    r9,QWORD PTR [r8]
+664-   1400018e3:	4d 89 cb             	mov    r11,r9
+665-   1400018e6:	49 c1 e9 02          	shr    r9,0x2
+666-   1400018ea:	49 c1 eb 04          	shr    r11,0x4
+667-   1400018ee:	49 c1 e1 04          	shl    r9,0x4
+668-   1400018f2:	49 c1 e3 06          	shl    r11,0x6
+669-   1400018f6:	49 01 c9             	add    r9,rcx
+670-   1400018f9:	4e 8d 14 19          	lea    r10,[rcx+r11*1]
+671-   1400018fd:	4c 39 d1             	cmp    rcx,r10
+672:   140001900:	0f 83 da 00 00 00    	jae    1400019e0 <hnswlib::InnerProductSIMD4ExtAVX(void const*, void const*, void const*)+0x100>
+673-   140001906:	49 89 d0             	mov    r8,rdx
+674-   140001909:	48 89 c8             	mov    rax,rcx
+675-   14000190c:	c5 f8 57 c0          	vxorps xmm0,xmm0,xmm0
+676-   140001910:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+677-   140001917:	00 00 00 00
+678-   14000191b:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+679-   140001922:	00 00 00 00
+680-   140001926:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+681-   14000192d:	00 00 00 00
+682-   140001931:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+683-   140001938:	00 00 00 00
+684-   14000193c:	0f 1f 40 00          	nop    DWORD PTR [rax+0x0]
+685-   140001940:	c4 c1 7c 10 08       	vmovups ymm1,YMMWORD PTR [r8]
+686-   140001945:	c5 f4 59 08          	vmulps ymm1,ymm1,YMMWORD PTR [rax]
+687-   140001949:	48 83 c0 40          	add    rax,0x40
+688-   14000194d:	49 83 c0 40          	add    r8,0x40
+689-   140001951:	c4 c1 7c 10 50 e0    	vmovups ymm2,YMMWORD PTR [r8-0x20]
+690-   140001957:	c5 f4 58 c0          	vaddps ymm0,ymm1,ymm0
+691-   14000195b:	c5 fc 10 48 e0       	vmovups ymm1,YMMWORD PTR [rax-0x20]
+692-   140001960:	c5 f4 59 ca          	vmulps ymm1,ymm1,ymm2
+693-   140001964:	c5 f4 58 c0          	vaddps ymm0,ymm1,ymm0
+694-   140001968:	4c 39 d0             	cmp    rax,r10
+695:   14000196b:	72 d3                	jb     140001940 <hnswlib::InnerProductSIMD4ExtAVX(void const*, void const*, void const*)+0x60>
+696-   14000196d:	4c 01 d9             	add    rcx,r11
+697-   140001970:	4c 01 da             	add    rdx,r11
+698-   140001973:	c4 e3 7d 19 c1 01    	vextractf128 xmm1,ymm0,0x1
+699-   140001979:	c5 f0 58 c8          	vaddps xmm1,xmm1,xmm0
+700-   14000197d:	4c 39 c9             	cmp    rcx,r9
+701:   140001980:	73 3b                	jae    1400019bd <hnswlib::InnerProductSIMD4ExtAVX(void const*, void const*, void const*)+0xdd>
+702-   140001982:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+703-   140001989:	00 00 00 00
+704-   14000198d:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+705-   140001994:	00 00 00 00
+706-   140001998:	0f 1f 84 00 00 00 00 	nop    DWORD PTR [rax+rax*1+0x0]
+707-   14000199f:	00
+708-   1400019a0:	c5 f8 10 01          	vmovups xmm0,XMMWORD PTR [rcx]
+709-   1400019a4:	c5 f8 10 12          	vmovups xmm2,XMMWORD PTR [rdx]
+710-   1400019a8:	48 83 c1 10          	add    rcx,0x10
+711-   1400019ac:	48 83 c2 10          	add    rdx,0x10
+712-   1400019b0:	c5 f8 59 c2          	vmulps xmm0,xmm0,xmm2
+713-   1400019b4:	c5 f0 58 c8          	vaddps xmm1,xmm1,xmm0
+714-   1400019b8:	4c 39 c9             	cmp    rcx,r9
+715:   1400019bb:	72 e3                	jb     1400019a0 <hnswlib::InnerProductSIMD4ExtAVX(void const*, void const*, void const*)+0xc0>
+716-   1400019bd:	c5 f0 c6 c1 55       	vshufps xmm0,xmm1,xmm1,0x55
+717-   1400019c2:	c5 fa 58 c1          	vaddss xmm0,xmm0,xmm1
+718-   1400019c6:	c5 f0 15 d1          	vunpckhps xmm2,xmm1,xmm1
+719-   1400019ca:	c5 f0 c6 c9 ff       	vshufps xmm1,xmm1,xmm1,0xff
+720-   1400019cf:	c5 fa 58 c2          	vaddss xmm0,xmm0,xmm2
+721-   1400019d3:	c5 fa 58 c1          	vaddss xmm0,xmm0,xmm1
+722-   1400019d7:	c5 f8 77             	vzeroupper
+723-   1400019da:	c3                   	ret
+724-   1400019db:	0f 1f 44 00 00       	nop    DWORD PTR [rax+rax*1+0x0]
+725-   1400019e0:	c5 f8 57 c0          	vxorps xmm0,xmm0,xmm0
+726:   1400019e4:	eb 8d                	jmp    140001973 <hnswlib::InnerProductSIMD4ExtAVX(void const*, void const*, void const*)+0x93>
+727-   1400019e6:	66 2e 0f 1f 84 00 00 	cs nop WORD PTR [rax+rax*1+0x0]
+728-   1400019ed:	00 00 00
+729-
+730:00000001400019f0 <hnswlib::InnerProductDistanceSIMD4ExtAVX(void const*, void const*, void const*)>:
+731-   1400019f0:	48 83 ec 28          	sub    rsp,0x28
+732:   1400019f4:	e8 e7 fe ff ff       	call   1400018e0 <hnswlib::InnerProductSIMD4ExtAVX(void const*, void const*, void const*)>
+733-   1400019f9:	c5 fa 10 0d 9b 7e 01 	vmovss xmm1,DWORD PTR [rip+0x17e9b]        # 14001989c <.rdata+0x89c>
+734-   140001a00:	00
+735-   140001a01:	c5 f2 5c c0          	vsubss xmm0,xmm1,xmm0
+736-   140001a05:	48 83 c4 28          	add    rsp,0x28
+737-   140001a09:	c3                   	ret
+738-   140001a0a:	66 0f 1f 44 00 00    	nop    WORD PTR [rax+rax*1+0x0]
+739-
+740-0000000140001a10 <(anonymous namespace)::DataBundle::~DataBundle()>:
+741-   140001a10:	53                   	push   rbx
+742-   140001a11:	48 83 ec 20          	sub    rsp,0x20
+743-   140001a15:	48 89 cb             	mov    rbx,rcx
+744-   140001a18:	48 8b 49 10          	mov    rcx,QWORD PTR [rcx+0x10]
+--
+5541-   140005fa5:	c5 f8 77             	vzeroupper
+5542-   140005fa8:	eb a6                	jmp    140005f50 <ivf_pq_search_inter_omp(ann_ivfpq::IVFPQIndex const&, float const*, unsigned long long, unsigned long long, unsigned long long, unsigned long long, int, std::vector<std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > >, std::allocator<std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > > > >&) [clone ._omp_fn.0]+0x1400>
+5543-   140005faa:	eb 89                	jmp    140005f35 <ivf_pq_search_inter_omp(ann_ivfpq::IVFPQIndex const&, float const*, unsigned long long, unsigned long long, unsigned long long, unsigned long long, int, std::vector<std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > >, std::allocator<std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > > > >&) [clone ._omp_fn.0]+0x13e5>
+5544-   140005fac:	e9 4f ff ff ff       	jmp    140005f00 <ivf_pq_search_inter_omp(ann_ivfpq::IVFPQIndex const&, float const*, unsigned long long, unsigned long long, unsigned long long, unsigned long long, int, std::vector<std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > >, std::allocator<std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > > > >&) [clone ._omp_fn.0]+0x13b0>
+5545-   140005fb1:	48 8d 0d 20 31 01 00 	lea    rcx,[rip+0x13120]        # 1400190d8 <.rdata+0xd8>
+5546-   140005fb8:	c5 f8 77             	vzeroupper
+5547-   140005fbb:	e8 68 4a 00 00       	call   14000aa28 <std::__throw_length_error(char const*)>
+5548-   140005fc0:	90                   	nop
+5549-   140005fc1:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+5550-   140005fc8:	00 00 00 00
+5551-   140005fcc:	0f 1f 40 00          	nop    DWORD PTR [rax+0x0]
+5552-
+5553:0000000140005fd0 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]>:
+5554-   140005fd0:	41 57                	push   r15
+5555-   140005fd2:	41 56                	push   r14
+5556-   140005fd4:	41 55                	push   r13
+5557-   140005fd6:	41 54                	push   r12
+5558-   140005fd8:	55                   	push   rbp
+5559-   140005fd9:	57                   	push   rdi
+5560-   140005fda:	56                   	push   rsi
+5561-   140005fdb:	53                   	push   rbx
+5562-   140005fdc:	48 81 ec 58 01 00 00 	sub    rsp,0x158
+5563-   140005fe3:	c5 f8 11 b4 24 40 01 	vmovups XMMWORD PTR [rsp+0x140],xmm6
+5564-   140005fea:	00 00
+5565-   140005fec:	48 8b 79 20          	mov    rdi,QWORD PTR [rcx+0x20]
+--
+5568-   140005ffa:	00
+5569-   140005ffb:	e8 50 4b 00 00       	call   14000ab50 <omp_get_num_threads>
+5570-   140006000:	89 c6                	mov    esi,eax
+5571-   140006002:	e8 41 4b 00 00       	call   14000ab48 <omp_get_thread_num>
+5572-   140006007:	4c 63 c6             	movsxd r8,esi
+5573-   14000600a:	48 63 c8             	movsxd rcx,eax
+5574-   14000600d:	48 8b 47 08          	mov    rax,QWORD PTR [rdi+0x8]
+5575-   140006011:	48 29 d8             	sub    rax,rbx
+5576-   140006014:	48 c1 f8 02          	sar    rax,0x2
+5577-   140006018:	48 99                	cqo
+5578-   14000601a:	49 f7 f8             	idiv   r8
+5579-   14000601d:	48 39 d1             	cmp    rcx,rdx
+5580:   140006020:	0f 8c 5a 0b 00 00    	jl     140006b80 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0xbb0>
+5581-   140006026:	48 0f af c8          	imul   rcx,rax
+5582-   14000602a:	48 8d 3c 11          	lea    rdi,[rcx+rdx*1]
+5583-   14000602e:	48 01 f8             	add    rax,rdi
+5584-   140006031:	48 89 7c 24 78       	mov    QWORD PTR [rsp+0x78],rdi
+5585-   140006036:	48 89 84 24 98 00 00 	mov    QWORD PTR [rsp+0x98],rax
+5586-   14000603d:	00
+5587-   14000603e:	48 39 c7             	cmp    rdi,rax
+5588:   140006041:	0f 8d 0b 0b 00 00    	jge    140006b52 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0xb82>
+5589-   140006047:	48 8b 84 24 a0 01 00 	mov    rax,QWORD PTR [rsp+0x1a0]
+5590-   14000604e:	00
+5591-   14000604f:	48 8b 78 10          	mov    rdi,QWORD PTR [rax+0x10]
+5592-   140006053:	48 8b 40 08          	mov    rax,QWORD PTR [rax+0x8]
+5593-   140006057:	48 89 44 24 48       	mov    QWORD PTR [rsp+0x48],rax
+5594-   14000605c:	48 8b 84 24 a0 01 00 	mov    rax,QWORD PTR [rsp+0x1a0]
+5595-   140006063:	00
+5596-   140006064:	48 89 bc 24 90 00 00 	mov    QWORD PTR [rsp+0x90],rdi
+5597-   14000606b:	00
+5598-   14000606c:	48 8b 40 18          	mov    rax,QWORD PTR [rax+0x18]
+5599-   140006070:	48 39 c7             	cmp    rdi,rax
+5600-   140006073:	48 0f 43 c7          	cmovae rax,rdi
+--
+5603-   140006083:	00
+5604-   140006084:	48 89 44 24 70       	mov    QWORD PTR [rsp+0x70],rax
+5605-   140006089:	48 8b 44 24 78       	mov    rax,QWORD PTR [rsp+0x78]
+5606-   14000608e:	8b 3c 83             	mov    edi,DWORD PTR [rbx+rax*4]
+5607-   140006091:	48 8b 84 24 a0 01 00 	mov    rax,QWORD PTR [rsp+0x1a0]
+5608-   140006098:	00
+5609-   140006099:	48 8b 28             	mov    rbp,QWORD PTR [rax]
+5610-   14000609c:	48 8d 45 10          	lea    rax,[rbp+0x10]
+5611-   1400060a0:	48 89 44 24 58       	mov    QWORD PTR [rsp+0x58],rax
+5612-   1400060a5:	48 8b 45 10          	mov    rax,QWORD PTR [rbp+0x10]
+5613-   1400060a9:	48 89 44 24 28       	mov    QWORD PTR [rsp+0x28],rax
+5614-   1400060ae:	48 85 c0             	test   rax,rax
+5615:   1400060b1:	0f 88 d4 0a 00 00    	js     140006b8b <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0xbbb>
+5616-   1400060b7:	48 c7 44 24 38 00 00 	mov    QWORD PTR [rsp+0x38],0x0
+5617-   1400060be:	00 00
+5618:   1400060c0:	74 1f                	je     1400060e1 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x111>
+5619-   1400060c2:	48 8b 74 24 28       	mov    rsi,QWORD PTR [rsp+0x28]
+5620-   1400060c7:	48 89 f1             	mov    rcx,rsi
+5621-   1400060ca:	e8 19 49 00 00       	call   14000a9e8 <operator new(unsigned long long)>
+5622-   1400060cf:	49 89 f0             	mov    r8,rsi
+5623-   1400060d2:	31 d2                	xor    edx,edx
+5624-   1400060d4:	48 89 c1             	mov    rcx,rax
+5625-   1400060d7:	48 89 44 24 38       	mov    QWORD PTR [rsp+0x38],rax
+5626-   1400060dc:	e8 87 5e 00 00       	call   14000bf68 <memset>
+5627-   1400060e1:	48 8b 55 18          	mov    rdx,QWORD PTR [rbp+0x18]
+5628-   1400060e5:	41 89 fd             	mov    r13d,edi
+5629-   1400060e8:	48 8b 4c 24 48       	mov    rcx,QWORD PTR [rsp+0x48]
+5630-   1400060ed:	4c 8b 85 10 01 00 00 	mov    r8,QWORD PTR [rbp+0x110]
+--
+5662-   140006181:	44 8b 43 fc          	mov    r8d,DWORD PTR [rbx-0x4]
+5663-   140006185:	48 29 f1             	sub    rcx,rsi
+5664-   140006188:	48 89 44 24 50       	mov    QWORD PTR [rsp+0x50],rax
+5665-   14000618d:	48 89 c8             	mov    rax,rcx
+5666-   140006190:	48 c1 f8 03          	sar    rax,0x3
+5667-   140006194:	4c 8d 48 ff          	lea    r9,[rax-0x1]
+5668-   140006198:	48 83 e8 02          	sub    rax,0x2
+5669-   14000619c:	48 89 c2             	mov    rdx,rax
+5670-   14000619f:	48 c1 ea 3f          	shr    rdx,0x3f
+5671-   1400061a3:	48 01 c2             	add    rdx,rax
+5672-   1400061a6:	48 d1 fa             	sar    rdx,1
+5673-   1400061a9:	4d 85 c9             	test   r9,r9
+5674:   1400061ac:	7f 3a                	jg     1400061e8 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x218>
+5675:   1400061ae:	e9 c3 09 00 00       	jmp    140006b76 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0xba6>
+5676-   1400061b3:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+5677-   1400061ba:	00 00 00 00
+5678-   1400061be:	66 90                	xchg   ax,ax
+5679-   1400061c0:	44 8b 49 04          	mov    r9d,DWORD PTR [rcx+0x4]
+5680-   1400061c4:	c5 fa 11 00          	vmovss DWORD PTR [rax],xmm0
+5681-   1400061c8:	44 89 48 04          	mov    DWORD PTR [rax+0x4],r9d
+5682-   1400061cc:	4c 8d 4a ff          	lea    r9,[rdx-0x1]
+5683-   1400061d0:	4c 89 c8             	mov    rax,r9
+5684-   1400061d3:	48 c1 e8 3f          	shr    rax,0x3f
+5685-   1400061d7:	4c 01 c8             	add    rax,r9
+5686-   1400061da:	49 89 d1             	mov    r9,rdx
+5687-   1400061dd:	48 d1 f8             	sar    rax,1
+5688-   1400061e0:	48 85 d2             	test   rdx,rdx
+5689:   1400061e3:	74 30                	je     140006215 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x245>
+5690-   1400061e5:	48 89 c2             	mov    rdx,rax
+5691-   1400061e8:	48 8d 0c d6          	lea    rcx,[rsi+rdx*8]
+5692-   1400061ec:	4a 8d 04 ce          	lea    rax,[rsi+r9*8]
+5693-   1400061f0:	c5 fa 10 01          	vmovss xmm0,DWORD PTR [rcx]
+5694-   1400061f4:	c5 f8 2f c2          	vcomiss xmm0,xmm2
+5695:   1400061f8:	77 c6                	ja     1400061c0 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x1f0>
+5696-   1400061fa:	48 83 7c 24 40 00    	cmp    QWORD PTR [rsp+0x40],0x0
+5697-   140006200:	44 89 40 04          	mov    DWORD PTR [rax+0x4],r8d
+5698-   140006204:	c5 fa 11 10          	vmovss DWORD PTR [rax],xmm2
+5699:   140006208:	75 1e                	jne    140006228 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x258>
+5700-   14000620a:	c5 fa 10 04 25 00 00 	vmovss xmm0,DWORD PTR ds:0x0
+5701-   140006211:	00 00
+5702-   140006213:	0f 0b                	ud2
+5703-   140006215:	48 89 c8             	mov    rax,rcx
+5704-   140006218:	48 83 7c 24 40 00    	cmp    QWORD PTR [rsp+0x40],0x0
+5705-   14000621e:	44 89 40 04          	mov    DWORD PTR [rax+0x4],r8d
+5706-   140006222:	c5 fa 11 10          	vmovss DWORD PTR [rax],xmm2
+5707:   140006226:	74 e2                	je     14000620a <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x23a>
+5708-   140006228:	48 8b 8c 24 88 00 00 	mov    rcx,QWORD PTR [rsp+0x88]
+5709-   14000622f:	00
+5710-   140006230:	c5 f9 ef c0          	vpxor  xmm0,xmm0,xmm0
+5711-   140006234:	48 8d 94 24 a8 00 00 	lea    rdx,[rsp+0xa8]
+5712-   14000623b:	00
+5713-   14000623c:	89 bc 24 ac 00 00 00 	mov    DWORD PTR [rsp+0xac],edi
+5714-   140006243:	48 c7 84 24 10 01 00 	mov    QWORD PTR [rsp+0x110],0x0
+5715-   14000624a:	00 00 00 00 00
+5716-   14000624f:	c5 fa 11 b4 24 a8 00 	vmovss DWORD PTR [rsp+0xa8],xmm6
+5717-   140006256:	00 00
+5718-   140006258:	c5 fa 7f 84 24 00 01 	vmovdqu XMMWORD PTR [rsp+0x100],xmm0
+5719-   14000625f:	00 00
+--
+5728-   140006281:	48 89 c2             	mov    rdx,rax
+5729-   140006284:	4c 8b 48 f8          	mov    r9,QWORD PTR [rax-0x8]
+5730-   140006288:	4c 89 e1             	mov    rcx,r12
+5731-   14000628b:	48 89 44 24 30       	mov    QWORD PTR [rsp+0x30],rax
+5732-   140006290:	4c 29 e2             	sub    rdx,r12
+5733-   140006293:	48 89 7c 24 60       	mov    QWORD PTR [rsp+0x60],rdi
+5734-   140006298:	48 c1 fa 03          	sar    rdx,0x3
+5735-   14000629c:	48 83 ea 01          	sub    rdx,0x1
+5736-   1400062a0:	e8 6b bc ff ff       	call   140001f10 <void std::__push_heap<__gnu_cxx::__normal_iterator<std::pair<float, unsigned int>*, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > > >, long long, std::pair<float, unsigned int>, __gnu_cxx::__ops::_Iter_comp_val<std::less<std::pair<float, unsigned int> > > >(__gnu_cxx::__normal_iterator<std::pair<float, unsigned int>*, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > > >, long long, long long, std::pair<float, unsigned int>, __gnu_cxx::__ops::_Iter_comp_val<std::less<std::pair<float, unsigned int> > >&) [clone .isra.0]>
+5737-   1400062a5:	48 8b 44 24 38       	mov    rax,QWORD PTR [rsp+0x38]
+5738-   1400062aa:	42 c6 04 28 01       	mov    BYTE PTR [rax+r13*1],0x1
+5739-   1400062af:	48 39 de             	cmp    rsi,rbx
+5740:   1400062b2:	0f 84 19 02 00 00    	je     1400064d1 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x501>
+5741-   1400062b8:	0f 1f 84 00 00 00 00 	nop    DWORD PTR [rax+rax*1+0x0]
+5742-   1400062bf:	00
+5743-   1400062c0:	48 89 d8             	mov    rax,rbx
+5744-   1400062c3:	4c 8b 0e             	mov    r9,QWORD PTR [rsi]
+5745-   1400062c6:	4c 8d 73 f8          	lea    r14,[rbx-0x8]
+5746-   1400062ca:	48 29 f0             	sub    rax,rsi
+5747-   1400062cd:	48 83 f8 08          	cmp    rax,0x8
+5748:   1400062d1:	0f 8f e9 04 00 00    	jg     1400067c0 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x7f0>
+5749-   1400062d7:	48 8b 44 24 30       	mov    rax,QWORD PTR [rsp+0x30]
+5750-   1400062dc:	48 8b 7c 24 40       	mov    rdi,QWORD PTR [rsp+0x40]
+5751-   1400062e1:	4c 29 e0             	sub    rax,r12
+5752-   1400062e4:	48 c1 f8 03          	sar    rax,0x3
+5753-   1400062e8:	48 39 f8             	cmp    rax,rdi
+5754:   1400062eb:	72 11                	jb     1400062fe <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x32e>
+5755-   1400062ed:	c4 c1 79 6e c1       	vmovd  xmm0,r9d
+5756-   1400062f2:	c4 c1 78 2f 04 24    	vcomiss xmm0,DWORD PTR [r12]
+5757:   1400062f8:	0f 87 31 08 00 00    	ja     140006b2f <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0xb5f>
+5758-   1400062fe:	48 c7 84 24 f0 00 00 	mov    QWORD PTR [rsp+0xf0],0x0
+5759-   140006305:	00 00 00 00 00
+5760-   14000630a:	c5 f9 ef c0          	vpxor  xmm0,xmm0,xmm0
+5761-   14000630e:	49 c1 e9 20          	shr    r9,0x20
+5762-   140006312:	c5 fa 7f 84 24 e0 00 	vmovdqu XMMWORD PTR [rsp+0xe0],xmm0
+5763-   140006319:	00 00
+5764-   14000631b:	48 8b 44 24 58       	mov    rax,QWORD PTR [rsp+0x58]
+5765-   140006320:	48 8b 00             	mov    rax,QWORD PTR [rax]
+5766-   140006323:	49 39 c1             	cmp    r9,rax
+5767:   140006326:	73 13                	jae    14000633b <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x36b>
+5768-   140006328:	48 8b 85 e8 00 00 00 	mov    rax,QWORD PTR [rbp+0xe8]
+5769-   14000632f:	42 8b 04 88          	mov    eax,DWORD PTR [rax+r9*4]
+5770-   140006333:	85 c0                	test   eax,eax
+5771:   140006335:	0f 89 55 06 00 00    	jns    140006990 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x9c0>
+5772-   14000633b:	4c 8b ac 24 e0 00 00 	mov    r13,QWORD PTR [rsp+0xe0]
+5773-   140006342:	00
+5774-   140006343:	4c 8b bc 24 e8 00 00 	mov    r15,QWORD PTR [rsp+0xe8]
+5775-   14000634a:	00
+5776-   14000634b:	31 db                	xor    ebx,ebx
+5777-   14000634d:	4d 29 ef             	sub    r15,r13
+5778-   140006350:	49 c1 ff 02          	sar    r15,0x2
+5779:   140006354:	0f 84 de 02 00 00    	je     140006638 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x668>
+5780-   14000635a:	66 0f 1f 44 00 00    	nop    WORD PTR [rax+rax*1+0x0]
+5781-   140006360:	41 8b 54 9d 00       	mov    edx,DWORD PTR [r13+rbx*4+0x0]
+5782-   140006365:	48 8b 44 24 28       	mov    rax,QWORD PTR [rsp+0x28]
+5783-   14000636a:	48 89 d7             	mov    rdi,rdx
+5784-   14000636d:	48 39 c2             	cmp    rdx,rax
+5785:   140006370:	0f 83 3a 01 00 00    	jae    1400064b0 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x4e0>
+5786-   140006376:	48 8b 44 24 38       	mov    rax,QWORD PTR [rsp+0x38]
+5787-   14000637b:	48 01 d0             	add    rax,rdx
+5788-   14000637e:	80 38 00             	cmp    BYTE PTR [rax],0x0
+5789:   140006381:	0f 85 29 01 00 00    	jne    1400064b0 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x4e0>
+5790-   140006387:	48 0f af 55 18       	imul   rdx,QWORD PTR [rbp+0x18]
+5791-   14000638c:	4c 8b 85 10 01 00 00 	mov    r8,QWORD PTR [rbp+0x110]
+5792-   140006393:	c6 00 01             	mov    BYTE PTR [rax],0x1
+5793-   140006396:	48 03 95 c0 00 00 00 	add    rdx,QWORD PTR [rbp+0xc0]
+5794-   14000639d:	48 8b 4c 24 48       	mov    rcx,QWORD PTR [rsp+0x48]
+5795-   1400063a2:	48 03 95 d8 00 00 00 	add    rdx,QWORD PTR [rbp+0xd8]
+5796-   1400063a9:	ff 95 08 01 00 00    	call   QWORD PTR [rbp+0x108]
+5797-   1400063af:	4c 8b 44 24 30       	mov    r8,QWORD PTR [rsp+0x30]
+5798-   1400063b4:	48 8b 44 24 40       	mov    rax,QWORD PTR [rsp+0x40]
+5799-   1400063b9:	c5 f8 28 f0          	vmovaps xmm6,xmm0
+5800-   1400063bd:	4d 29 e0             	sub    r8,r12
+5801-   1400063c0:	49 c1 f8 03          	sar    r8,0x3
+5802-   1400063c4:	49 39 c0             	cmp    r8,rax
+5803:   1400063c7:	72 10                	jb     1400063d9 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x409>
+5804-   1400063c9:	c4 c1 7a 10 04 24    	vmovss xmm0,DWORD PTR [r12]
+5805-   1400063cf:	c5 f8 2f c6          	vcomiss xmm0,xmm6
+5806:   1400063d3:	0f 86 d7 00 00 00    	jbe    1400064b0 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x4e0>
+5807-   1400063d9:	4c 39 74 24 50       	cmp    QWORD PTR [rsp+0x50],r14
+5808:   1400063de:	0f 84 2c 05 00 00    	je     140006910 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x940>
+5809-   1400063e4:	41 89 7e 04          	mov    DWORD PTR [r14+0x4],edi
+5810-   1400063e8:	41 89 f9             	mov    r9d,edi
+5811-   1400063eb:	49 83 c6 08          	add    r14,0x8
+5812-   1400063ef:	c5 f8 28 ce          	vmovaps xmm1,xmm6
+5813-   1400063f3:	c4 c1 7a 11 76 f8    	vmovss DWORD PTR [r14-0x8],xmm6
+5814-   1400063f9:	4c 89 f1             	mov    rcx,r14
+5815-   1400063fc:	48 29 f1             	sub    rcx,rsi
+5816-   1400063ff:	48 89 ca             	mov    rdx,rcx
+5817-   140006402:	48 c1 fa 03          	sar    rdx,0x3
+5818-   140006406:	4c 8d 5a ff          	lea    r11,[rdx-0x1]
+5819-   14000640a:	48 83 ea 02          	sub    rdx,0x2
+5820-   14000640e:	48 89 d0             	mov    rax,rdx
+5821-   140006411:	48 c1 e8 3f          	shr    rax,0x3f
+5822-   140006415:	48 01 d0             	add    rax,rdx
+5823-   140006418:	48 d1 f8             	sar    rax,1
+5824-   14000641b:	4d 85 db             	test   r11,r11
+5825:   14000641e:	7f 4c                	jg     14000646c <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x49c>
+5826:   140006420:	e9 6c 06 00 00       	jmp    140006a91 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0xac1>
+5827-   140006425:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+5828-   14000642c:	00 00 00 00
+5829-   140006430:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+5830-   140006437:	00 00 00 00
+5831-   14000643b:	0f 1f 44 00 00       	nop    DWORD PTR [rax+rax*1+0x0]
+5832-   140006440:	44 8b 51 04          	mov    r10d,DWORD PTR [rcx+0x4]
+5833-   140006444:	c5 fa 11 02          	vmovss DWORD PTR [rdx],xmm0
+5834-   140006448:	49 89 c3             	mov    r11,rax
+5835-   14000644b:	44 89 52 04          	mov    DWORD PTR [rdx+0x4],r10d
+5836-   14000644f:	4c 8d 50 ff          	lea    r10,[rax-0x1]
+5837-   140006453:	4c 89 d2             	mov    rdx,r10
+5838-   140006456:	48 c1 ea 3f          	shr    rdx,0x3f
+5839-   14000645a:	4c 01 d2             	add    rdx,r10
+5840-   14000645d:	48 d1 fa             	sar    rdx,1
+5841-   140006460:	48 85 c0             	test   rax,rax
+5842:   140006463:	0f 84 77 01 00 00    	je     1400065e0 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x610>
+5843-   140006469:	48 89 d0             	mov    rax,rdx
+5844-   14000646c:	48 8d 0c c6          	lea    rcx,[rsi+rax*8]
+5845-   140006470:	4a 8d 14 de          	lea    rdx,[rsi+r11*8]
+5846-   140006474:	c5 fa 10 01          	vmovss xmm0,DWORD PTR [rcx]
+5847-   140006478:	c5 f8 2f c1          	vcomiss xmm0,xmm1
+5848:   14000647c:	77 c2                	ja     140006440 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x470>
+5849-   14000647e:	48 8b 44 24 40       	mov    rax,QWORD PTR [rsp+0x40]
+5850-   140006483:	44 89 4a 04          	mov    DWORD PTR [rdx+0x4],r9d
+5851-   140006487:	c5 fa 11 0a          	vmovss DWORD PTR [rdx],xmm1
+5852-   14000648b:	49 39 c0             	cmp    r8,rax
+5853:   14000648e:	0f 82 5c 01 00 00    	jb     1400065f0 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x620>
+5854-   140006494:	c4 c1 7a 10 04 24    	vmovss xmm0,DWORD PTR [r12]
+5855-   14000649a:	c5 f8 2f c6          	vcomiss xmm0,xmm6
+5856:   14000649e:	0f 87 ac 01 00 00    	ja     140006650 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x680>
+5857-   1400064a4:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+5858-   1400064ab:	00 00 00 00
+5859-   1400064af:	90                   	nop
+5860-   1400064b0:	48 83 c3 01          	add    rbx,0x1
+5861-   1400064b4:	4c 39 fb             	cmp    rbx,r15
+5862:   1400064b7:	0f 85 a3 fe ff ff    	jne    140006360 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x390>
+5863-   1400064bd:	4c 89 e9             	mov    rcx,r13
+5864-   1400064c0:	4c 89 f3             	mov    rbx,r14
+5865-   1400064c3:	e8 30 45 00 00       	call   14000a9f8 <operator delete(void*)>
+5866-   1400064c8:	4c 39 f6             	cmp    rsi,r14
+5867:   1400064cb:	0f 85 ef fd ff ff    	jne    1400062c0 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x2f0>
+5868-   1400064d1:	c5 f9 ef c0          	vpxor  xmm0,xmm0,xmm0
+5869-   1400064d5:	b9 20 00 00 00       	mov    ecx,0x20
+5870-   1400064da:	c5 fa 7f 84 24 c8 00 	vmovdqu XMMWORD PTR [rsp+0xc8],xmm0
+5871-   1400064e1:	00 00
+5872-   1400064e3:	e8 00 45 00 00       	call   14000a9e8 <operator new(unsigned long long)>
+5873-   1400064e8:	48 89 c6             	mov    rsi,rax
+5874-   1400064eb:	48 89 84 24 c0 00 00 	mov    QWORD PTR [rsp+0xc0],rax
+5875-   1400064f2:	00
+5876-   1400064f3:	48 8d 40 20          	lea    rax,[rax+0x20]
+5877-   1400064f7:	4c 8b 84 24 90 00 00 	mov    r8,QWORD PTR [rsp+0x90]
+5878-   1400064fe:	00
+5879-   1400064ff:	4c 89 26             	mov    QWORD PTR [rsi],r12
+--
+5882-   14000650e:	00
+5883-   14000650f:	48 89 84 24 d0 00 00 	mov    QWORD PTR [rsp+0xd0],rax
+5884-   140006516:	00
+5885-   140006517:	48 89 84 24 c8 00 00 	mov    QWORD PTR [rsp+0xc8],rax
+5886-   14000651e:	00
+5887-   14000651f:	48 8b 44 24 30       	mov    rax,QWORD PTR [rsp+0x30]
+5888-   140006524:	48 89 46 08          	mov    QWORD PTR [rsi+0x8],rax
+5889-   140006528:	48 8b 44 24 60       	mov    rax,QWORD PTR [rsp+0x60]
+5890-   14000652d:	48 89 46 10          	mov    QWORD PTR [rsi+0x10],rax
+5891-   140006531:	e8 2a c2 ff ff       	call   140002760 <ann_hnsw::MergeHeaps(std::vector<std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > >, std::allocator<std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > > > >&, unsigned long long)>
+5892-   140006536:	48 8b 0e             	mov    rcx,QWORD PTR [rsi]
+5893-   140006539:	48 85 c9             	test   rcx,rcx
+5894:   14000653c:	74 05                	je     140006543 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x573>
+5895-   14000653e:	e8 b5 44 00 00       	call   14000a9f8 <operator delete(void*)>
+5896-   140006543:	48 89 f1             	mov    rcx,rsi
+5897-   140006546:	e8 ad 44 00 00       	call   14000a9f8 <operator delete(void*)>
+5898-   14000654b:	48 85 db             	test   rbx,rbx
+5899:   14000654e:	74 10                	je     140006560 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x590>
+5900-   140006550:	48 89 d9             	mov    rcx,rbx
+5901-   140006553:	e8 a0 44 00 00       	call   14000a9f8 <operator delete(void*)>
+5902-   140006558:	0f 1f 84 00 00 00 00 	nop    DWORD PTR [rax+rax*1+0x0]
+5903-   14000655f:	00
+5904-   140006560:	48 8b 44 24 38       	mov    rax,QWORD PTR [rsp+0x38]
+5905-   140006565:	48 85 c0             	test   rax,rax
+5906:   140006568:	74 08                	je     140006572 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x5a2>
+5907-   14000656a:	48 89 c1             	mov    rcx,rax
+5908-   14000656d:	e8 86 44 00 00       	call   14000a9f8 <operator delete(void*)>
+5909-   140006572:	48 8b 84 24 a0 01 00 	mov    rax,QWORD PTR [rsp+0x1a0]
+5910-   140006579:	00
+5911-   14000657a:	c5 fa 6f 84 24 e0 00 	vmovdqu xmm0,XMMWORD PTR [rsp+0xe0]
+5912-   140006581:	00 00
+5913-   140006583:	48 8b 50 28          	mov    rdx,QWORD PTR [rax+0x28]
+5914-   140006587:	48 8b 44 24 78       	mov    rax,QWORD PTR [rsp+0x78]
+5915-   14000658c:	48 c1 e0 05          	shl    rax,0x5
+5916-   140006590:	48 03 02             	add    rax,QWORD PTR [rdx]
+5917-   140006593:	48 8b 94 24 f0 00 00 	mov    rdx,QWORD PTR [rsp+0xf0]
+5918-   14000659a:	00
+5919-   14000659b:	48 8b 08             	mov    rcx,QWORD PTR [rax]
+5920-   14000659e:	c5 fa 7f 00          	vmovdqu XMMWORD PTR [rax],xmm0
+5921-   1400065a2:	48 89 50 10          	mov    QWORD PTR [rax+0x10],rdx
+5922-   1400065a6:	48 85 c9             	test   rcx,rcx
+5923:   1400065a9:	74 05                	je     1400065b0 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x5e0>
+5924-   1400065ab:	e8 48 44 00 00       	call   14000a9f8 <operator delete(void*)>
+5925-   1400065b0:	48 83 44 24 78 01    	add    QWORD PTR [rsp+0x78],0x1
+5926-   1400065b6:	48 8b 44 24 78       	mov    rax,QWORD PTR [rsp+0x78]
+5927-   1400065bb:	48 39 84 24 98 00 00 	cmp    QWORD PTR [rsp+0x98],rax
+5928-   1400065c2:	00
+5929:   1400065c3:	0f 84 89 05 00 00    	je     140006b52 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0xb82>
+5930-   1400065c9:	48 8b 84 24 a0 01 00 	mov    rax,QWORD PTR [rsp+0x1a0]
+5931-   1400065d0:	00
+5932-   1400065d1:	48 8b 40 20          	mov    rax,QWORD PTR [rax+0x20]
+5933-   1400065d5:	48 8b 18             	mov    rbx,QWORD PTR [rax]
+5934:   1400065d8:	e9 ac fa ff ff       	jmp    140006089 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0xb9>
+5935-   1400065dd:	0f 1f 00             	nop    DWORD PTR [rax]
+5936-   1400065e0:	48 89 ca             	mov    rdx,rcx
+5937:   1400065e3:	e9 96 fe ff ff       	jmp    14000647e <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x4ae>
+5938-   1400065e8:	0f 1f 84 00 00 00 00 	nop    DWORD PTR [rax+rax*1+0x0]
+5939-   1400065ef:	00
+5940-   1400065f0:	48 8b 44 24 30       	mov    rax,QWORD PTR [rsp+0x30]
+5941-   1400065f5:	48 39 44 24 60       	cmp    QWORD PTR [rsp+0x60],rax
+5942:   1400065fa:	0f 84 28 04 00 00    	je     140006a28 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0xa58>
+5943-   140006600:	89 78 04             	mov    DWORD PTR [rax+0x4],edi
+5944-   140006603:	48 83 c0 08          	add    rax,0x8
+5945-   140006607:	c5 fa 11 70 f8       	vmovss DWORD PTR [rax-0x8],xmm6
+5946-   14000660c:	48 89 44 24 30       	mov    QWORD PTR [rsp+0x30],rax
+5947-   140006611:	48 8b 44 24 30       	mov    rax,QWORD PTR [rsp+0x30]
+5948-   140006616:	45 31 c0             	xor    r8d,r8d
+5949-   140006619:	4c 89 e1             	mov    rcx,r12
+5950-   14000661c:	48 89 c2             	mov    rdx,rax
+5951-   14000661f:	4c 8b 48 f8          	mov    r9,QWORD PTR [rax-0x8]
+5952-   140006623:	4c 29 e2             	sub    rdx,r12
+5953-   140006626:	48 c1 fa 03          	sar    rdx,0x3
+5954-   14000662a:	48 83 ea 01          	sub    rdx,0x1
+5955-   14000662e:	e8 dd b8 ff ff       	call   140001f10 <void std::__push_heap<__gnu_cxx::__normal_iterator<std::pair<float, unsigned int>*, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > > >, long long, std::pair<float, unsigned int>, __gnu_cxx::__ops::_Iter_comp_val<std::less<std::pair<float, unsigned int> > > >(__gnu_cxx::__normal_iterator<std::pair<float, unsigned int>*, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > > >, long long, long long, std::pair<float, unsigned int>, __gnu_cxx::__ops::_Iter_comp_val<std::less<std::pair<float, unsigned int> > >&) [clone .isra.0]>
+5956:   140006633:	e9 78 fe ff ff       	jmp    1400064b0 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x4e0>
+5957-   140006638:	4d 85 ed             	test   r13,r13
+5958:   14000663b:	0f 85 7c fe ff ff    	jne    1400064bd <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x4ed>
+5959-   140006641:	4c 89 f3             	mov    rbx,r14
+5960:   140006644:	e9 7f fe ff ff       	jmp    1400064c8 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x4f8>
+5961-   140006649:	0f 1f 80 00 00 00 00 	nop    DWORD PTR [rax+0x0]
+5962-   140006650:	48 8b 44 24 30       	mov    rax,QWORD PTR [rsp+0x30]
+5963-   140006655:	48 39 44 24 60       	cmp    QWORD PTR [rsp+0x60],rax
+5964:   14000665a:	0f 84 3b 04 00 00    	je     140006a9b <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0xacb>
+5965-   140006660:	89 78 04             	mov    DWORD PTR [rax+0x4],edi
+5966-   140006663:	48 8d 78 08          	lea    rdi,[rax+0x8]
+5967-   140006667:	c5 fa 11 30          	vmovss DWORD PTR [rax],xmm6
+5968-   14000666b:	48 89 f8             	mov    rax,rdi
+5969-   14000666e:	4c 8b 4f f8          	mov    r9,QWORD PTR [rdi-0x8]
+5970-   140006672:	45 31 c0             	xor    r8d,r8d
+5971-   140006675:	4c 89 e1             	mov    rcx,r12
+5972-   140006678:	4c 29 e0             	sub    rax,r12
+5973-   14000667b:	48 89 c2             	mov    rdx,rax
+5974-   14000667e:	48 89 44 24 68       	mov    QWORD PTR [rsp+0x68],rax
+5975-   140006683:	48 c1 fa 03          	sar    rdx,0x3
+5976-   140006687:	48 83 ea 01          	sub    rdx,0x1
+5977-   14000668b:	e8 80 b8 ff ff       	call   140001f10 <void std::__push_heap<__gnu_cxx::__normal_iterator<std::pair<float, unsigned int>*, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > > >, long long, std::pair<float, unsigned int>, __gnu_cxx::__ops::_Iter_comp_val<std::less<std::pair<float, unsigned int> > > >(__gnu_cxx::__normal_iterator<std::pair<float, unsigned int>*, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > > >, long long, long long, std::pair<float, unsigned int>, __gnu_cxx::__ops::_Iter_comp_val<std::less<std::pair<float, unsigned int> > >&) [clone .isra.0]>
+5978-   140006690:	48 8b 44 24 68       	mov    rax,QWORD PTR [rsp+0x68]
+5979-   140006695:	48 83 f8 08          	cmp    rax,0x8
+5980:   140006699:	0f 8e 11 fe ff ff    	jle    1400064b0 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x4e0>
+5981-   14000669f:	48 8b 54 24 30       	mov    rdx,QWORD PTR [rsp+0x30]
+5982-   1400066a4:	c5 fa 10 47 f8       	vmovss xmm0,DWORD PTR [rdi-0x8]
+5983-   1400066a9:	8b 4f fc             	mov    ecx,DWORD PTR [rdi-0x4]
+5984-   1400066ac:	41 8b 44 24 04       	mov    eax,DWORD PTR [r12+0x4]
+5985-   1400066b1:	4c 29 e2             	sub    rdx,r12
+5986-   1400066b4:	c4 c1 7a 10 0c 24    	vmovss xmm1,DWORD PTR [r12]
+5987-   1400066ba:	49 89 d0             	mov    r8,rdx
+5988-   1400066bd:	89 47 fc             	mov    DWORD PTR [rdi-0x4],eax
+5989-   1400066c0:	48 c1 e1 20          	shl    rcx,0x20
+5990-   1400066c4:	c5 f9 7e c0          	vmovd  eax,xmm0
+5991-   1400066c8:	48 09 c8             	or     rax,rcx
+5992-   1400066cb:	49 c1 f8 03          	sar    r8,0x3
+5993-   1400066cf:	c5 fa 11 4f f8       	vmovss DWORD PTR [rdi-0x8],xmm1
+5994-   1400066d4:	49 89 c1             	mov    r9,rax
+5995-   1400066d7:	49 8d 40 ff          	lea    rax,[r8-0x1]
+5996-   1400066db:	49 89 c3             	mov    r11,rax
+5997-   1400066de:	49 c1 eb 3f          	shr    r11,0x3f
+5998-   1400066e2:	49 01 c3             	add    r11,rax
+5999-   1400066e5:	49 d1 fb             	sar    r11,1
+6000-   1400066e8:	48 83 fa 10          	cmp    rdx,0x10
+6001:   1400066ec:	0f 8e 7d 04 00 00    	jle    140006b6f <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0xb9f>
+6002-   1400066f2:	31 c9                	xor    ecx,ecx
+6003:   1400066f4:	eb 21                	jmp    140006717 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x747>
+6004-   1400066f6:	66 2e 0f 1f 84 00 00 	cs nop WORD PTR [rax+rax*1+0x0]
+6005-   1400066fd:	00 00 00
+6006-   140006700:	41 8b 42 04          	mov    eax,DWORD PTR [r10+0x4]
+6007-   140006704:	49 8d 0c cc          	lea    rcx,[r12+rcx*8]
+6008-   140006708:	89 41 04             	mov    DWORD PTR [rcx+0x4],eax
+6009-   14000670b:	c5 fa 11 01          	vmovss DWORD PTR [rcx],xmm0
+6010-   14000670f:	4c 39 da             	cmp    rdx,r11
+6011:   140006712:	7d 4e                	jge    140006762 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x792>
+6012-   140006714:	48 89 d1             	mov    rcx,rdx
+6013-   140006717:	48 8d 41 01          	lea    rax,[rcx+0x1]
+6014-   14000671b:	48 8d 3c 00          	lea    rdi,[rax+rax*1]
+6015-   14000671f:	48 c1 e0 04          	shl    rax,0x4
+6016-   140006723:	48 8d 57 ff          	lea    rdx,[rdi-0x1]
+6017-   140006727:	4c 01 e0             	add    rax,r12
+6018-   14000672a:	4d 8d 14 d4          	lea    r10,[r12+rdx*8]
+6019-   14000672e:	c5 fa 10 08          	vmovss xmm1,DWORD PTR [rax]
+6020-   140006732:	c4 c1 7a 10 02       	vmovss xmm0,DWORD PTR [r10]
+6021-   140006737:	c5 f8 2f c1          	vcomiss xmm0,xmm1
+6022:   14000673b:	77 c3                	ja     140006700 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x730>
+6023-   14000673d:	c5 f8 2f c8          	vcomiss xmm1,xmm0
+6024-   140006741:	8b 40 04             	mov    eax,DWORD PTR [rax+0x4]
+6025:   140006744:	77 6a                	ja     1400067b0 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x7e0>
+6026-   140006746:	45 8b 52 04          	mov    r10d,DWORD PTR [r10+0x4]
+6027-   14000674a:	44 39 d0             	cmp    eax,r10d
+6028:   14000674d:	73 61                	jae    1400067b0 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x7e0>
+6029-   14000674f:	49 8d 0c cc          	lea    rcx,[r12+rcx*8]
+6030-   140006753:	44 89 d0             	mov    eax,r10d
+6031-   140006756:	89 41 04             	mov    DWORD PTR [rcx+0x4],eax
+6032-   140006759:	c5 fa 11 01          	vmovss DWORD PTR [rcx],xmm0
+6033-   14000675d:	4c 39 da             	cmp    rdx,r11
+6034:   140006760:	7c b2                	jl     140006714 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x744>
+6035-   140006762:	41 f6 c0 01          	test   r8b,0x1
+6036:   140006766:	75 34                	jne    14000679c <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x7cc>
+6037-   140006768:	49 83 e8 02          	sub    r8,0x2
+6038-   14000676c:	4c 89 c0             	mov    rax,r8
+6039-   14000676f:	48 c1 e8 3f          	shr    rax,0x3f
+6040-   140006773:	4c 01 c0             	add    rax,r8
+6041-   140006776:	48 d1 f8             	sar    rax,1
+6042-   140006779:	48 39 d0             	cmp    rax,rdx
+6043:   14000677c:	75 1e                	jne    14000679c <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x7cc>
+6044-   14000677e:	48 8d 44 12 01       	lea    rax,[rdx+rdx*1+0x1]
+6045-   140006783:	49 8d 14 d4          	lea    rdx,[r12+rdx*8]
+6046-   140006787:	49 8d 0c c4          	lea    rcx,[r12+rax*8]
+6047-   14000678b:	c5 fa 10 01          	vmovss xmm0,DWORD PTR [rcx]
+6048-   14000678f:	8b 49 04             	mov    ecx,DWORD PTR [rcx+0x4]
+6049-   140006792:	c5 fa 11 02          	vmovss DWORD PTR [rdx],xmm0
+6050-   140006796:	89 4a 04             	mov    DWORD PTR [rdx+0x4],ecx
+6051-   140006799:	48 89 c2             	mov    rdx,rax
+6052-   14000679c:	45 31 c0             	xor    r8d,r8d
+6053-   14000679f:	4c 89 e1             	mov    rcx,r12
+6054-   1400067a2:	e8 69 b7 ff ff       	call   140001f10 <void std::__push_heap<__gnu_cxx::__normal_iterator<std::pair<float, unsigned int>*, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > > >, long long, std::pair<float, unsigned int>, __gnu_cxx::__ops::_Iter_comp_val<std::less<std::pair<float, unsigned int> > > >(__gnu_cxx::__normal_iterator<std::pair<float, unsigned int>*, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > > >, long long, long long, std::pair<float, unsigned int>, __gnu_cxx::__ops::_Iter_comp_val<std::less<std::pair<float, unsigned int> > >&) [clone .isra.0]>
+6055:   1400067a7:	e9 04 fd ff ff       	jmp    1400064b0 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x4e0>
+6056-   1400067ac:	0f 1f 40 00          	nop    DWORD PTR [rax+0x0]
+6057-   1400067b0:	c5 f8 28 c1          	vmovaps xmm0,xmm1
+6058-   1400067b4:	48 89 fa             	mov    rdx,rdi
+6059:   1400067b7:	e9 48 ff ff ff       	jmp    140006704 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x734>
+6060-   1400067bc:	0f 1f 40 00          	nop    DWORD PTR [rax+0x0]
+6061-   1400067c0:	4c 89 f2             	mov    rdx,r14
+6062-   1400067c3:	8b 46 04             	mov    eax,DWORD PTR [rsi+0x4]
+6063-   1400067c6:	c5 fa 10 06          	vmovss xmm0,DWORD PTR [rsi]
+6064-   1400067ca:	48 29 f2             	sub    rdx,rsi
+6065-   1400067cd:	44 8b 5b fc          	mov    r11d,DWORD PTR [rbx-0x4]
+6066-   1400067d1:	c5 fa 10 4b f8       	vmovss xmm1,DWORD PTR [rbx-0x8]
+6067-   1400067d6:	48 89 d7             	mov    rdi,rdx
+6068-   1400067d9:	89 43 fc             	mov    DWORD PTR [rbx-0x4],eax
+6069-   1400067dc:	48 c1 ff 03          	sar    rdi,0x3
+6070-   1400067e0:	c5 fa 11 43 f8       	vmovss DWORD PTR [rbx-0x8],xmm0
+6071-   1400067e5:	48 8d 47 ff          	lea    rax,[rdi-0x1]
+6072-   1400067e9:	49 89 fd             	mov    r13,rdi
+6073-   1400067ec:	48 89 c3             	mov    rbx,rax
+6074-   1400067ef:	41 83 e5 01          	and    r13d,0x1
+6075-   1400067f3:	48 c1 eb 3f          	shr    rbx,0x3f
+6076-   1400067f7:	48 01 c3             	add    rbx,rax
+6077-   1400067fa:	48 d1 fb             	sar    rbx,1
+6078-   1400067fd:	48 83 fa 10          	cmp    rdx,0x10
+6079:   140006801:	0f 8e 30 03 00 00    	jle    140006b37 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0xb67>
+6080-   140006807:	45 31 c0             	xor    r8d,r8d
+6081:   14000680a:	eb 07                	jmp    140006813 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x843>
+6082-   14000680c:	0f 1f 40 00          	nop    DWORD PTR [rax+0x0]
+6083-   140006810:	49 89 c0             	mov    r8,rax
+6084-   140006813:	49 8d 50 01          	lea    rdx,[r8+0x1]
+6085-   140006817:	4c 8d 14 12          	lea    r10,[rdx+rdx*1]
+6086-   14000681b:	48 c1 e2 04          	shl    rdx,0x4
+6087-   14000681f:	49 8d 42 ff          	lea    rax,[r10-0x1]
+6088-   140006823:	48 01 f2             	add    rdx,rsi
+6089-   140006826:	48 8d 0c c6          	lea    rcx,[rsi+rax*8]
+6090-   14000682a:	c5 fa 10 12          	vmovss xmm2,DWORD PTR [rdx]
+6091-   14000682e:	c5 fa 10 01          	vmovss xmm0,DWORD PTR [rcx]
+6092-   140006832:	c5 f8 2f d0          	vcomiss xmm2,xmm0
+6093:   140006836:	77 0a                	ja     140006842 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x872>
+6094-   140006838:	c5 f8 28 c2          	vmovaps xmm0,xmm2
+6095-   14000683c:	48 89 d1             	mov    rcx,rdx
+6096-   14000683f:	4c 89 d0             	mov    rax,r10
+6097-   140006842:	4a 8d 14 c6          	lea    rdx,[rsi+r8*8]
+6098-   140006846:	44 8b 41 04          	mov    r8d,DWORD PTR [rcx+0x4]
+6099-   14000684a:	c5 fa 11 02          	vmovss DWORD PTR [rdx],xmm0
+6100-   14000684e:	44 89 42 04          	mov    DWORD PTR [rdx+0x4],r8d
+6101-   140006852:	48 39 d8             	cmp    rax,rbx
+6102:   140006855:	7c b9                	jl     140006810 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x840>
+6103-   140006857:	4d 85 ed             	test   r13,r13
+6104:   14000685a:	75 10                	jne    14000686c <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x89c>
+6105-   14000685c:	48 83 ef 02          	sub    rdi,0x2
+6106-   140006860:	48 d1 ff             	sar    rdi,1
+6107-   140006863:	48 39 f8             	cmp    rax,rdi
+6108:   140006866:	0f 84 a1 02 00 00    	je     140006b0d <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0xb3d>
+6109-   14000686c:	4c 8d 40 ff          	lea    r8,[rax-0x1]
+6110-   140006870:	4c 89 c2             	mov    rdx,r8
+6111-   140006873:	48 c1 ea 3f          	shr    rdx,0x3f
+6112-   140006877:	4c 01 c2             	add    rdx,r8
+6113-   14000687a:	48 d1 fa             	sar    rdx,1
+6114-   14000687d:	48 85 c0             	test   rax,rax
+6115:   140006880:	74 7c                	je     1400068fe <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x92e>
+6116-   140006882:	48 89 c1             	mov    rcx,rax
+6117:   140006885:	eb 64                	jmp    1400068eb <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x91b>
+6118-   140006887:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+6119-   14000688e:	00 00 00 00
+6120-   140006892:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+6121-   140006899:	00 00 00 00
+6122-   14000689d:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+6123-   1400068a4:	00 00 00 00
+6124-   1400068a8:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+6125-   1400068af:	00 00 00 00
+6126-   1400068b3:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+6127-   1400068ba:	00 00 00 00
+6128-   1400068be:	66 90                	xchg   ax,ax
+6129-   1400068c0:	41 8b 40 04          	mov    eax,DWORD PTR [r8+0x4]
+6130-   1400068c4:	c5 fa 11 01          	vmovss DWORD PTR [rcx],xmm0
+6131-   1400068c8:	89 41 04             	mov    DWORD PTR [rcx+0x4],eax
+6132-   1400068cb:	48 8d 4a ff          	lea    rcx,[rdx-0x1]
+6133-   1400068cf:	48 89 c8             	mov    rax,rcx
+6134-   1400068d2:	48 c1 e8 3f          	shr    rax,0x3f
+6135-   1400068d6:	48 01 c8             	add    rax,rcx
+6136-   1400068d9:	48 89 d1             	mov    rcx,rdx
+6137-   1400068dc:	48 d1 f8             	sar    rax,1
+6138-   1400068df:	48 85 d2             	test   rdx,rdx
+6139:   1400068e2:	0f 84 30 01 00 00    	je     140006a18 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0xa48>
+6140-   1400068e8:	48 89 c2             	mov    rdx,rax
+6141-   1400068eb:	4c 8d 04 d6          	lea    r8,[rsi+rdx*8]
+6142-   1400068ef:	48 8d 0c ce          	lea    rcx,[rsi+rcx*8]
+6143-   1400068f3:	c4 c1 7a 10 00       	vmovss xmm0,DWORD PTR [r8]
+6144-   1400068f8:	c5 f8 2f c1          	vcomiss xmm0,xmm1
+6145:   1400068fc:	77 c2                	ja     1400068c0 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x8f0>
+6146-   1400068fe:	44 89 59 04          	mov    DWORD PTR [rcx+0x4],r11d
+6147-   140006902:	c5 fa 11 09          	vmovss DWORD PTR [rcx],xmm1
+6148:   140006906:	e9 cc f9 ff ff       	jmp    1400062d7 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x307>
+6149-   14000690b:	0f 1f 44 00 00       	nop    DWORD PTR [rax+rax*1+0x0]
+6150-   140006910:	48 8b 44 24 50       	mov    rax,QWORD PTR [rsp+0x50]
+6151-   140006915:	48 8b 8c 24 80 00 00 	mov    rcx,QWORD PTR [rsp+0x80]
+6152-   14000691c:	00
+6153-   14000691d:	48 8d 94 24 a0 00 00 	lea    rdx,[rsp+0xa0]
+6154-   140006924:	00
+6155-   140006925:	4c 89 44 24 68       	mov    QWORD PTR [rsp+0x68],r8
+6156-   14000692a:	48 89 b4 24 20 01 00 	mov    QWORD PTR [rsp+0x120],rsi
+6157-   140006931:	00
+6158-   140006932:	48 89 84 24 28 01 00 	mov    QWORD PTR [rsp+0x128],rax
+6159-   140006939:	00
+6160-   14000693a:	48 89 84 24 30 01 00 	mov    QWORD PTR [rsp+0x130],rax
+--
+6164-   140006950:	00 00
+6165-   140006952:	e8 49 ff 00 00       	call   1400168a0 <void std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >::_M_realloc_append<std::pair<float, unsigned int> >(std::pair<float, unsigned int>&&)>
+6166-   140006957:	4c 8b b4 24 28 01 00 	mov    r14,QWORD PTR [rsp+0x128]
+6167-   14000695e:	00
+6168-   14000695f:	48 8b 84 24 30 01 00 	mov    rax,QWORD PTR [rsp+0x130]
+6169-   140006966:	00
+6170-   140006967:	48 8b b4 24 20 01 00 	mov    rsi,QWORD PTR [rsp+0x120]
+6171-   14000696e:	00
+6172-   14000696f:	4c 8b 44 24 68       	mov    r8,QWORD PTR [rsp+0x68]
+6173-   140006974:	c4 c1 7a 10 4e f8    	vmovss xmm1,DWORD PTR [r14-0x8]
+6174-   14000697a:	45 8b 4e fc          	mov    r9d,DWORD PTR [r14-0x4]
+6175-   14000697e:	48 89 44 24 50       	mov    QWORD PTR [rsp+0x50],rax
+6176:   140006983:	e9 71 fa ff ff       	jmp    1400063f9 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x429>
+6177-   140006988:	0f 1f 84 00 00 00 00 	nop    DWORD PTR [rax+rax*1+0x0]
+6178-   14000698f:	00
+6179-   140006990:	4c 0f af 4d 18       	imul   r9,QWORD PTR [rbp+0x18]
+6180-   140006995:	48 8b bd c8 00 00 00 	mov    rdi,QWORD PTR [rbp+0xc8]
+6181-   14000699c:	48 8d 9c 24 e0 00 00 	lea    rbx,[rsp+0xe0]
+6182-   1400069a3:	00
+6183-   1400069a4:	48 89 d9             	mov    rcx,rbx
+6184-   1400069a7:	4c 01 cf             	add    rdi,r9
+6185-   1400069aa:	48 03 bd d8 00 00 00 	add    rdi,QWORD PTR [rbp+0xd8]
+6186-   1400069b1:	44 0f b7 3f          	movzx  r15d,WORD PTR [rdi]
+6187-   1400069b5:	4c 89 fa             	mov    rdx,r15
+6188-   1400069b8:	e8 c3 0b 01 00       	call   140017580 <std::vector<unsigned int, std::allocator<unsigned int> >::reserve(unsigned long long)>
+6189-   1400069bd:	4d 85 ff             	test   r15,r15
+6190:   1400069c0:	0f 84 75 f9 ff ff    	je     14000633b <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x36b>
+6191-   1400069c6:	45 31 ed             	xor    r13d,r13d
+6192:   1400069c9:	eb 1e                	jmp    1400069e9 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0xa19>
+6193-   1400069cb:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+6194-   1400069d2:	00 00 00 00
+6195-   1400069d6:	66 2e 0f 1f 84 00 00 	cs nop WORD PTR [rax+rax*1+0x0]
+6196-   1400069dd:	00 00 00
+6197-   1400069e0:	4d 39 ef             	cmp    r15,r13
+6198:   1400069e3:	0f 84 52 f9 ff ff    	je     14000633b <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x36b>
+6199-   1400069e9:	49 83 c5 01          	add    r13,0x1
+6200-   1400069ed:	42 8b 14 af          	mov    edx,DWORD PTR [rdi+r13*4]
+6201-   1400069f1:	48 8b 44 24 58       	mov    rax,QWORD PTR [rsp+0x58]
+6202-   1400069f6:	48 8b 00             	mov    rax,QWORD PTR [rax]
+6203-   1400069f9:	48 39 c2             	cmp    rdx,rax
+6204:   1400069fc:	73 e2                	jae    1400069e0 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0xa10>
+6205-   1400069fe:	42 8b 04 af          	mov    eax,DWORD PTR [rdi+r13*4]
+6206-   140006a02:	48 8b 54 24 70       	mov    rdx,QWORD PTR [rsp+0x70]
+6207-   140006a07:	48 89 d9             	mov    rcx,rbx
+6208-   140006a0a:	89 84 24 c0 00 00 00 	mov    DWORD PTR [rsp+0xc0],eax
+6209-   140006a11:	e8 2a 08 01 00       	call   140017240 <void std::vector<unsigned int, std::allocator<unsigned int> >::emplace_back<unsigned int>(unsigned int&&)>
+6210:   140006a16:	eb c8                	jmp    1400069e0 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0xa10>
+6211-   140006a18:	4c 89 c1             	mov    rcx,r8
+6212-   140006a1b:	44 89 59 04          	mov    DWORD PTR [rcx+0x4],r11d
+6213-   140006a1f:	c5 fa 11 09          	vmovss DWORD PTR [rcx],xmm1
+6214:   140006a23:	e9 af f8 ff ff       	jmp    1400062d7 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x307>
+6215-   140006a28:	48 8b 44 24 60       	mov    rax,QWORD PTR [rsp+0x60]
+6216-   140006a2d:	48 8b 8c 24 88 00 00 	mov    rcx,QWORD PTR [rsp+0x88]
+6217-   140006a34:	00
+6218-   140006a35:	48 8d 94 24 b0 00 00 	lea    rdx,[rsp+0xb0]
+6219-   140006a3c:	00
+6220-   140006a3d:	4c 89 a4 24 00 01 00 	mov    QWORD PTR [rsp+0x100],r12
+6221-   140006a44:	00
+6222-   140006a45:	89 bc 24 b4 00 00 00 	mov    DWORD PTR [rsp+0xb4],edi
+6223-   140006a4c:	48 89 84 24 08 01 00 	mov    QWORD PTR [rsp+0x108],rax
+6224-   140006a53:	00
+6225-   140006a54:	48 89 84 24 10 01 00 	mov    QWORD PTR [rsp+0x110],rax
+6226-   140006a5b:	00
+6227-   140006a5c:	c5 fa 11 b4 24 b0 00 	vmovss DWORD PTR [rsp+0xb0],xmm6
+6228-   140006a63:	00 00
+6229-   140006a65:	e8 36 fe 00 00       	call   1400168a0 <void std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >::_M_realloc_append<std::pair<float, unsigned int> >(std::pair<float, unsigned int>&&)>
+6230-   140006a6a:	48 8b 84 24 08 01 00 	mov    rax,QWORD PTR [rsp+0x108]
+6231-   140006a71:	00
+6232-   140006a72:	4c 8b a4 24 00 01 00 	mov    r12,QWORD PTR [rsp+0x100]
+6233-   140006a79:	00
+6234-   140006a7a:	48 89 44 24 30       	mov    QWORD PTR [rsp+0x30],rax
+6235-   140006a7f:	48 8b 84 24 10 01 00 	mov    rax,QWORD PTR [rsp+0x110]
+6236-   140006a86:	00
+6237-   140006a87:	48 89 44 24 60       	mov    QWORD PTR [rsp+0x60],rax
+6238:   140006a8c:	e9 80 fb ff ff       	jmp    140006611 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x641>
+6239-   140006a91:	48 8d 54 0e f8       	lea    rdx,[rsi+rcx*1-0x8]
+6240:   140006a96:	e9 e3 f9 ff ff       	jmp    14000647e <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x4ae>
+6241-   140006a9b:	48 8b 44 24 60       	mov    rax,QWORD PTR [rsp+0x60]
+6242-   140006aa0:	48 8b 8c 24 88 00 00 	mov    rcx,QWORD PTR [rsp+0x88]
+6243-   140006aa7:	00
+6244-   140006aa8:	48 8d 94 24 b8 00 00 	lea    rdx,[rsp+0xb8]
+6245-   140006aaf:	00
+6246-   140006ab0:	4c 89 a4 24 00 01 00 	mov    QWORD PTR [rsp+0x100],r12
+6247-   140006ab7:	00
+6248-   140006ab8:	89 bc 24 bc 00 00 00 	mov    DWORD PTR [rsp+0xbc],edi
+6249-   140006abf:	48 89 84 24 08 01 00 	mov    QWORD PTR [rsp+0x108],rax
+6250-   140006ac6:	00
+6251-   140006ac7:	48 89 84 24 10 01 00 	mov    QWORD PTR [rsp+0x110],rax
+6252-   140006ace:	00
+6253-   140006acf:	c5 fa 11 b4 24 b8 00 	vmovss DWORD PTR [rsp+0xb8],xmm6
+6254-   140006ad6:	00 00
+6255-   140006ad8:	e8 c3 fd 00 00       	call   1400168a0 <void std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >::_M_realloc_append<std::pair<float, unsigned int> >(std::pair<float, unsigned int>&&)>
+6256-   140006add:	48 8b 84 24 10 01 00 	mov    rax,QWORD PTR [rsp+0x110]
+6257-   140006ae4:	00
+6258-   140006ae5:	48 8b bc 24 08 01 00 	mov    rdi,QWORD PTR [rsp+0x108]
+6259-   140006aec:	00
+6260-   140006aed:	4c 8b a4 24 00 01 00 	mov    r12,QWORD PTR [rsp+0x100]
+6261-   140006af4:	00
+6262-   140006af5:	48 89 44 24 60       	mov    QWORD PTR [rsp+0x60],rax
+6263-   140006afa:	48 8d 47 f8          	lea    rax,[rdi-0x8]
+6264-   140006afe:	48 89 44 24 30       	mov    QWORD PTR [rsp+0x30],rax
+6265:   140006b03:	e9 63 fb ff ff       	jmp    14000666b <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x69b>
+6266-   140006b08:	31 c0                	xor    eax,eax
+6267-   140006b0a:	48 89 f1             	mov    rcx,rsi
+6268-   140006b0d:	4c 8d 44 00 01       	lea    r8,[rax+rax*1+0x1]
+6269-   140006b12:	4a 8d 14 c6          	lea    rdx,[rsi+r8*8]
+6270-   140006b16:	c5 fa 10 02          	vmovss xmm0,DWORD PTR [rdx]
+6271-   140006b1a:	8b 52 04             	mov    edx,DWORD PTR [rdx+0x4]
+6272-   140006b1d:	c5 fa 11 01          	vmovss DWORD PTR [rcx],xmm0
+6273-   140006b21:	89 51 04             	mov    DWORD PTR [rcx+0x4],edx
+6274-   140006b24:	48 89 c2             	mov    rdx,rax
+6275-   140006b27:	4c 89 c1             	mov    rcx,r8
+6276:   140006b2a:	e9 bc fd ff ff       	jmp    1400068eb <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x91b>
+6277-   140006b2f:	48 89 f3             	mov    rbx,rsi
+6278:   140006b32:	e9 9a f9 ff ff       	jmp    1400064d1 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x501>
+6279-   140006b37:	4d 85 ed             	test   r13,r13
+6280:   140006b3a:	75 06                	jne    140006b42 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0xb72>
+6281-   140006b3c:	48 83 f8 02          	cmp    rax,0x2
+6282:   140006b40:	76 c6                	jbe    140006b08 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0xb38>
+6283-   140006b42:	48 89 f1             	mov    rcx,rsi
+6284-   140006b45:	44 89 59 04          	mov    DWORD PTR [rcx+0x4],r11d
+6285-   140006b49:	c5 fa 11 09          	vmovss DWORD PTR [rcx],xmm1
+6286:   140006b4d:	e9 85 f7 ff ff       	jmp    1400062d7 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x307>
+6287-   140006b52:	c5 f8 10 b4 24 40 01 	vmovups xmm6,XMMWORD PTR [rsp+0x140]
+6288-   140006b59:	00 00
+6289-   140006b5b:	48 81 c4 58 01 00 00 	add    rsp,0x158
+6290-   140006b62:	5b                   	pop    rbx
+6291-   140006b63:	5e                   	pop    rsi
+6292-   140006b64:	5f                   	pop    rdi
+6293-   140006b65:	5d                   	pop    rbp
+6294-   140006b66:	41 5c                	pop    r12
+6295-   140006b68:	41 5d                	pop    r13
+6296-   140006b6a:	41 5e                	pop    r14
+6297-   140006b6c:	41 5f                	pop    r15
+6298-   140006b6e:	c3                   	ret
+6299-   140006b6f:	31 d2                	xor    edx,edx
+6300:   140006b71:	e9 ec fb ff ff       	jmp    140006762 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x792>
+6301-   140006b76:	48 8d 44 0e f8       	lea    rax,[rsi+rcx*1-0x8]
+6302:   140006b7b:	e9 7a f6 ff ff       	jmp    1400061fa <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x22a>
+6303-   140006b80:	48 83 c0 01          	add    rax,0x1
+6304-   140006b84:	31 d2                	xor    edx,edx
+6305:   140006b86:	e9 9b f4 ff ff       	jmp    140006026 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0x56>
+6306-   140006b8b:	48 8d 0d 46 25 01 00 	lea    rcx,[rip+0x12546]        # 1400190d8 <.rdata+0xd8>
+6307-   140006b92:	e8 91 3e 00 00       	call   14000aa28 <std::__throw_length_error(char const*)>
+6308-   140006b97:	45 31 e4             	xor    r12d,r12d
+6309-   140006b9a:	48 8b 9c 24 20 01 00 	mov    rbx,QWORD PTR [rsp+0x120]
+6310-   140006ba1:	00
+6311-   140006ba2:	48 89 c7             	mov    rdi,rax
+6312-   140006ba5:	c5 f8 77             	vzeroupper
+6313-   140006ba8:	48 85 db             	test   rbx,rbx
+6314:   140006bab:	74 08                	je     140006bb5 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0xbe5>
+6315-   140006bad:	48 89 d9             	mov    rcx,rbx
+6316-   140006bb0:	e8 43 3e 00 00       	call   14000a9f8 <operator delete(void*)>
+6317-   140006bb5:	4d 85 e4             	test   r12,r12
+6318:   140006bb8:	74 10                	je     140006bca <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0xbfa>
+6319-   140006bba:	4c 89 e1             	mov    rcx,r12
+6320-   140006bbd:	e8 36 3e 00 00       	call   14000a9f8 <operator delete(void*)>
+6321:   140006bc2:	eb 06                	jmp    140006bca <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0xbfa>
+6322-   140006bc4:	48 89 c7             	mov    rdi,rax
+6323-   140006bc7:	c5 f8 77             	vzeroupper
+6324-   140006bca:	48 83 7c 24 38 00    	cmp    QWORD PTR [rsp+0x38],0x0
+6325:   140006bd0:	74 0a                	je     140006bdc <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0xc0c>
+6326-   140006bd2:	48 8b 4c 24 38       	mov    rcx,QWORD PTR [rsp+0x38]
+6327-   140006bd7:	e8 1c 3e 00 00       	call   14000a9f8 <operator delete(void*)>
+6328-   140006bdc:	48 89 f9             	mov    rcx,rdi
+6329-   140006bdf:	e8 ec 3d 00 00       	call   14000a9d0 <__cxa_call_terminate>
+6330-   140006be4:	4c 8b a4 24 00 01 00 	mov    r12,QWORD PTR [rsp+0x100]
+6331-   140006beb:	00
+6332-   140006bec:	48 89 c7             	mov    rdi,rax
+6333-   140006bef:	4c 89 e9             	mov    rcx,r13
+6334-   140006bf2:	c5 f8 77             	vzeroupper
+6335-   140006bf5:	48 89 f3             	mov    rbx,rsi
+6336-   140006bf8:	e8 fb 3d 00 00       	call   14000a9f8 <operator delete(void*)>
+6337:   140006bfd:	eb a9                	jmp    140006ba8 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0xbd8>
+6338-   140006bff:	48 8b 8c 24 e0 00 00 	mov    rcx,QWORD PTR [rsp+0xe0]
+6339-   140006c06:	00
+6340-   140006c07:	48 89 c7             	mov    rdi,rax
+6341-   140006c0a:	48 85 c9             	test   rcx,rcx
+6342:   140006c0d:	75 55                	jne    140006c64 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0xc94>
+6343-   140006c0f:	c5 f8 77             	vzeroupper
+6344-   140006c12:	48 89 f3             	mov    rbx,rsi
+6345:   140006c15:	eb 96                	jmp    140006bad <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0xbdd>
+6346:   140006c17:	eb cb                	jmp    140006be4 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0xc14>
+6347-   140006c19:	4c 8b a4 24 00 01 00 	mov    r12,QWORD PTR [rsp+0x100]
+6348-   140006c20:	00
+6349-   140006c21:	48 89 c7             	mov    rdi,rax
+6350-   140006c24:	48 89 f3             	mov    rbx,rsi
+6351-   140006c27:	c5 f8 77             	vzeroupper
+6352:   140006c2a:	e9 79 ff ff ff       	jmp    140006ba8 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0xbd8>
+6353-   140006c2f:	48 89 c7             	mov    rdi,rax
+6354-   140006c32:	c5 f8 77             	vzeroupper
+6355:   140006c35:	e9 6e ff ff ff       	jmp    140006ba8 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0xbd8>
+6356-   140006c3a:	48 89 c7             	mov    rdi,rax
+6357:   140006c3d:	eb b0                	jmp    140006bef <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0xc1f>
+6358-   140006c3f:	48 8b b4 24 20 01 00 	mov    rsi,QWORD PTR [rsp+0x120]
+6359-   140006c46:	00
+6360-   140006c47:	48 89 c7             	mov    rdi,rax
+6361:   140006c4a:	eb a3                	jmp    140006bef <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0xc1f>
+6362-   140006c4c:	48 8b 4c 24 70       	mov    rcx,QWORD PTR [rsp+0x70]
+6363-   140006c51:	48 89 c7             	mov    rdi,rax
+6364-   140006c54:	c5 f8 77             	vzeroupper
+6365-   140006c57:	45 31 e4             	xor    r12d,r12d
+6366-   140006c5a:	e8 81 f8 00 00       	call   1400164e0 <std::vector<std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > >, std::allocator<std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > > > >::~vector()>
+6367:   140006c5f:	e9 44 ff ff ff       	jmp    140006ba8 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0xbd8>
+6368-   140006c64:	c5 f8 77             	vzeroupper
+6369-   140006c67:	e8 8c 3d 00 00       	call   14000a9f8 <operator delete(void*)>
+6370:   140006c6c:	eb a4                	jmp    140006c12 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]+0xc42>
+6371-   140006c6e:	66 90                	xchg   ax,ax
+6372-
+6373-0000000140006c70 <ann_hnsw::BuildIndex(float const*, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long)>:
+6374-   140006c70:	41 55                	push   r13
+6375-   140006c72:	41 54                	push   r12
+6376-   140006c74:	55                   	push   rbp
+6377-   140006c75:	57                   	push   rdi
+6378-   140006c76:	56                   	push   rsi
+6379-   140006c77:	53                   	push   rbx
+6380-   140006c78:	48 83 ec 48          	sub    rsp,0x48
+6381-   140006c7c:	c5 f9 ef c0          	vpxor  xmm0,xmm0,xmm0
+6382-   140006c80:	48 89 cd             	mov    rbp,rcx
+6383-   140006c83:	c5 fa 7f 01          	vmovdqu XMMWORD PTR [rcx],xmm0
+6384-   140006c87:	b9 20 00 00 00       	mov    ecx,0x20
+6385-   140006c8c:	48 89 d7             	mov    rdi,rdx
+6386-   140006c8f:	4d 89 c5             	mov    r13,r8
+6387-   140006c92:	4d 89 cc             	mov    r12,r9
+6388-   140006c95:	e8 4e 3d 00 00       	call   14000a9e8 <operator new(unsigned long long)>
+6389-   140006c9a:	49 89 c2             	mov    r10,rax
+6390:   140006c9d:	48 8d 05 fc 33 01 00 	lea    rax,[rip+0x133fc]        # 14001a0a0 <vtable for hnswlib::InnerProductSpace+0x10>
+6391-   140006ca4:	49 89 02             	mov    QWORD PTR [r10],rax
+6392:   140006ca7:	48 8d 05 32 a8 ff ff 	lea    rax,[rip+0xffffffffffffa832]        # 1400014e0 <hnswlib::InnerProductDistance(void const*, void const*, void const*)>
+6393-   140006cae:	49 89 42 08          	mov    QWORD PTR [r10+0x8],rax
+6394-   140006cb2:	e8 c9 a7 ff ff       	call   140001480 <AVXCapable()>
+6395-   140006cb7:	84 c0                	test   al,al
+6396-   140006cb9:	74 1c                	je     140006cd7 <ann_hnsw::BuildIndex(float const*, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long)+0x67>
+6397:   140006cbb:	48 8d 05 8e a9 ff ff 	lea    rax,[rip+0xffffffffffffa98e]        # 140001650 <hnswlib::InnerProductSIMD16ExtAVX(void const*, void const*, void const*)>
+6398:   140006cc2:	48 89 05 4f 13 01 00 	mov    QWORD PTR [rip+0x1134f],rax        # 140018018 <hnswlib::InnerProductSIMD16Ext>
+6399:   140006cc9:	48 8d 05 30 aa ff ff 	lea    rax,[rip+0xffffffffffffaa30]        # 140001700 <hnswlib::InnerProductDistanceSIMD16ExtAVX(void const*, void const*, void const*)>
+6400:   140006cd0:	48 89 05 31 13 01 00 	mov    QWORD PTR [rip+0x11331],rax        # 140018008 <hnswlib::InnerProductDistanceSIMD16Ext>
+6401-   140006cd7:	e8 a4 a7 ff ff       	call   140001480 <AVXCapable()>
+6402-   140006cdc:	84 c0                	test   al,al
+6403-   140006cde:	74 1c                	je     140006cfc <ann_hnsw::BuildIndex(float const*, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long)+0x8c>
+6404:   140006ce0:	48 8d 05 f9 ab ff ff 	lea    rax,[rip+0xffffffffffffabf9]        # 1400018e0 <hnswlib::InnerProductSIMD4ExtAVX(void const*, void const*, void const*)>
+6405:   140006ce7:	48 89 05 22 13 01 00 	mov    QWORD PTR [rip+0x11322],rax        # 140018010 <hnswlib::InnerProductSIMD4Ext>
+6406:   140006cee:	48 8d 05 fb ac ff ff 	lea    rax,[rip+0xffffffffffffacfb]        # 1400019f0 <hnswlib::InnerProductDistanceSIMD4ExtAVX(void const*, void const*, void const*)>
+6407-   140006cf5:	48 89 05 04 13 01 00 	mov    QWORD PTR [rip+0x11304],rax        # 140018000 <__data_start__>
+6408-   140006cfc:	41 f6 c4 0f          	test   r12b,0xf
+6409-   140006d00:	0f 85 0a 01 00 00    	jne    140006e10 <ann_hnsw::BuildIndex(float const*, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long)+0x1a0>
+6410:   140006d06:	48 8b 05 fb 12 01 00 	mov    rax,QWORD PTR [rip+0x112fb]        # 140018008 <hnswlib::InnerProductDistanceSIMD16Ext>
+6411-   140006d0d:	49 89 42 08          	mov    QWORD PTR [r10+0x8],rax
+6412-   140006d11:	48 8b 4d 00          	mov    rcx,QWORD PTR [rbp+0x0]
+6413-   140006d15:	4d 89 62 18          	mov    QWORD PTR [r10+0x18],r12
+6414-   140006d19:	49 c1 e4 02          	shl    r12,0x2
+6415-   140006d1d:	4d 89 62 10          	mov    QWORD PTR [r10+0x10],r12
+6416-   140006d21:	4c 89 55 00          	mov    QWORD PTR [rbp+0x0],r10
+6417-   140006d25:	48 85 c9             	test   rcx,rcx
+6418-   140006d28:	74 1c                	je     140006d46 <ann_hnsw::BuildIndex(float const*, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long)+0xd6>
+6419-   140006d2a:	48 8b 01             	mov    rax,QWORD PTR [rcx]
+6420:   140006d2d:	48 8d 15 8c ba 00 00 	lea    rdx,[rip+0xba8c]        # 1400127c0 <hnswlib::InnerProductSpace::~InnerProductSpace()>
+6421-   140006d34:	48 8b 40 20          	mov    rax,QWORD PTR [rax+0x20]
+6422-   140006d38:	48 39 d0             	cmp    rax,rdx
+6423-   140006d3b:	0f 85 1f 01 00 00    	jne    140006e60 <ann_hnsw::BuildIndex(float const*, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long)+0x1f0>
+6424-   140006d41:	e8 b2 3c 00 00       	call   14000a9f8 <operator delete(void*)>
+6425-   140006d46:	b9 b0 01 00 00       	mov    ecx,0x1b0
+6426-   140006d4b:	e8 98 3c 00 00       	call   14000a9e8 <operator new(unsigned long long)>
+6427-   140006d50:	48 89 c6             	mov    rsi,rax
+6428-   140006d53:	48 8b 84 24 a8 00 00 	mov    rax,QWORD PTR [rsp+0xa8]
+6429-   140006d5a:	00
+6430-   140006d5b:	48 8b 55 00          	mov    rdx,QWORD PTR [rbp+0x0]
+6431-   140006d5f:	4d 89 e8             	mov    r8,r13
+6432-   140006d62:	c7 44 24 30 00 00 00 	mov    DWORD PTR [rsp+0x30],0x0
+--
+6483-   140006e0d:	0f 1f 00             	nop    DWORD PTR [rax]
+6484-   140006e10:	41 f6 c4 03          	test   r12b,0x3
+6485-   140006e14:	75 1a                	jne    140006e30 <ann_hnsw::BuildIndex(float const*, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long)+0x1c0>
+6486-   140006e16:	48 8b 05 e3 11 01 00 	mov    rax,QWORD PTR [rip+0x111e3]        # 140018000 <__data_start__>
+6487-   140006e1d:	49 89 42 08          	mov    QWORD PTR [r10+0x8],rax
+6488-   140006e21:	e9 eb fe ff ff       	jmp    140006d11 <ann_hnsw::BuildIndex(float const*, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long)+0xa1>
+6489-   140006e26:	66 2e 0f 1f 84 00 00 	cs nop WORD PTR [rax+rax*1+0x0]
+6490-   140006e2d:	00 00 00
+6491-   140006e30:	49 83 fc 10          	cmp    r12,0x10
+6492-   140006e34:	77 1a                	ja     140006e50 <ann_hnsw::BuildIndex(float const*, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long)+0x1e0>
+6493-   140006e36:	49 83 fc 04          	cmp    r12,0x4
+6494-   140006e3a:	0f 86 d1 fe ff ff    	jbe    140006d11 <ann_hnsw::BuildIndex(float const*, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long)+0xa1>
+6495:   140006e40:	48 8d 05 19 aa ff ff 	lea    rax,[rip+0xffffffffffffaa19]        # 140001860 <hnswlib::InnerProductDistanceSIMD4ExtResiduals(void const*, void const*, void const*)>
+6496-   140006e47:	49 89 42 08          	mov    QWORD PTR [r10+0x8],rax
+6497-   140006e4b:	e9 c1 fe ff ff       	jmp    140006d11 <ann_hnsw::BuildIndex(float const*, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long)+0xa1>
+6498:   140006e50:	48 8d 05 79 a9 ff ff 	lea    rax,[rip+0xffffffffffffa979]        # 1400017d0 <hnswlib::InnerProductDistanceSIMD16ExtResiduals(void const*, void const*, void const*)>
+6499-   140006e57:	49 89 42 08          	mov    QWORD PTR [r10+0x8],rax
+6500-   140006e5b:	e9 b1 fe ff ff       	jmp    140006d11 <ann_hnsw::BuildIndex(float const*, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long)+0xa1>
+6501-   140006e60:	ff d0                	call   rax
+6502-   140006e62:	e9 df fe ff ff       	jmp    140006d46 <ann_hnsw::BuildIndex(float const*, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long)+0xd6>
+6503-   140006e67:	66 0f 1f 84 00 00 00 	nop    WORD PTR [rax+rax*1+0x0]
+6504-   140006e6e:	00 00
+6505-   140006e70:	ff d0                	call   rax
+6506-   140006e72:	48 8b 75 08          	mov    rsi,QWORD PTR [rbp+0x8]
+6507-   140006e76:	e9 45 ff ff ff       	jmp    140006dc0 <ann_hnsw::BuildIndex(float const*, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long)+0x150>
+6508-   140006e7b:	48 89 c3             	mov    rbx,rax
+6509-   140006e7e:	c5 f8 77             	vzeroupper
+6510-   140006e81:	48 8d 4d 08          	lea    rcx,[rbp+0x8]
+6511-   140006e85:	e8 06 e5 00 00       	call   140015390 <std::unique_ptr<hnswlib::HierarchicalNSW<float>, std::default_delete<hnswlib::HierarchicalNSW<float> > >::~unique_ptr()>
+6512-   140006e8a:	48 89 e9             	mov    rcx,rbp
+6513:   140006e8d:	e8 4e e5 00 00       	call   1400153e0 <std::unique_ptr<hnswlib::InnerProductSpace, std::default_delete<hnswlib::InnerProductSpace> >::~unique_ptr()>
+6514-   140006e92:	48 89 d9             	mov    rcx,rbx
+6515-   140006e95:	e8 d6 4d 00 00       	call   14000bc70 <_Unwind_Resume>
+6516-   140006e9a:	48 89 f1             	mov    rcx,rsi
+6517-   140006e9d:	48 89 c3             	mov    rbx,rax
+6518-   140006ea0:	c5 f8 77             	vzeroupper
+6519-   140006ea3:	e8 50 3b 00 00       	call   14000a9f8 <operator delete(void*)>
+6520-   140006ea8:	eb d7                	jmp    140006e81 <ann_hnsw::BuildIndex(float const*, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long)+0x211>
+6521-   140006eaa:	66 0f 1f 44 00 00    	nop    WORD PTR [rax+rax*1+0x0]
+6522-
+6523-0000000140006eb0 <hnswlib::HierarchicalNSW<float>::mutuallyConnectNewElement(void const*, unsigned int, std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, hnswlib::HierarchicalNSW<float>::CompareByFirst>&, int, bool) [clone .isra.0]>:
+6524-   140006eb0:	41 57                	push   r15
+6525-   140006eb2:	41 56                	push   r14
+--
+8248-   140008b30:	00
+8249-   140008b31:	48 8d 9c 24 a0 01 00 	lea    rbx,[rsp+0x1a0]
+8250-   140008b38:	00
+8251-   140008b39:	48 89 44 24 48       	mov    QWORD PTR [rsp+0x48],rax
+8252-   140008b3e:	48 8b 84 24 10 01 00 	mov    rax,QWORD PTR [rsp+0x110]
+8253-   140008b45:	00
+8254-   140008b46:	c5 fa 7f b4 24 10 01 	vmovdqu XMMWORD PTR [rsp+0x110],xmm6
+8255-   140008b4d:	00 00
+8256-   140008b4f:	48 89 84 24 e0 00 00 	mov    QWORD PTR [rsp+0xe0],rax
+8257-   140008b56:	00
+8258-   140008b57:	e8 34 c8 00 00       	call   140015390 <std::unique_ptr<hnswlib::HierarchicalNSW<float>, std::default_delete<hnswlib::HierarchicalNSW<float> > >::~unique_ptr()>
+8259-   140008b5c:	4c 89 e1             	mov    rcx,r12
+8260:   140008b5f:	e8 7c c8 00 00       	call   1400153e0 <std::unique_ptr<hnswlib::InnerProductSpace, std::default_delete<hnswlib::InnerProductSpace> >::~unique_ptr()>
+8261-   140008b64:	e8 3f 1f 00 00       	call   14000aaa8 <std::chrono::_V2::system_clock::now()>
+8262-   140008b69:	45 31 c9             	xor    r9d,r9d
+8263-   140008b6c:	49 89 d8             	mov    r8,rbx
+8264-   140008b6f:	4c 89 ea             	mov    rdx,r13
+8265-   140008b72:	48 89 84 24 b8 00 00 	mov    QWORD PTR [rsp+0xb8],rax
+8266-   140008b79:	00
+8267-   140008b7a:	48 8d 84 24 f0 00 00 	lea    rax,[rsp+0xf0]
+8268-   140008b81:	00
+8269-   140008b82:	48 89 c1             	mov    rcx,rax
+8270-   140008b85:	48 89 44 24 68       	mov    QWORD PTR [rsp+0x68],rax
+8271-   140008b8a:	4c 89 8c 24 b0 01 00 	mov    QWORD PTR [rsp+0x1b0],r9
+8272-   140008b91:	00
+--
+8304-   140008c1e:	00 00
+8305-   140008c20:	4d 85 e4             	test   r12,r12
+8306-   140008c23:	0f 85 6c 17 00 00    	jne    14000a395 <(anonymous namespace)::RunNoMpi(int, char**) [clone .isra.0]+0x1d55>
+8307-   140008c29:	48 c7 84 24 50 01 00 	mov    QWORD PTR [rsp+0x150],0x0
+8308-   140008c30:	00 00 00 00 00
+8309-   140008c35:	31 c0                	xor    eax,eax
+8310-   140008c37:	48 c7 84 24 60 01 00 	mov    QWORD PTR [rsp+0x160],0x0
+8311-   140008c3e:	00 00 00 00 00
+8312-   140008c43:	48 89 84 24 58 01 00 	mov    QWORD PTR [rsp+0x158],rax
+8313-   140008c4a:	00
+8314-   140008c4b:	44 8b 44 24 40       	mov    r8d,DWORD PTR [rsp+0x40]
+8315-   140008c50:	48 89 da             	mov    rdx,rbx
+8316:   140008c53:	48 8d 0d 76 d3 ff ff 	lea    rcx,[rip+0xffffffffffffd376]        # 140005fd0 <hnsw_search_multi_entry_omp(hnswlib::HierarchicalNSW<float> const&, float const*, unsigned long long, unsigned long long, int) [clone ._omp_fn.0]>
+8317-   140008c5a:	48 8b 84 24 b0 00 00 	mov    rax,QWORD PTR [rsp+0xb0]
+8318-   140008c61:	00
+8319-   140008c62:	45 31 c9             	xor    r9d,r9d
+8320-   140008c65:	48 c7 84 24 b0 01 00 	mov    QWORD PTR [rsp+0x1b0],0xa
+8321-   140008c6c:	00 0a 00 00 00
+8322-   140008c71:	c5 fa 7f b4 24 c0 01 	vmovdqu XMMWORD PTR [rsp+0x1c0],xmm6
+8323-   140008c78:	00 00
+8324-   140008c7a:	48 89 84 24 b8 01 00 	mov    QWORD PTR [rsp+0x1b8],rax
+8325-   140008c81:	00
+8326-   140008c82:	48 8b 44 24 58       	mov    rax,QWORD PTR [rsp+0x58]
+8327-   140008c87:	48 89 84 24 a8 01 00 	mov    QWORD PTR [rsp+0x1a8],rax
+8328-   140008c8e:	00
+--
+8622-   14000914d:	00
+8623-   14000914e:	e8 ad 3a 00 00       	call   14000cc00 <ann_hnsw_on_hnsw::HierarchicalIndex::~HierarchicalIndex()>
+8624-   140009153:	48 8b 8c 24 88 00 00 	mov    rcx,QWORD PTR [rsp+0x88]
+8625-   14000915a:	00
+8626-   14000915b:	e8 e0 33 00 00       	call   14000c540 <ann_hnsw_nested::NestedIndex::~NestedIndex()>
+8627-   140009160:	48 8b 44 24 48       	mov    rax,QWORD PTR [rsp+0x48]
+8628-   140009165:	48 8d 8c 24 e8 00 00 	lea    rcx,[rsp+0xe8]
+8629-   14000916c:	00
+8630-   14000916d:	48 89 84 24 e8 00 00 	mov    QWORD PTR [rsp+0xe8],rax
+8631-   140009174:	00
+8632-   140009175:	e8 16 c2 00 00       	call   140015390 <std::unique_ptr<hnswlib::HierarchicalNSW<float>, std::default_delete<hnswlib::HierarchicalNSW<float> > >::~unique_ptr()>
+8633-   14000917a:	48 89 d9             	mov    rcx,rbx
+8634:   14000917d:	e8 5e c2 00 00       	call   1400153e0 <std::unique_ptr<hnswlib::InnerProductSpace, std::default_delete<hnswlib::InnerProductSpace> >::~unique_ptr()>
+8635-   140009182:	48 8b 4c 24 60       	mov    rcx,QWORD PTR [rsp+0x60]
+8636-   140009187:	e8 e4 a1 00 00       	call   140013370 <ann_ivfpq::IVFPQIndex::~IVFPQIndex()>
+8637-   14000918c:	48 8b 4c 24 68       	mov    rcx,QWORD PTR [rsp+0x68]
+8638-   140009191:	e8 4a d3 00 00       	call   1400164e0 <std::vector<std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > >, std::allocator<std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > > > >::~vector()>
+8639-   140009196:	48 8d 8c 24 e0 01 00 	lea    rcx,[rsp+0x1e0]
+8640-   14000919d:	00
+8641-   14000919e:	e8 6d 88 ff ff       	call   140001a10 <(anonymous namespace)::DataBundle::~DataBundle()>
+8642-   1400091a3:	90                   	nop
+8643-   1400091a4:	c5 f8 10 b4 24 a0 04 	vmovups xmm6,XMMWORD PTR [rsp+0x4a0]
+8644-   1400091ab:	00 00
+8645-   1400091ad:	c5 f8 10 bc 24 b0 04 	vmovups xmm7,XMMWORD PTR [rsp+0x4b0]
+8646-   1400091b4:	00 00
+--
+9989-   14000a6fb:	00
+9990-   14000a6fc:	e8 ff 24 00 00       	call   14000cc00 <ann_hnsw_on_hnsw::HierarchicalIndex::~HierarchicalIndex()>
+9991-   14000a701:	48 8b 8c 24 88 00 00 	mov    rcx,QWORD PTR [rsp+0x88]
+9992-   14000a708:	00
+9993-   14000a709:	e8 32 1e 00 00       	call   14000c540 <ann_hnsw_nested::NestedIndex::~NestedIndex()>
+9994-   14000a70e:	48 8b 44 24 48       	mov    rax,QWORD PTR [rsp+0x48]
+9995-   14000a713:	48 8d 8c 24 e8 00 00 	lea    rcx,[rsp+0xe8]
+9996-   14000a71a:	00
+9997-   14000a71b:	48 89 84 24 e8 00 00 	mov    QWORD PTR [rsp+0xe8],rax
+9998-   14000a722:	00
+9999-   14000a723:	e8 68 ac 00 00       	call   140015390 <std::unique_ptr<hnswlib::HierarchicalNSW<float>, std::default_delete<hnswlib::HierarchicalNSW<float> > >::~unique_ptr()>
+10000-   14000a728:	48 89 f1             	mov    rcx,rsi
+10001:   14000a72b:	e8 b0 ac 00 00       	call   1400153e0 <std::unique_ptr<hnswlib::InnerProductSpace, std::default_delete<hnswlib::InnerProductSpace> >::~unique_ptr()>
+10002-   14000a730:	48 8b 4c 24 60       	mov    rcx,QWORD PTR [rsp+0x60]
+10003-   14000a735:	e8 36 8c 00 00       	call   140013370 <ann_ivfpq::IVFPQIndex::~IVFPQIndex()>
+10004-   14000a73a:	48 8b 4c 24 68       	mov    rcx,QWORD PTR [rsp+0x68]
+10005-   14000a73f:	e8 9c bd 00 00       	call   1400164e0 <std::vector<std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > >, std::allocator<std::priority_queue<std::pair<float, unsigned int>, std::vector<std::pair<float, unsigned int>, std::allocator<std::pair<float, unsigned int> > >, std::less<std::pair<float, unsigned int> > > > >::~vector()>
+10006-   14000a744:	48 8d 8c 24 e0 01 00 	lea    rcx,[rsp+0x1e0]
+10007-   14000a74b:	00
+10008-   14000a74c:	e8 bf 72 ff ff       	call   140001a10 <(anonymous namespace)::DataBundle::~DataBundle()>
+10009-   14000a751:	48 8b 4c 24 40       	mov    rcx,QWORD PTR [rsp+0x40]
+10010-   14000a756:	e8 15 15 00 00       	call   14000bc70 <_Unwind_Resume>
+10011-   14000a75b:	e9 6f ff ff ff       	jmp    14000a6cf <(anonymous namespace)::RunNoMpi(int, char**) [clone .isra.0]+0x208f>
+10012-   14000a760:	48 8b 4c 24 70       	mov    rcx,QWORD PTR [rsp+0x70]
+10013-   14000a765:	48 89 c3             	mov    rbx,rax
+--
+12305-   14000c150:	00
+12306-   14000c151:	4a 8b 34 f8          	mov    rsi,QWORD PTR [rax+r15*8]
+12307-   14000c155:	49 83 c7 01          	add    r15,0x1
+12308-   14000c159:	48 8b 6c 38 08       	mov    rbp,QWORD PTR [rax+rdi*1+0x8]
+12309-   14000c15e:	4c 8d 67 08          	lea    r12,[rdi+0x8]
+12310-   14000c162:	48 29 f5             	sub    rbp,rsi
+12311-   14000c165:	74 d9                	je     14000c140 <ann_hnsw_nested::NestedIndex::build(float const*, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long, int)+0xc0>
+12312-   14000c167:	b9 20 00 00 00       	mov    ecx,0x20
+12313-   14000c16c:	4c 8b ab 98 00 00 00 	mov    r13,QWORD PTR [rbx+0x98]
+12314-   14000c173:	e8 70 e8 ff ff       	call   14000a9e8 <operator new(unsigned long long)>
+12315-   14000c178:	4c 8b 93 c8 00 00 00 	mov    r10,QWORD PTR [rbx+0xc8]
+12316-   14000c17f:	49 89 c3             	mov    r11,rax
+12317:   14000c182:	48 8d 05 17 df 00 00 	lea    rax,[rip+0xdf17]        # 14001a0a0 <vtable for hnswlib::InnerProductSpace+0x10>
+12318-   14000c189:	49 01 fd             	add    r13,rdi
+12319-   14000c18c:	49 89 03             	mov    QWORD PTR [r11],rax
+12320:   14000c18f:	48 8d 05 4a 53 ff ff 	lea    rax,[rip+0xffffffffffff534a]        # 1400014e0 <hnswlib::InnerProductDistance(void const*, void const*, void const*)>
+12321-   14000c196:	49 89 43 08          	mov    QWORD PTR [r11+0x8],rax
+12322-   14000c19a:	e8 e1 52 ff ff       	call   140001480 <AVXCapable()>
+12323-   14000c19f:	84 c0                	test   al,al
+12324-   14000c1a1:	74 1c                	je     14000c1bf <ann_hnsw_nested::NestedIndex::build(float const*, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long, int)+0x13f>
+12325:   14000c1a3:	48 8d 05 a6 54 ff ff 	lea    rax,[rip+0xffffffffffff54a6]        # 140001650 <hnswlib::InnerProductSIMD16ExtAVX(void const*, void const*, void const*)>
+12326:   14000c1aa:	48 89 05 67 be 00 00 	mov    QWORD PTR [rip+0xbe67],rax        # 140018018 <hnswlib::InnerProductSIMD16Ext>
+12327:   14000c1b1:	48 8d 05 48 55 ff ff 	lea    rax,[rip+0xffffffffffff5548]        # 140001700 <hnswlib::InnerProductDistanceSIMD16ExtAVX(void const*, void const*, void const*)>
+12328:   14000c1b8:	48 89 05 49 be 00 00 	mov    QWORD PTR [rip+0xbe49],rax        # 140018008 <hnswlib::InnerProductDistanceSIMD16Ext>
+12329-   14000c1bf:	e8 bc 52 ff ff       	call   140001480 <AVXCapable()>
+12330-   14000c1c4:	84 c0                	test   al,al
+12331-   14000c1c6:	74 1c                	je     14000c1e4 <ann_hnsw_nested::NestedIndex::build(float const*, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long, int)+0x164>
+12332:   14000c1c8:	48 8d 05 11 57 ff ff 	lea    rax,[rip+0xffffffffffff5711]        # 1400018e0 <hnswlib::InnerProductSIMD4ExtAVX(void const*, void const*, void const*)>
+12333:   14000c1cf:	48 89 05 3a be 00 00 	mov    QWORD PTR [rip+0xbe3a],rax        # 140018010 <hnswlib::InnerProductSIMD4Ext>
+12334:   14000c1d6:	48 8d 05 13 58 ff ff 	lea    rax,[rip+0xffffffffffff5813]        # 1400019f0 <hnswlib::InnerProductDistanceSIMD4ExtAVX(void const*, void const*, void const*)>
+12335-   14000c1dd:	48 89 05 1c be 00 00 	mov    QWORD PTR [rip+0xbe1c],rax        # 140018000 <__data_start__>
+12336-   14000c1e4:	41 f6 c2 0f          	test   r10b,0xf
+12337-   14000c1e8:	0f 85 62 01 00 00    	jne    14000c350 <ann_hnsw_nested::NestedIndex::build(float const*, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long, int)+0x2d0>
+12338:   14000c1ee:	48 8b 05 13 be 00 00 	mov    rax,QWORD PTR [rip+0xbe13]        # 140018008 <hnswlib::InnerProductDistanceSIMD16Ext>
+12339-   14000c1f5:	49 89 43 08          	mov    QWORD PTR [r11+0x8],rax
+12340-   14000c1f9:	4a 8d 04 95 00 00 00 	lea    rax,[r10*4+0x0]
+12341-   14000c200:	00
+12342-   14000c201:	49 8b 4d 00          	mov    rcx,QWORD PTR [r13+0x0]
+12343-   14000c205:	c4 e1 f9 6e c0       	vmovq  xmm0,rax
+12344-   14000c20a:	c4 c3 f9 22 c2 01    	vpinsrq xmm0,xmm0,r10,0x1
+12345-   14000c210:	c4 c1 7a 7f 43 10    	vmovdqu XMMWORD PTR [r11+0x10],xmm0
+12346-   14000c216:	4d 89 5d 00          	mov    QWORD PTR [r13+0x0],r11
+12347-   14000c21a:	48 85 c9             	test   rcx,rcx
+12348-   14000c21d:	0f 84 4d 01 00 00    	je     14000c370 <ann_hnsw_nested::NestedIndex::build(float const*, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long, int)+0x2f0>
+12349-   14000c223:	48 8b 01             	mov    rax,QWORD PTR [rcx]
+12350:   14000c226:	48 8d 15 93 65 00 00 	lea    rdx,[rip+0x6593]        # 1400127c0 <hnswlib::InnerProductSpace::~InnerProductSpace()>
+12351-   14000c22d:	48 8b 40 20          	mov    rax,QWORD PTR [rax+0x20]
+12352-   14000c231:	48 39 d0             	cmp    rax,rdx
+12353-   14000c234:	0f 85 a6 02 00 00    	jne    14000c4e0 <ann_hnsw_nested::NestedIndex::build(float const*, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long, int)+0x460>
+12354-   14000c23a:	c5 f8 77             	vzeroupper
+12355-   14000c23d:	e8 b6 e7 ff ff       	call   14000a9f8 <operator delete(void*)>
+12356-   14000c242:	b9 b0 01 00 00       	mov    ecx,0x1b0
+12357-   14000c247:	4c 8b b3 b0 00 00 00 	mov    r14,QWORD PTR [rbx+0xb0]
+12358-   14000c24e:	e8 95 e7 ff ff       	call   14000a9e8 <operator new(unsigned long long)>
+12359-   14000c253:	4c 8b 8c 24 c8 00 00 	mov    r9,QWORD PTR [rsp+0xc8]
+12360-   14000c25a:	00
+12361-   14000c25b:	49 89 e8             	mov    r8,rbp
+12362-   14000c25e:	49 89 c5             	mov    r13,rax
+--
+12425-   14000c354:	75 2a                	jne    14000c380 <ann_hnsw_nested::NestedIndex::build(float const*, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long, int)+0x300>
+12426-   14000c356:	48 8b 05 a3 bc 00 00 	mov    rax,QWORD PTR [rip+0xbca3]        # 140018000 <__data_start__>
+12427-   14000c35d:	49 89 43 08          	mov    QWORD PTR [r11+0x8],rax
+12428-   14000c361:	e9 93 fe ff ff       	jmp    14000c1f9 <ann_hnsw_nested::NestedIndex::build(float const*, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long, int)+0x179>
+12429-   14000c366:	66 2e 0f 1f 84 00 00 	cs nop WORD PTR [rax+rax*1+0x0]
+12430-   14000c36d:	00 00 00
+12431-   14000c370:	c5 f8 77             	vzeroupper
+12432-   14000c373:	e9 ca fe ff ff       	jmp    14000c242 <ann_hnsw_nested::NestedIndex::build(float const*, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long, int)+0x1c2>
+12433-   14000c378:	0f 1f 84 00 00 00 00 	nop    DWORD PTR [rax+rax*1+0x0]
+12434-   14000c37f:	00
+12435-   14000c380:	49 83 fa 10          	cmp    r10,0x10
+12436-   14000c384:	76 1a                	jbe    14000c3a0 <ann_hnsw_nested::NestedIndex::build(float const*, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long, int)+0x320>
+12437:   14000c386:	48 8d 05 43 54 ff ff 	lea    rax,[rip+0xffffffffffff5443]        # 1400017d0 <hnswlib::InnerProductDistanceSIMD16ExtResiduals(void const*, void const*, void const*)>
+12438-   14000c38d:	49 89 43 08          	mov    QWORD PTR [r11+0x8],rax
+12439-   14000c391:	e9 63 fe ff ff       	jmp    14000c1f9 <ann_hnsw_nested::NestedIndex::build(float const*, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long, int)+0x179>
+12440-   14000c396:	66 2e 0f 1f 84 00 00 	cs nop WORD PTR [rax+rax*1+0x0]
+12441-   14000c39d:	00 00 00
+12442-   14000c3a0:	49 83 fa 04          	cmp    r10,0x4
+12443-   14000c3a4:	0f 86 4f fe ff ff    	jbe    14000c1f9 <ann_hnsw_nested::NestedIndex::build(float const*, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long, int)+0x179>
+12444:   14000c3aa:	48 8d 05 af 54 ff ff 	lea    rax,[rip+0xffffffffffff54af]        # 140001860 <hnswlib::InnerProductDistanceSIMD4ExtResiduals(void const*, void const*, void const*)>
+12445-   14000c3b1:	49 89 43 08          	mov    QWORD PTR [r11+0x8],rax
+12446-   14000c3b5:	e9 3f fe ff ff       	jmp    14000c1f9 <ann_hnsw_nested::NestedIndex::build(float const*, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long, int)+0x179>
+12447-   14000c3ba:	66 0f 1f 44 00 00    	nop    WORD PTR [rax+rax*1+0x0]
+12448-   14000c3c0:	4c 8d 2c d1          	lea    r13,[rcx+rdx*8]
+12449-   14000c3c4:	4c 39 ed             	cmp    rbp,r13
+12450-   14000c3c7:	0f 84 41 fd ff ff    	je     14000c10e <ann_hnsw_nested::NestedIndex::build(float const*, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long, int)+0x8e>
+12451-   14000c3cd:	4c 89 ee             	mov    rsi,r13
+12452-   14000c3d0:	4c 8d 25 69 5e 00 00 	lea    r12,[rip+0x5e69]        # 140012240 <hnswlib::HierarchicalNSW<float>::~HierarchicalNSW()>
+12453-   14000c3d7:	eb 1d                	jmp    14000c3f6 <ann_hnsw_nested::NestedIndex::build(float const*, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long, int)+0x376>
+12454-   14000c3d9:	0f 1f 80 00 00 00 00 	nop    DWORD PTR [rax+0x0]
+12455-   14000c3e0:	e8 7b 5e 00 00       	call   140012260 <hnswlib::HierarchicalNSW<float>::~HierarchicalNSW()>
+12456-   14000c3e5:	48 89 f9             	mov    rcx,rdi
+--
+12470-   14000c40f:	48 83 c6 08          	add    rsi,0x8
+12471-   14000c413:	48 39 f5             	cmp    rbp,rsi
+12472-   14000c416:	75 de                	jne    14000c3f6 <ann_hnsw_nested::NestedIndex::build(float const*, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long, int)+0x376>
+12473-   14000c418:	4c 89 ab b8 00 00 00 	mov    QWORD PTR [rbx+0xb8],r13
+12474-   14000c41f:	48 8b 13             	mov    rdx,QWORD PTR [rbx]
+12475-   14000c422:	e9 e7 fc ff ff       	jmp    14000c10e <ann_hnsw_nested::NestedIndex::build(float const*, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long, int)+0x8e>
+12476-   14000c427:	66 0f 1f 84 00 00 00 	nop    WORD PTR [rax+rax*1+0x0]
+12477-   14000c42e:	00 00
+12478-   14000c430:	4c 8d 24 d1          	lea    r12,[rcx+rdx*8]
+12479-   14000c434:	4c 39 e7             	cmp    rdi,r12
+12480-   14000c437:	0f 84 a7 fc ff ff    	je     14000c0e4 <ann_hnsw_nested::NestedIndex::build(float const*, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long, int)+0x64>
+12481-   14000c43d:	4c 89 e6             	mov    rsi,r12
+12482:   14000c440:	48 8d 2d 79 63 00 00 	lea    rbp,[rip+0x6379]        # 1400127c0 <hnswlib::InnerProductSpace::~InnerProductSpace()>
+12483-   14000c447:	eb 15                	jmp    14000c45e <ann_hnsw_nested::NestedIndex::build(float const*, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long, int)+0x3de>
+12484-   14000c449:	0f 1f 80 00 00 00 00 	nop    DWORD PTR [rax+0x0]
+12485-   14000c450:	e8 a3 e5 ff ff       	call   14000a9f8 <operator delete(void*)>
+12486-   14000c455:	48 83 c6 08          	add    rsi,0x8
+12487-   14000c459:	48 39 f7             	cmp    rdi,rsi
+12488-   14000c45c:	74 1f                	je     14000c47d <ann_hnsw_nested::NestedIndex::build(float const*, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long, int)+0x3fd>
+12489-   14000c45e:	48 8b 0e             	mov    rcx,QWORD PTR [rsi]
+12490-   14000c461:	48 85 c9             	test   rcx,rcx
+12491-   14000c464:	74 ef                	je     14000c455 <ann_hnsw_nested::NestedIndex::build(float const*, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long, int)+0x3d5>
+12492-   14000c466:	48 8b 01             	mov    rax,QWORD PTR [rcx]
+12493-   14000c469:	48 8b 40 20          	mov    rax,QWORD PTR [rax+0x20]
+12494-   14000c46d:	48 39 e8             	cmp    rax,rbp
+12495-   14000c470:	74 de                	je     14000c450 <ann_hnsw_nested::NestedIndex::build(float const*, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long, int)+0x3d0>
+12496-   14000c472:	ff d0                	call   rax
+12497-   14000c474:	48 83 c6 08          	add    rsi,0x8
+12498-   14000c478:	48 39 f7             	cmp    rdi,rsi
+12499-   14000c47b:	75 e1                	jne    14000c45e <ann_hnsw_nested::NestedIndex::build(float const*, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long, int)+0x3de>
+12500-   14000c47d:	4c 89 a3 a0 00 00 00 	mov    QWORD PTR [rbx+0xa0],r12
+12501-   14000c484:	48 8b 13             	mov    rdx,QWORD PTR [rbx]
+12502-   14000c487:	e9 58 fc ff ff       	jmp    14000c0e4 <ann_hnsw_nested::NestedIndex::build(float const*, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long, int)+0x64>
+12503-   14000c48c:	0f 1f 40 00          	nop    DWORD PTR [rax+0x0]
+12504-   14000c490:	48 29 c2             	sub    rdx,rax
+12505-   14000c493:	48 8d 8b 98 00 00 00 	lea    rcx,[rbx+0x98]
+12506:   14000c49a:	e8 e1 9b 00 00       	call   140016080 <std::vector<std::unique_ptr<hnswlib::InnerProductSpace, std::default_delete<hnswlib::InnerProductSpace> >, std::allocator<std::unique_ptr<hnswlib::InnerProductSpace, std::default_delete<hnswlib::InnerProductSpace> > > >::_M_default_append(unsigned long long)>
+12507-   14000c49f:	48 8b 13             	mov    rdx,QWORD PTR [rbx]
+12508-   14000c4a2:	e9 3d fc ff ff       	jmp    14000c0e4 <ann_hnsw_nested::NestedIndex::build(float const*, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long, int)+0x64>
+12509-   14000c4a7:	66 0f 1f 84 00 00 00 	nop    WORD PTR [rax+rax*1+0x0]
+12510-   14000c4ae:	00 00
+12511-   14000c4b0:	48 29 c2             	sub    rdx,rax
+12512-   14000c4b3:	48 8d 8b b0 00 00 00 	lea    rcx,[rbx+0xb0]
+12513-   14000c4ba:	e8 81 9a 00 00       	call   140015f40 <std::vector<std::unique_ptr<hnswlib::HierarchicalNSW<float>, std::default_delete<hnswlib::HierarchicalNSW<float> > >, std::allocator<std::unique_ptr<hnswlib::HierarchicalNSW<float>, std::default_delete<hnswlib::HierarchicalNSW<float> > > > >::_M_default_append(unsigned long long)>
+12514-   14000c4bf:	48 8b 13             	mov    rdx,QWORD PTR [rbx]
+12515-   14000c4c2:	e9 47 fc ff ff       	jmp    14000c10e <ann_hnsw_nested::NestedIndex::build(float const*, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long, int)+0x8e>
+12516-   14000c4c7:	66 0f 1f 84 00 00 00 	nop    WORD PTR [rax+rax*1+0x0]
+12517-   14000c4ce:	00 00
+12518-   14000c4d0:	ff d0                	call   rax
+--
+12628-   14000c5a6:	75 de                	jne    14000c586 <ann_hnsw_nested::NestedIndex::~NestedIndex()+0x46>
+12629-   14000c5a8:	0f 1f 84 00 00 00 00 	nop    DWORD PTR [rax+rax*1+0x0]
+12630-   14000c5af:	00
+12631-   14000c5b0:	48 8b 9f b0 00 00 00 	mov    rbx,QWORD PTR [rdi+0xb0]
+12632-   14000c5b7:	48 85 db             	test   rbx,rbx
+12633-   14000c5ba:	74 08                	je     14000c5c4 <ann_hnsw_nested::NestedIndex::~NestedIndex()+0x84>
+12634-   14000c5bc:	48 89 d9             	mov    rcx,rbx
+12635-   14000c5bf:	e8 34 e4 ff ff       	call   14000a9f8 <operator delete(void*)>
+12636-   14000c5c4:	48 8b b7 a0 00 00 00 	mov    rsi,QWORD PTR [rdi+0xa0]
+12637-   14000c5cb:	48 8b 9f 98 00 00 00 	mov    rbx,QWORD PTR [rdi+0x98]
+12638-   14000c5d2:	48 39 de             	cmp    rsi,rbx
+12639-   14000c5d5:	74 40                	je     14000c617 <ann_hnsw_nested::NestedIndex::~NestedIndex()+0xd7>
+12640:   14000c5d7:	48 8d 2d e2 61 00 00 	lea    rbp,[rip+0x61e2]        # 1400127c0 <hnswlib::InnerProductSpace::~InnerProductSpace()>
+12641-   14000c5de:	eb 0e                	jmp    14000c5ee <ann_hnsw_nested::NestedIndex::~NestedIndex()+0xae>
+12642-   14000c5e0:	e8 13 e4 ff ff       	call   14000a9f8 <operator delete(void*)>
+12643-   14000c5e5:	48 83 c3 08          	add    rbx,0x8
+12644-   14000c5e9:	48 39 de             	cmp    rsi,rbx
+12645-   14000c5ec:	74 22                	je     14000c610 <ann_hnsw_nested::NestedIndex::~NestedIndex()+0xd0>
+12646-   14000c5ee:	48 8b 0b             	mov    rcx,QWORD PTR [rbx]
+12647-   14000c5f1:	48 85 c9             	test   rcx,rcx
+12648-   14000c5f4:	74 ef                	je     14000c5e5 <ann_hnsw_nested::NestedIndex::~NestedIndex()+0xa5>
+12649-   14000c5f6:	48 8b 01             	mov    rax,QWORD PTR [rcx]
+12650-   14000c5f9:	48 8b 40 20          	mov    rax,QWORD PTR [rax+0x20]
+12651-   14000c5fd:	48 39 e8             	cmp    rax,rbp
+12652-   14000c600:	74 de                	je     14000c5e0 <ann_hnsw_nested::NestedIndex::~NestedIndex()+0xa0>
+--
+12779-   14000c79d:	48 89 f8             	mov    rax,rdi
+12780-   14000c7a0:	31 d2                	xor    edx,edx
+12781-   14000c7a2:	4c 89 b4 24 88 00 00 	mov    QWORD PTR [rsp+0x88],r14
+12782-   14000c7a9:	00
+12783-   14000c7aa:	48 f7 f6             	div    rsi
+12784-   14000c7ad:	c5 fa 10 3d e7 d0 00 	vmovss xmm7,DWORD PTR [rip+0xd0e7]        # 14001989c <.rdata+0x89c>
+12785-   14000c7b4:	00
+12786-   14000c7b5:	48 89 c7             	mov    rdi,rax
+12787-   14000c7b8:	48 8d 84 24 90 00 00 	lea    rax,[rsp+0x90]
+12788-   14000c7bf:	00
+12789-   14000c7c0:	48 89 d6             	mov    rsi,rdx
+12790-   14000c7c3:	48 89 44 24 70       	mov    QWORD PTR [rsp+0x70],rax
+12791:   14000c7c8:	48 8d 05 f1 5f 00 00 	lea    rax,[rip+0x5ff1]        # 1400127c0 <hnswlib::InnerProductSpace::~InnerProductSpace()>
+12792-   14000c7cf:	48 89 44 24 78       	mov    QWORD PTR [rsp+0x78],rax
+12793-   14000c7d4:	48 8d 05 65 5a 00 00 	lea    rax,[rip+0x5a65]        # 140012240 <hnswlib::HierarchicalNSW<float>::~HierarchicalNSW()>
+12794-   14000c7db:	48 89 84 24 80 00 00 	mov    QWORD PTR [rsp+0x80],rax
+12795-   14000c7e2:	00
+12796-   14000c7e3:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+12797-   14000c7ea:	00 00 00 00
+12798-   14000c7ee:	66 90                	xchg   ax,ax
+12799-   14000c7f0:	48 39 ee             	cmp    rsi,rbp
+12800-   14000c7f3:	49 89 ef             	mov    r15,rbp
+12801-   14000c7f6:	4d 8b 0c 24          	mov    r9,QWORD PTR [r12]
+12802-   14000c7fa:	49 89 f8             	mov    r8,rdi
+12803-   14000c7fd:	4c 0f 46 fe          	cmovbe r15,rsi
+--
+12917-   14000c9cc:	48 89 44 24 20       	mov    QWORD PTR [rsp+0x20],rax
+12918-   14000c9d1:	4d 8b 0c 24          	mov    r9,QWORD PTR [r12]
+12919-   14000c9d5:	e8 96 a2 ff ff       	call   140006c70 <ann_hnsw::BuildIndex(float const*, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long)>
+12920-   14000c9da:	49 8b 4c 24 20       	mov    rcx,QWORD PTR [r12+0x20]
+12921-   14000c9df:	48 8b 84 24 a0 00 00 	mov    rax,QWORD PTR [rsp+0xa0]
+12922-   14000c9e6:	00
+12923-   14000c9e7:	48 8b b4 24 a8 00 00 	mov    rsi,QWORD PTR [rsp+0xa8]
+12924-   14000c9ee:	00
+12925-   14000c9ef:	49 89 44 24 20       	mov    QWORD PTR [r12+0x20],rax
+12926-   14000c9f4:	48 85 c9             	test   rcx,rcx
+12927-   14000c9f7:	74 1c                	je     14000ca15 <ann_hnsw_on_hnsw::HierarchicalIndex::build(float const*, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long)+0x355>
+12928-   14000c9f9:	48 8b 01             	mov    rax,QWORD PTR [rcx]
+12929:   14000c9fc:	48 8d 15 bd 5d 00 00 	lea    rdx,[rip+0x5dbd]        # 1400127c0 <hnswlib::InnerProductSpace::~InnerProductSpace()>
+12930-   14000ca03:	48 8b 40 20          	mov    rax,QWORD PTR [rax+0x20]
+12931-   14000ca07:	48 39 d0             	cmp    rax,rdx
+12932-   14000ca0a:	0f 85 aa 01 00 00    	jne    14000cbba <ann_hnsw_on_hnsw::HierarchicalIndex::build(float const*, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long)+0x4fa>
+12933-   14000ca10:	e8 e3 df ff ff       	call   14000a9f8 <operator delete(void*)>
+12934-   14000ca15:	49 8b 5c 24 28       	mov    rbx,QWORD PTR [r12+0x28]
+12935-   14000ca1a:	49 89 74 24 28       	mov    QWORD PTR [r12+0x28],rsi
+12936-   14000ca1f:	48 85 db             	test   rbx,rbx
+12937-   14000ca22:	0f 84 4f 01 00 00    	je     14000cb77 <ann_hnsw_on_hnsw::HierarchicalIndex::build(float const*, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long)+0x4b7>
+12938-   14000ca28:	48 8b 03             	mov    rax,QWORD PTR [rbx]
+12939-   14000ca2b:	48 8d 15 0e 58 00 00 	lea    rdx,[rip+0x580e]        # 140012240 <hnswlib::HierarchicalNSW<float>::~HierarchicalNSW()>
+12940-   14000ca32:	48 89 d9             	mov    rcx,rbx
+12941-   14000ca35:	48 8b 40 28          	mov    rax,QWORD PTR [rax+0x28]
+--
+12975-   14000caad:	c5 fa 10 0d e7 cd 00 	vmovss xmm1,DWORD PTR [rip+0xcde7]        # 14001989c <.rdata+0x89c>
+12976-   14000cab4:	00
+12977-   14000cab5:	c5 f2 5e c8          	vdivss xmm1,xmm1,xmm0
+12978-   14000cab9:	4d 85 c9             	test   r9,r9
+12979-   14000cabc:	0f 85 f4 fd ff ff    	jne    14000c8b6 <ann_hnsw_on_hnsw::HierarchicalIndex::build(float const*, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long)+0x1f6>
+12980-   14000cac2:	e9 0b fe ff ff       	jmp    14000c8d2 <ann_hnsw_on_hnsw::HierarchicalIndex::build(float const*, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long)+0x212>
+12981-   14000cac7:	48 c1 e3 05          	shl    rbx,0x5
+12982-   14000cacb:	49 01 de             	add    r14,rbx
+12983-   14000cace:	4d 39 f7             	cmp    r15,r14
+12984-   14000cad1:	0f 84 92 fc ff ff    	je     14000c769 <ann_hnsw_on_hnsw::HierarchicalIndex::build(float const*, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long)+0xa9>
+12985-   14000cad7:	4c 89 f5             	mov    rbp,r14
+12986-   14000cada:	48 8d 35 5f 57 00 00 	lea    rsi,[rip+0x575f]        # 140012240 <hnswlib::HierarchicalNSW<float>::~HierarchicalNSW()>
+12987:   14000cae1:	48 8d 1d d8 5c 00 00 	lea    rbx,[rip+0x5cd8]        # 1400127c0 <hnswlib::InnerProductSpace::~InnerProductSpace()>
+12988-   14000cae8:	eb 38                	jmp    14000cb22 <ann_hnsw_on_hnsw::HierarchicalIndex::build(float const*, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long)+0x462>
+12989-   14000caea:	e8 71 57 00 00       	call   140012260 <hnswlib::HierarchicalNSW<float>::~HierarchicalNSW()>
+12990-   14000caef:	4c 89 e9             	mov    rcx,r13
+12991-   14000caf2:	e8 01 df ff ff       	call   14000a9f8 <operator delete(void*)>
+12992-   14000caf7:	48 8b 4d 10          	mov    rcx,QWORD PTR [rbp+0x10]
+12993-   14000cafb:	48 85 c9             	test   rcx,rcx
+12994-   14000cafe:	74 15                	je     14000cb15 <ann_hnsw_on_hnsw::HierarchicalIndex::build(float const*, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long)+0x455>
+12995-   14000cb00:	48 8b 01             	mov    rax,QWORD PTR [rcx]
+12996-   14000cb03:	48 8b 40 20          	mov    rax,QWORD PTR [rax+0x20]
+12997-   14000cb07:	48 39 d8             	cmp    rax,rbx
+12998-   14000cb0a:	0f 85 8d 00 00 00    	jne    14000cb9d <ann_hnsw_on_hnsw::HierarchicalIndex::build(float const*, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long, unsigned long long)+0x4dd>
+12999-   14000cb10:	e8 e3 de ff ff       	call   14000a9f8 <operator delete(void*)>
+--
+13091-   14000cc02:	41 54                	push   r12
+13092-   14000cc04:	55                   	push   rbp
+13093-   14000cc05:	57                   	push   rdi
+13094-   14000cc06:	56                   	push   rsi
+13095-   14000cc07:	53                   	push   rbx
+13096-   14000cc08:	48 83 ec 28          	sub    rsp,0x28
+13097-   14000cc0c:	48 8b 79 38          	mov    rdi,QWORD PTR [rcx+0x38]
+13098-   14000cc10:	48 8b 59 30          	mov    rbx,QWORD PTR [rcx+0x30]
+13099-   14000cc14:	48 89 cd             	mov    rbp,rcx
+13100-   14000cc17:	48 39 df             	cmp    rdi,rbx
+13101-   14000cc1a:	74 78                	je     14000cc94 <ann_hnsw_on_hnsw::HierarchicalIndex::~HierarchicalIndex()+0x94>
+13102-   14000cc1c:	4c 8d 2d 1d 56 00 00 	lea    r13,[rip+0x561d]        # 140012240 <hnswlib::HierarchicalNSW<float>::~HierarchicalNSW()>
+13103:   14000cc23:	4c 8d 25 96 5b 00 00 	lea    r12,[rip+0x5b96]        # 1400127c0 <hnswlib::InnerProductSpace::~InnerProductSpace()>
+13104-   14000cc2a:	eb 34                	jmp    14000cc60 <ann_hnsw_on_hnsw::HierarchicalIndex::~HierarchicalIndex()+0x60>
+13105-   14000cc2c:	0f 1f 40 00          	nop    DWORD PTR [rax+0x0]
+13106-   14000cc30:	e8 2b 56 00 00       	call   140012260 <hnswlib::HierarchicalNSW<float>::~HierarchicalNSW()>
+13107-   14000cc35:	48 89 f1             	mov    rcx,rsi
+13108-   14000cc38:	e8 bb dd ff ff       	call   14000a9f8 <operator delete(void*)>
+13109-   14000cc3d:	48 8b 4b 10          	mov    rcx,QWORD PTR [rbx+0x10]
+13110-   14000cc41:	48 85 c9             	test   rcx,rcx
+13111-   14000cc44:	74 11                	je     14000cc57 <ann_hnsw_on_hnsw::HierarchicalIndex::~HierarchicalIndex()+0x57>
+13112-   14000cc46:	48 8b 01             	mov    rax,QWORD PTR [rcx]
+13113-   14000cc49:	48 8b 40 20          	mov    rax,QWORD PTR [rax+0x20]
+13114-   14000cc4d:	4c 39 e0             	cmp    rax,r12
+13115-   14000cc50:	75 2e                	jne    14000cc80 <ann_hnsw_on_hnsw::HierarchicalIndex::~HierarchicalIndex()+0x80>
+--
+13145-   14000ccad:	48 8d 15 8c 55 00 00 	lea    rdx,[rip+0x558c]        # 140012240 <hnswlib::HierarchicalNSW<float>::~HierarchicalNSW()>
+13146-   14000ccb4:	48 89 d9             	mov    rcx,rbx
+13147-   14000ccb7:	48 8b 40 28          	mov    rax,QWORD PTR [rax+0x28]
+13148-   14000ccbb:	48 39 d0             	cmp    rax,rdx
+13149-   14000ccbe:	75 68                	jne    14000cd28 <ann_hnsw_on_hnsw::HierarchicalIndex::~HierarchicalIndex()+0x128>
+13150-   14000ccc0:	e8 9b 55 00 00       	call   140012260 <hnswlib::HierarchicalNSW<float>::~HierarchicalNSW()>
+13151-   14000ccc5:	48 89 d9             	mov    rcx,rbx
+13152-   14000ccc8:	e8 2b dd ff ff       	call   14000a9f8 <operator delete(void*)>
+13153-   14000cccd:	48 8b 4d 20          	mov    rcx,QWORD PTR [rbp+0x20]
+13154-   14000ccd1:	48 85 c9             	test   rcx,rcx
+13155-   14000ccd4:	74 18                	je     14000ccee <ann_hnsw_on_hnsw::HierarchicalIndex::~HierarchicalIndex()+0xee>
+13156-   14000ccd6:	48 8b 01             	mov    rax,QWORD PTR [rcx]
+13157:   14000ccd9:	48 8d 15 e0 5a 00 00 	lea    rdx,[rip+0x5ae0]        # 1400127c0 <hnswlib::InnerProductSpace::~InnerProductSpace()>
+13158-   14000cce0:	48 8b 40 20          	mov    rax,QWORD PTR [rax+0x20]
+13159-   14000cce4:	48 39 d0             	cmp    rax,rdx
+13160-   14000cce7:	75 37                	jne    14000cd20 <ann_hnsw_on_hnsw::HierarchicalIndex::~HierarchicalIndex()+0x120>
+13161-   14000cce9:	e8 0a dd ff ff       	call   14000a9f8 <operator delete(void*)>
+13162-   14000ccee:	48 8b 4d 08          	mov    rcx,QWORD PTR [rbp+0x8]
+13163-   14000ccf2:	48 85 c9             	test   rcx,rcx
+13164-   14000ccf5:	74 19                	je     14000cd10 <ann_hnsw_on_hnsw::HierarchicalIndex::~HierarchicalIndex()+0x110>
+13165-   14000ccf7:	48 83 c4 28          	add    rsp,0x28
+13166-   14000ccfb:	5b                   	pop    rbx
+13167-   14000ccfc:	5e                   	pop    rsi
+13168-   14000ccfd:	5f                   	pop    rdi
+13169-   14000ccfe:	5d                   	pop    rbp
+--
+19156-   140012785:	c3                   	ret
+19157-   140012786:	90                   	nop
+19158-   140012787:	90                   	nop
+19159-   140012788:	90                   	nop
+19160-   140012789:	90                   	nop
+19161-   14001278a:	90                   	nop
+19162-   14001278b:	90                   	nop
+19163-   14001278c:	90                   	nop
+19164-   14001278d:	90                   	nop
+19165-   14001278e:	90                   	nop
+19166-   14001278f:	90                   	nop
+19167-
+19168:0000000140012790 <hnswlib::InnerProductSpace::get_data_size()>:
+19169-   140012790:	48 8b 41 10          	mov    rax,QWORD PTR [rcx+0x10]
+19170-   140012794:	c3                   	ret
+19171-   140012795:	90                   	nop
+19172-   140012796:	90                   	nop
+19173-   140012797:	90                   	nop
+19174-   140012798:	90                   	nop
+19175-   140012799:	90                   	nop
+19176-   14001279a:	90                   	nop
+19177-   14001279b:	90                   	nop
+19178-   14001279c:	90                   	nop
+19179-   14001279d:	90                   	nop
+19180-   14001279e:	90                   	nop
+19181-   14001279f:	90                   	nop
+19182-
+19183:00000001400127a0 <hnswlib::InnerProductSpace::get_dist_func()>:
+19184-   1400127a0:	48 8b 41 08          	mov    rax,QWORD PTR [rcx+0x8]
+19185-   1400127a4:	c3                   	ret
+19186-   1400127a5:	90                   	nop
+19187-   1400127a6:	90                   	nop
+19188-   1400127a7:	90                   	nop
+19189-   1400127a8:	90                   	nop
+19190-   1400127a9:	90                   	nop
+19191-   1400127aa:	90                   	nop
+19192-   1400127ab:	90                   	nop
+19193-   1400127ac:	90                   	nop
+19194-   1400127ad:	90                   	nop
+19195-   1400127ae:	90                   	nop
+19196-   1400127af:	90                   	nop
+19197-
+19198:00000001400127b0 <hnswlib::InnerProductSpace::get_dist_func_param()>:
+19199-   1400127b0:	48 8d 41 18          	lea    rax,[rcx+0x18]
+19200-   1400127b4:	c3                   	ret
+19201-   1400127b5:	90                   	nop
+19202-   1400127b6:	90                   	nop
+19203-   1400127b7:	90                   	nop
+19204-   1400127b8:	90                   	nop
+19205-   1400127b9:	90                   	nop
+19206-   1400127ba:	90                   	nop
+19207-   1400127bb:	90                   	nop
+19208-   1400127bc:	90                   	nop
+19209-   1400127bd:	90                   	nop
+19210-   1400127be:	90                   	nop
+19211-   1400127bf:	90                   	nop
+19212-
+19213:00000001400127c0 <hnswlib::InnerProductSpace::~InnerProductSpace()>:
+19214-   1400127c0:	e9 33 82 ff ff       	jmp    14000a9f8 <operator delete(void*)>
+19215-   1400127c5:	90                   	nop
+19216-   1400127c6:	90                   	nop
+19217-   1400127c7:	90                   	nop
+19218-   1400127c8:	90                   	nop
+19219-   1400127c9:	90                   	nop
+19220-   1400127ca:	90                   	nop
+19221-   1400127cb:	90                   	nop
+19222-   1400127cc:	90                   	nop
+19223-   1400127cd:	90                   	nop
+19224-   1400127ce:	90                   	nop
+19225-   1400127cf:	90                   	nop
+19226-
+19227:00000001400127d0 <hnswlib::InnerProductSpace::~InnerProductSpace()>:
+19228-   1400127d0:	c3                   	ret
+19229-   1400127d1:	90                   	nop
+19230-   1400127d2:	90                   	nop
+19231-   1400127d3:	90                   	nop
+19232-   1400127d4:	90                   	nop
+19233-   1400127d5:	90                   	nop
+19234-   1400127d6:	90                   	nop
+19235-   1400127d7:	90                   	nop
+19236-   1400127d8:	90                   	nop
+19237-   1400127d9:	90                   	nop
+19238-   1400127da:	90                   	nop
+19239-   1400127db:	90                   	nop
+--
+22218-   1400153d0:	48 83 c4 20          	add    rsp,0x20
+22219-   1400153d4:	5b                   	pop    rbx
+22220-   1400153d5:	48 ff e0             	rex.W jmp rax
+22221-   1400153d8:	90                   	nop
+22222-   1400153d9:	90                   	nop
+22223-   1400153da:	90                   	nop
+22224-   1400153db:	90                   	nop
+22225-   1400153dc:	90                   	nop
+22226-   1400153dd:	90                   	nop
+22227-   1400153de:	90                   	nop
+22228-   1400153df:	90                   	nop
+22229-
+22230:00000001400153e0 <std::unique_ptr<hnswlib::InnerProductSpace, std::default_delete<hnswlib::InnerProductSpace> >::~unique_ptr()>:
+22231-   1400153e0:	48 8b 09             	mov    rcx,QWORD PTR [rcx]
+22232-   1400153e3:	48 85 c9             	test   rcx,rcx
+22233:   1400153e6:	74 18                	je     140015400 <std::unique_ptr<hnswlib::InnerProductSpace, std::default_delete<hnswlib::InnerProductSpace> >::~unique_ptr()+0x20>
+22234-   1400153e8:	48 8b 01             	mov    rax,QWORD PTR [rcx]
+22235:   1400153eb:	48 8d 15 ce d3 ff ff 	lea    rdx,[rip+0xffffffffffffd3ce]        # 1400127c0 <hnswlib::InnerProductSpace::~InnerProductSpace()>
+22236-   1400153f2:	48 8b 40 20          	mov    rax,QWORD PTR [rax+0x20]
+22237-   1400153f6:	48 39 d0             	cmp    rax,rdx
+22238:   1400153f9:	75 0d                	jne    140015408 <std::unique_ptr<hnswlib::InnerProductSpace, std::default_delete<hnswlib::InnerProductSpace> >::~unique_ptr()+0x28>
+22239-   1400153fb:	e9 f8 55 ff ff       	jmp    14000a9f8 <operator delete(void*)>
+22240-   140015400:	c3                   	ret
+22241-   140015401:	0f 1f 80 00 00 00 00 	nop    DWORD PTR [rax+0x0]
+22242-   140015408:	48 ff e0             	rex.W jmp rax
+22243-   14001540b:	90                   	nop
+22244-   14001540c:	90                   	nop
+22245-   14001540d:	90                   	nop
+22246-   14001540e:	90                   	nop
+22247-   14001540f:	90                   	nop
+22248-
+22249-0000000140015410 <std::unique_lock<std::mutex>::unlock()>:
+22250-   140015410:	53                   	push   rbx
+--
+23293-   140016075:	90                   	nop
+23294-   140016076:	90                   	nop
+23295-   140016077:	90                   	nop
+23296-   140016078:	90                   	nop
+23297-   140016079:	90                   	nop
+23298-   14001607a:	90                   	nop
+23299-   14001607b:	90                   	nop
+23300-   14001607c:	90                   	nop
+23301-   14001607d:	90                   	nop
+23302-   14001607e:	90                   	nop
+23303-   14001607f:	90                   	nop
+23304-
+23305:0000000140016080 <std::vector<std::unique_ptr<hnswlib::InnerProductSpace, std::default_delete<hnswlib::InnerProductSpace> >, std::allocator<std::unique_ptr<hnswlib::InnerProductSpace, std::default_delete<hnswlib::InnerProductSpace> > > >::_M_default_append(unsigned long long)>:
+23306-   140016080:	41 57                	push   r15
+23307-   140016082:	41 56                	push   r14
+23308-   140016084:	41 55                	push   r13
+23309-   140016086:	41 54                	push   r12
+23310-   140016088:	55                   	push   rbp
+23311-   140016089:	57                   	push   rdi
+23312-   14001608a:	56                   	push   rsi
+23313-   14001608b:	53                   	push   rbx
+23314-   14001608c:	48 83 ec 28          	sub    rsp,0x28
+23315-   140016090:	48 89 ce             	mov    rsi,rcx
+23316-   140016093:	48 89 d3             	mov    rbx,rdx
+23317-   140016096:	48 85 d2             	test   rdx,rdx
+23318:   140016099:	74 2e                	je     1400160c9 <std::vector<std::unique_ptr<hnswlib::InnerProductSpace, std::default_delete<hnswlib::InnerProductSpace> >, std::allocator<std::unique_ptr<hnswlib::InnerProductSpace, std::default_delete<hnswlib::InnerProductSpace> > > >::_M_default_append(unsigned long long)+0x49>
+23319-   14001609b:	4c 8b 79 08          	mov    r15,QWORD PTR [rcx+0x8]
+23320-   14001609f:	48 8b 41 10          	mov    rax,QWORD PTR [rcx+0x10]
+23321-   1400160a3:	4c 29 f8             	sub    rax,r15
+23322-   1400160a6:	48 c1 f8 03          	sar    rax,0x3
+23323-   1400160aa:	48 39 d0             	cmp    rax,rdx
+23324:   1400160ad:	72 31                	jb     1400160e0 <std::vector<std::unique_ptr<hnswlib::InnerProductSpace, std::default_delete<hnswlib::InnerProductSpace> >, std::allocator<std::unique_ptr<hnswlib::InnerProductSpace, std::default_delete<hnswlib::InnerProductSpace> > > >::_M_default_append(unsigned long long)+0x60>
+23325-   1400160af:	4c 8d 04 d5 00 00 00 	lea    r8,[rdx*8+0x0]
+23326-   1400160b6:	00
+23327-   1400160b7:	4c 89 f9             	mov    rcx,r15
+23328-   1400160ba:	31 d2                	xor    edx,edx
+23329-   1400160bc:	e8 a7 5e ff ff       	call   14000bf68 <memset>
+23330-   1400160c1:	49 8d 04 df          	lea    rax,[r15+rbx*8]
+23331-   1400160c5:	48 89 46 08          	mov    QWORD PTR [rsi+0x8],rax
+23332-   1400160c9:	48 83 c4 28          	add    rsp,0x28
+23333-   1400160cd:	5b                   	pop    rbx
+23334-   1400160ce:	5e                   	pop    rsi
+23335-   1400160cf:	5f                   	pop    rdi
+23336-   1400160d0:	5d                   	pop    rbp
+--
+23340-   1400160d7:	41 5f                	pop    r15
+23341-   1400160d9:	c3                   	ret
+23342-   1400160da:	66 0f 1f 44 00 00    	nop    WORD PTR [rax+rax*1+0x0]
+23343-   1400160e0:	48 b8 ff ff ff ff ff 	movabs rax,0xfffffffffffffff
+23344-   1400160e7:	ff ff 0f
+23345-   1400160ea:	4c 8b 31             	mov    r14,QWORD PTR [rcx]
+23346-   1400160ed:	4c 89 fd             	mov    rbp,r15
+23347-   1400160f0:	4c 29 f5             	sub    rbp,r14
+23348-   1400160f3:	49 89 ed             	mov    r13,rbp
+23349-   1400160f6:	49 c1 fd 03          	sar    r13,0x3
+23350-   1400160fa:	4c 29 e8             	sub    rax,r13
+23351-   1400160fd:	48 39 d0             	cmp    rax,rdx
+23352:   140016100:	0f 82 95 00 00 00    	jb     14001619b <std::vector<std::unique_ptr<hnswlib::InnerProductSpace, std::default_delete<hnswlib::InnerProductSpace> >, std::allocator<std::unique_ptr<hnswlib::InnerProductSpace, std::default_delete<hnswlib::InnerProductSpace> > > >::_M_default_append(unsigned long long)+0x11b>
+23353-   140016106:	48 b8 ff ff ff ff ff 	movabs rax,0xfffffffffffffff
+23354-   14001610d:	ff ff 0f
+23355-   140016110:	4c 39 ea             	cmp    rdx,r13
+23356-   140016113:	4c 89 ef             	mov    rdi,r13
+23357-   140016116:	48 0f 43 fa          	cmovae rdi,rdx
+23358-   14001611a:	4c 01 ef             	add    rdi,r13
+23359-   14001611d:	48 39 c7             	cmp    rdi,rax
+23360-   140016120:	48 0f 47 f8          	cmova  rdi,rax
+23361-   140016124:	48 c1 e7 03          	shl    rdi,0x3
+23362-   140016128:	48 89 f9             	mov    rcx,rdi
+23363-   14001612b:	e8 b8 48 ff ff       	call   14000a9e8 <operator new(unsigned long long)>
+23364-   140016130:	4c 8d 04 dd 00 00 00 	lea    r8,[rbx*8+0x0]
+23365-   140016137:	00
+23366-   140016138:	31 d2                	xor    edx,edx
+23367-   14001613a:	4c 8d 0c 28          	lea    r9,[rax+rbp*1]
+23368-   14001613e:	49 89 c4             	mov    r12,rax
+23369-   140016141:	4c 89 c9             	mov    rcx,r9
+23370-   140016144:	e8 1f 5e ff ff       	call   14000bf68 <memset>
+23371-   140016149:	49 89 c1             	mov    r9,rax
+23372-   14001614c:	4d 39 fe             	cmp    r14,r15
+23373:   14001614f:	74 23                	je     140016174 <std::vector<std::unique_ptr<hnswlib::InnerProductSpace, std::default_delete<hnswlib::InnerProductSpace> >, std::allocator<std::unique_ptr<hnswlib::InnerProductSpace, std::default_delete<hnswlib::InnerProductSpace> > > >::_M_default_append(unsigned long long)+0xf4>
+23374-   140016151:	4c 89 f2             	mov    rdx,r14
+23375-   140016154:	4c 89 e0             	mov    rax,r12
+23376-   140016157:	66 0f 1f 84 00 00 00 	nop    WORD PTR [rax+rax*1+0x0]
+23377-   14001615e:	00 00
+23378-   140016160:	48 8b 0a             	mov    rcx,QWORD PTR [rdx]
+23379-   140016163:	48 83 c0 08          	add    rax,0x8
+23380-   140016167:	48 83 c2 08          	add    rdx,0x8
+23381-   14001616b:	48 89 48 f8          	mov    QWORD PTR [rax-0x8],rcx
+23382-   14001616f:	49 39 c1             	cmp    r9,rax
+23383:   140016172:	75 ec                	jne    140016160 <std::vector<std::unique_ptr<hnswlib::InnerProductSpace, std::default_delete<hnswlib::InnerProductSpace> >, std::allocator<std::unique_ptr<hnswlib::InnerProductSpace, std::default_delete<hnswlib::InnerProductSpace> > > >::_M_default_append(unsigned long long)+0xe0>
+23384-   140016174:	4d 85 f6             	test   r14,r14
+23385:   140016177:	74 08                	je     140016181 <std::vector<std::unique_ptr<hnswlib::InnerProductSpace, std::default_delete<hnswlib::InnerProductSpace> >, std::allocator<std::unique_ptr<hnswlib::InnerProductSpace, std::default_delete<hnswlib::InnerProductSpace> > > >::_M_default_append(unsigned long long)+0x101>
+23386-   140016179:	4c 89 f1             	mov    rcx,r14
+23387-   14001617c:	e8 77 48 ff ff       	call   14000a9f8 <operator delete(void*)>
+23388-   140016181:	4c 01 eb             	add    rbx,r13
+23389-   140016184:	4c 89 26             	mov    QWORD PTR [rsi],r12
+23390-   140016187:	49 8d 04 dc          	lea    rax,[r12+rbx*8]
+23391-   14001618b:	49 01 fc             	add    r12,rdi
+23392-   14001618e:	48 89 46 08          	mov    QWORD PTR [rsi+0x8],rax
+23393-   140016192:	4c 89 66 10          	mov    QWORD PTR [rsi+0x10],r12
+23394:   140016196:	e9 2e ff ff ff       	jmp    1400160c9 <std::vector<std::unique_ptr<hnswlib::InnerProductSpace, std::default_delete<hnswlib::InnerProductSpace> >, std::allocator<std::unique_ptr<hnswlib::InnerProductSpace, std::default_delete<hnswlib::InnerProductSpace> > > >::_M_default_append(unsigned long long)+0x49>
+23395-   14001619b:	48 8d 0d 81 2f 00 00 	lea    rcx,[rip+0x2f81]        # 140019123 <.rdata+0x123>
+23396-   1400161a2:	e8 81 48 ff ff       	call   14000aa28 <std::__throw_length_error(char const*)>
+23397-   1400161a7:	90                   	nop
+23398-   1400161a8:	90                   	nop
+23399-   1400161a9:	90                   	nop
+23400-   1400161aa:	90                   	nop
+23401-   1400161ab:	90                   	nop
+23402-   1400161ac:	90                   	nop
+23403-   1400161ad:	90                   	nop
+23404-   1400161ae:	90                   	nop
+23405-   1400161af:	90                   	nop
+23406-   1400161b0:	90                   	nop

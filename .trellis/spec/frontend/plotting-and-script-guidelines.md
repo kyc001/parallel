@@ -27,6 +27,13 @@ For larger or repeated experiments, prefer reading a result CSV and generating
 plots from it, as done by report asset scripts under `ann-pthread-omp/scripts/`
 and `ann-SIMD/report/fig/`.
 
+When a chart is supposed to contain a fixed set of algorithms, strategies, or
+series, validate each expected slice before drawing. Missing data should raise
+a clear error such as `missing rows for scheduler ivfpq_local/omp_inter/t16`
+instead of silently producing an empty line, blank label, or partial figure.
+This is especially important when CSV labels differ from report labels, for
+example `ivfpq_local` in summary files versus `IVF-PQ` in the rendered report.
+
 ## Visual Style
 
 Use clear, publication-oriented charts:

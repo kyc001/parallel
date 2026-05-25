@@ -1,0 +1,3 @@
+{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "C++/script verification, reproducible benchmark outputs, and portability checks."}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Report build, PDF rendering, and figure layout checks before delivery."}
+{"file": ".trellis/spec/frontend/result-artifact-management.md", "reason": "Measured CSV/TXT artifacts, generated figures, and report PDF consistency."}

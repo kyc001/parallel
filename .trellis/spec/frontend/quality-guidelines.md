@@ -30,6 +30,10 @@ Before considering a report edit complete, check:
 - New claims about measured performance have a result file, code output, or
   explicit source.
 - Generated figure filenames match the script outputs.
+- When a report includes generated PDF/PNG figures, finish the plot-generation
+  command before starting LaTeX. Do not run plotting and `latexmk` in parallel,
+  because LaTeX can read a figure while the script is rewriting it and produce
+  a transient missing/corrupt image error.
 
 ## Plot Review Checklist
 

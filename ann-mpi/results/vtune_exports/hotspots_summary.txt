@@ -1,0 +1,51 @@
+Elapsed Time: 33.385s
+    CPU Time: 30.764s
+        Effective Time: 26.194s
+        Spin Time: 4.570s
+         | A significant portion of CPU time is spent waiting. Use this metric
+         | to discover which synchronizations are spinning. Consider adjusting
+         | spin wait parameters, changing the lock implementation (for example,
+         | by backing off then descheduling), or adjusting the synchronization
+         | granularity.
+         |
+            Imbalance or Serial Spinning: 0s
+            Lock Contention: 0s
+            Other: 4.570s
+        Overhead Time: 0s
+            Creation: 0s
+            Scheduling: 0s
+            Reduction: 0s
+            Atomics: 0s
+            Other: 0s
+    Total Thread Count: 2
+    Paused Time: 0s
+
+Top Hotspots
+Function            Module               CPU Time  % of CPU Time(%)
+------------------  -------------------  --------  ----------------
+func@0x140001650    main_no_mpi.exe       14.062s             45.7%
+func@0x14000f480    main_no_mpi.exe        5.818s             18.9%
+pthread_mutex_lock  libwinpthread-1.dll    3.676s             11.9%
+func@0x140015440    main_no_mpi.exe        2.412s              7.8%
+func@0x14000fe80    main_no_mpi.exe        1.122s              3.6%
+[Others]            N/A                    3.675s             11.9%
+Collection and Platform Info
+    Application Command Line: .\build\main_no_mpi.exe "2" "16" "50" "1000" "2000" "hnsw"
+    Operating System: Microsoft Windows 11
+    Computer Name: LAPTOP-644S5K5I
+    Result Size: 4.6 MB
+    Collection start time: 07:41:33 25/05/2026 UTC
+    Collection stop time: 07:42:11 25/05/2026 UTC
+    Collector Type: User-mode sampling and tracing
+    CPU
+        Name: Intel(R) microarchitecture code named Raptorlake-P
+        Frequency: 2.995 GHz
+        Logical CPU Count: 20
+        Cache Allocation Technology
+            Level 2 capability: not detected
+            Level 3 capability: not detected
+
+If you want to skip descriptions of detected performance issues in the report,
+enter: vtune -report summary -report-knob show-issues=false -r <my_result_dir>.
+Alternatively, you may view the report in the csv format: vtune -report
+<report_name> -format=csv.

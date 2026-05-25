@@ -25,7 +25,7 @@ scp ann-mpi/scripts/run_blocking_vs_nonblocking_kunpeng.sh s2413575@192.168.90.1
 
 ```bash
 ssh s2413575@192.168.90.141
-# Password: s2413575
+# Enter the server password when prompted.
 ```
 
 ## Step 3: Rebuild on Kunpeng

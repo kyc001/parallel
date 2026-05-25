@@ -1,0 +1,26 @@
+﻿Date: 2026-05-25T17:49:02.5759763+08:00
+Working directory: D:\Study\26sp\parallel\ann-mpi
+ANN_DATA_PATH: D:\Study\26sp\parallel\files
+VTune: C:\Program Files (x86)\Intel\oneAPI\vtune\latest\bin64\vtune.exe
+Collection: uarch-exploration
+PMU mode: detailed
+Target: D:\Study\26sp\parallel\ann-mpi\build\main_no_mpi_profile.exe 2 16 50 1000 2000 hnsw
+
+Run status:
+  Administrator uarch collection completed successfully.
+  VTune raw log: results/vtune_uarch_hnsw_admin/log/perfrun-2026.05.25-17h49m11s.47632.log
+  Target program exit code: 0
+  Sampling successfully stopped.
+
+Sequential exports completed after collection:
+  vtune -report summary -result-dir results\vtune_uarch_hnsw_admin -report-output results\vtune_exports\uarch_admin_summary.txt -format text
+  vtune -report top-down -result-dir results\vtune_uarch_hnsw_admin -report-output results\vtune_exports\uarch_admin_top_down.txt -format text
+  vtune -report hw-events -result-dir results\vtune_uarch_hnsw_admin -report-output results\vtune_exports\uarch_admin_hw_events.csv -format csv -csv-delimiter comma
+  vtune -report hotspots -result-dir results\vtune_uarch_hnsw_admin -report-output results\vtune_exports\uarch_admin_hotspots.csv -format csv -csv-delimiter comma -limit 30
+
+Curated exports:
+  results/vtune_exports/uarch_admin_summary.txt
+  results/vtune_exports/uarch_admin_top_down.txt
+  results/vtune_exports/uarch_admin_hw_events.csv
+  results/vtune_exports/uarch_admin_hotspots.csv
+  results/vtune_exports/sampling_driver_check.txt

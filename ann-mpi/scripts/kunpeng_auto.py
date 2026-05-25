@@ -4,6 +4,7 @@ Automated Kunpeng server testing using paramiko for SSH automation
 """
 
 import paramiko
+import os
 import time
 import sys
 from datetime import datetime
@@ -13,7 +14,7 @@ JUMP_HOST = "10.137.144.91"
 JUMP_PORT = 9001
 TARGET_HOST = "192.168.90.141"
 USERNAME = "s2413575"
-PASSWORD = "s2413575"
+PASSWORD = os.environ.get("KUNPENG_PASSWORD")
 
 def create_ssh_client(hostname, port, username, password):
     """Create and connect SSH client"""
@@ -32,6 +33,10 @@ def execute_command(client, command, timeout=300):
     return exit_status, output, error
 
 def main():
+    if not PASSWORD:
+        print("Set KUNPENG_PASSWORD before running this script.", file=sys.stderr)
+        return 2
+
     print("=== Connecting to Kunpeng server via jump host ===")
 
     try:
