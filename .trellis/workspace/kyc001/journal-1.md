@@ -137,3 +137,36 @@ Wrote the ANN MPI experiment report in the style of the previous ANN reports, ge
 ### Next Steps
 
 - None - task complete
+
+
+## Session 5: Expand ANN MPI report experiments
+
+**Date**: 2026-05-25
+**Task**: Expand ANN MPI report experiments
+**Branch**: `master`
+
+### Summary
+
+Expanded the ANN MPI lab report with full Windows and Kunpeng PBS experiment artifacts, hybrid layout and affinity studies, VTune/uarch evidence, reproducibility scripts, generated figures, and final PDF verification.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `b0ee4a9` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
