@@ -42,6 +42,26 @@ HNSW-on-HNSW mode:
 All modes partition base vectors across MPI ranks, broadcast queries, search
 locally, gather local top-k candidates, and merge final top-k results on rank 0.
 
+## Communication Modes
+
+By default, the program uses **blocking MPI communication** (`MPI_Bcast`, `MPI_Gather`).
+
+To enable **non-blocking communication** (`MPI_Ibcast`, `MPI_Igather`), set the environment variable:
+
+```bash
+export USE_NONBLOCKING_MPI=1
+```
+
+Or in PowerShell:
+
+```powershell
+$env:USE_NONBLOCKING_MPI = "1"
+```
+
+The program will print `comm_mode=blocking` or `comm_mode=nonblocking` to indicate which mode is active.
+
+Non-blocking communication demonstrates the use of asynchronous MPI primitives and provides performance comparison data for the advanced requirement "不同MPI编程方法（阻塞通信 vs. 非阻塞通信）".
+
 ## Local Validation
 
 PowerShell:
@@ -64,6 +84,14 @@ ANN_DATA_PATH=/anndata /usr/local/bin/mpiexec -np 8 ./main 2 16 16 50 2000 hnsw-
 NP=8 OMP_NUM_THREADS=2 QUERY_N=2000 scripts/run_kunpeng_full.sh
 NP=8 OMP_NUM_THREADS=2 QUERY_N=2000 scripts/submit_kunpeng_pbs_full.sh
 ```
+
+For blocking vs non-blocking comparison on Kunpeng:
+
+```bash
+bash scripts/run_blocking_vs_nonblocking_kunpeng.sh
+```
+
+See `KUNPENG_NONBLOCKING_TEST.md` for detailed testing instructions.
 
 The program also falls back to `files/` when `ANN_DATA_PATH` is unset, matching
 the course script convention.

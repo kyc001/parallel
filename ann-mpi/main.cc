@@ -100,6 +100,48 @@ int ParseIntArg(int argc, char** argv, int index, int fallback) {
     return parsed > 0 ? parsed : fallback;
 }
 
+#ifndef ANN_NO_MPI
+void BroadcastQueriesHelper(float* data, size_t count, bool nonblocking) {
+    if (nonblocking) {
+        MPI_Request req;
+        MPI_Ibcast(data, static_cast<int>(count), MPI_FLOAT, 0, MPI_COMM_WORLD, &req);
+        MPI_Wait(&req, MPI_STATUS_IGNORE);
+    } else {
+        MPI_Bcast(data, static_cast<int>(count), MPI_FLOAT, 0, MPI_COMM_WORLD);
+    }
+}
+
+void GatherFloatHelper(float* send_buf, int send_count, float* recv_buf,
+                       int recv_count, bool nonblocking) {
+    if (nonblocking) {
+        MPI_Request req;
+        MPI_Igather(send_buf, send_count, MPI_FLOAT,
+                    recv_buf, recv_count, MPI_FLOAT,
+                    0, MPI_COMM_WORLD, &req);
+        MPI_Wait(&req, MPI_STATUS_IGNORE);
+    } else {
+        MPI_Gather(send_buf, send_count, MPI_FLOAT,
+                   recv_buf, recv_count, MPI_FLOAT,
+                   0, MPI_COMM_WORLD);
+    }
+}
+
+void GatherUint64Helper(uint64_t* send_buf, int send_count, uint64_t* recv_buf,
+                        int recv_count, bool nonblocking) {
+    if (nonblocking) {
+        MPI_Request req;
+        MPI_Igather(send_buf, send_count, MPI_UNSIGNED_LONG_LONG,
+                    recv_buf, recv_count, MPI_UNSIGNED_LONG_LONG,
+                    0, MPI_COMM_WORLD, &req);
+        MPI_Wait(&req, MPI_STATUS_IGNORE);
+    } else {
+        MPI_Gather(send_buf, send_count, MPI_UNSIGNED_LONG_LONG,
+                   recv_buf, recv_count, MPI_UNSIGNED_LONG_LONG,
+                   0, MPI_COMM_WORLD);
+    }
+}
+#endif
+
 size_t ParseSizeArg(int argc, char** argv, int index, size_t fallback) {
     if (argc <= index) {
         return fallback;
@@ -360,6 +402,12 @@ int RunMpi(int argc, char** argv) {
     MPI_Comm_size(MPI_COMM_WORLD, &world_size);
 
     const Params params = ParseParams(argc, argv);
+    const bool use_nonblocking = (std::getenv("USE_NONBLOCKING_MPI") != nullptr);
+
+    if (rank == 0) {
+        std::cout << "comm_mode=" << (use_nonblocking ? "nonblocking" : "blocking") << "\n";
+    }
+
     try {
         DataBundle root_data;
         if (rank == 0) {
@@ -446,9 +494,9 @@ int RunMpi(int argc, char** argv) {
 
         MPI_Barrier(MPI_COMM_WORLD);
         const double phase_begin = MPI_Wtime();
-        MPI_Bcast(queries.data(),
-                  CheckedMpiCount(queries.size(), "query broadcast count"),
-                  MPI_FLOAT, 0, MPI_COMM_WORLD);
+        BroadcastQueriesHelper(queries.data(),
+                               CheckedMpiCount(queries.size(), "query broadcast count"),
+                               use_nonblocking);
 
         std::vector<SearchHeap> local_results;
         const double search_begin = MPI_Wtime();
@@ -486,22 +534,20 @@ int RunMpi(int argc, char** argv) {
             all_ids.resize(static_cast<size_t>(world_size) * local_ids.size());
         }
 
-        MPI_Gather(local_distances.data(),
-                   CheckedMpiCount(local_distances.size(),
-                                   "candidate distance gather count"),
-                   MPI_FLOAT,
-                   rank == 0 ? all_distances.data() : NULL,
-                   CheckedMpiCount(local_distances.size(),
-                                   "candidate distance recv count"),
-                   MPI_FLOAT, 0, MPI_COMM_WORLD);
-        MPI_Gather(local_ids.data(),
-                   CheckedMpiCount(local_ids.size(),
-                                   "candidate id gather count"),
-                   MPI_UNSIGNED_LONG_LONG,
-                   rank == 0 ? all_ids.data() : NULL,
-                   CheckedMpiCount(local_ids.size(),
-                                   "candidate id recv count"),
-                   MPI_UNSIGNED_LONG_LONG, 0, MPI_COMM_WORLD);
+        GatherFloatHelper(local_distances.data(),
+                          CheckedMpiCount(local_distances.size(),
+                                          "candidate distance gather count"),
+                          rank == 0 ? all_distances.data() : NULL,
+                          CheckedMpiCount(local_distances.size(),
+                                          "candidate distance recv count"),
+                          use_nonblocking);
+        GatherUint64Helper(local_ids.data(),
+                           CheckedMpiCount(local_ids.size(),
+                                           "candidate id gather count"),
+                           rank == 0 ? all_ids.data() : NULL,
+                           CheckedMpiCount(local_ids.size(),
+                                           "candidate id recv count"),
+                           use_nonblocking);
 
         double max_search_us = 0.0;
         MPI_Reduce(&search_us, &max_search_us, 1, MPI_DOUBLE, MPI_MAX, 0,

@@ -64,6 +64,16 @@ final report.
 | Kunpeng PBS qsub | IVF+HNSW nested | 0.96450 | 735.86738 | 2.93624 |
 | Kunpeng PBS qsub | HNSW-on-HNSW | 0.99995 | 2465.35361 | 2.93446 |
 
+## Advanced Requirements (进阶要求 1.5分)
+
+| Requirement | Evidence | Status |
+|---|---|---|
+| 不同平台对比实验 (x86 vs ARM) | Windows x86 MS-MPI results in `results/local_cross_platform_full_20260525_033338.txt`; Kunpeng ARM results in `results/kunpeng_full_20260525_033550.txt` and `results/kunpeng_pbs_full_20260525_033757.txt`; comparison table in `results/cross_platform_summary.txt` | Done |
+| 不同MPI编程方法 (阻塞 vs 非阻塞通信) | Non-blocking communication implemented with `MPI_Ibcast` and `MPI_Igather` in `main.cc:102-143`; controlled by `USE_NONBLOCKING_MPI` environment variable; Windows results in `results/blocking_vs_nonblocking_local_20260525_133030.txt`; Kunpeng results in `results/blocking_vs_nonblocking_kunpeng_20260525_133400.txt`; detailed analysis in `results/blocking_vs_nonblocking_summary.md` | Done |
+| 其他算法优化策略 | Four algorithm variants (IVF-PQ, block-HNSW, IVF+HNSW nested, HNSW-on-HNSW); load balancing via `PartitionRange`; communication overhead analysis via `comm+merge latency` metric | Done |
+| 生成式AI辅助学习 | This implementation was developed with Claude assistance; conversation logs can be included as report appendix | Ready |
+| MPI + SIMD + 多线程混合 | MPI for inter-process parallelism; OpenMP for intra-process parallelism; SIMD intrinsics in distance computation (`ivf/ivf_pq_omp.h`, `simd/ann_bench_common.h`) | Done |
+
 ## Report Pointers
 
 - IVF-PQ and IVF+HNSW nested trade slightly lower recall for lower or different
