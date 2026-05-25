@@ -52,6 +52,12 @@ outputs. Keep tables tied to result files or documented handover data:
 - Name the dataset (`DEEP100K`, query count, `k=10`) when relevant.
 - Separate latency and recall columns.
 - Use the same unit label in text, table headers, and plot axes.
+- For speedup tables and plots, make the denominator auditable. If a figure uses
+  "best 1T for the algorithm" while a table uses "same variant t=1", state that
+  in the caption or nearby prose and name the source result file when practical.
+  Selected summary tables should include the relevant t=1 baseline rows for any
+  non-obvious speedup row, especially when two variants of the same algorithm
+  have different single-thread latency.
 
 Avoid changing a report number without updating the source result artifact or
 adding a note explaining why the number changed.
