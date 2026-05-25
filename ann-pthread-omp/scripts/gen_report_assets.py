@@ -49,6 +49,12 @@ def f(row: dict[str, str], key: str) -> float:
     return float(row[key])
 
 
+def require_rows(rows: list[dict[str, str]], context: str) -> list[dict[str, str]]:
+    if not rows:
+        raise ValueError(f"missing rows for {context}")
+    return rows
+
+
 def plot_scheduler_compact(local_rows: list[dict[str, str]]) -> None:
     algos = [
         ("flat", "Flat"),
@@ -56,7 +62,7 @@ def plot_scheduler_compact(local_rows: list[dict[str, str]]) -> None:
         ("pq", "PQ"),
         ("fastscan", "FastScan"),
         ("ivf", "IVF"),
-        ("ivfpq", "IVF-PQ"),
+        ("ivfpq_local", "IVF-PQ"),
     ]
     strategies = [
         ("omp_inter", "OMP"),
@@ -80,9 +86,9 @@ def plot_scheduler_compact(local_rows: list[dict[str, str]]) -> None:
                 and r["granularity"] == "inter"
                 and int(r["threads"]) == 16
                 and r["strategy"] == strategy
-                and (algo != "ivfpq" or r.get("mode", "") == "local")
                 and f(r, "recall") >= 0.95
             ]
+            rows = require_rows(rows, f"scheduler {algo}/{strategy}/t16")
             values.append(min((f(r, "latency_us") for r in rows), default=np.nan))
         ax.bar(x + (idx - 1.5) * width, values, width, label=label, color=colors[idx])
 
@@ -97,7 +103,7 @@ def plot_scheduler_compact(local_rows: list[dict[str, str]]) -> None:
 
 
 def plot_speedup_compact(local_rows: list[dict[str, str]]) -> None:
-    algos = ["flat", "sq", "pq", "fastscan", "ivf", "ivfpq"]
+    algos = ["flat", "sq", "pq", "fastscan", "ivf", "ivfpq_local"]
     labels = ["Flat", "SQ", "PQ", "FastScan", "IVF", "IVF-PQ"]
     fig, ax = plt.subplots(figsize=(6.8, 3.2))
     colors = plt.cm.tab10(np.linspace(0, 1, len(algos)))
@@ -109,11 +115,10 @@ def plot_speedup_compact(local_rows: list[dict[str, str]]) -> None:
                 r["algorithm"] == algo
                 and r["granularity"] == "inter"
                 and f(r, "recall") >= 0.95
-                and (algo != "ivfpq" or r.get("mode", "") == "local")
             ):
                 by_thread.setdefault(int(r["threads"]), []).append(r)
         if 1 not in by_thread:
-            continue
+            raise ValueError(f"missing speedup baseline for {algo}")
         best = {t: min(rows, key=lambda r: f(r, "latency_us")) for t, rows in by_thread.items()}
         base = f(best[1], "latency_us")
         threads = sorted(t for t in best if t in {1, 2, 4, 8, 16})
@@ -134,7 +139,7 @@ def plot_speedup_compact(local_rows: list[dict[str, str]]) -> None:
 
 
 def plot_inter_intra_compact(local_rows: list[dict[str, str]]) -> None:
-    algos = ["flat", "sq", "pq", "fastscan", "ivf", "ivfpq"]
+    algos = ["flat", "sq", "pq", "fastscan", "ivf", "ivfpq_local"]
     labels = ["Flat", "SQ", "PQ", "FastScan", "IVF", "IVF-PQ"]
     inter_values: list[float] = []
     intra_values: list[float] = []
@@ -146,8 +151,8 @@ def plot_inter_intra_compact(local_rows: list[dict[str, str]]) -> None:
             and r["granularity"] == "inter"
             and int(r["threads"]) == 16
             and f(r, "recall") >= 0.95
-            and (algo != "ivfpq" or r.get("mode", "") == "local")
         ]
+        inter = require_rows(inter, f"inter/intra inter {algo}/t16")
         intra = [
             r
             for r in local_rows
@@ -155,8 +160,8 @@ def plot_inter_intra_compact(local_rows: list[dict[str, str]]) -> None:
             and r["granularity"] == "intra"
             and int(r["threads"]) == 16
             and f(r, "recall") >= 0.95
-            and (algo != "ivfpq" or r.get("mode", "") == "local")
         ]
+        intra = require_rows(intra, f"inter/intra intra {algo}/t16")
         inter_values.append(min((f(r, "latency_us") for r in inter), default=np.nan))
         intra_values.append(min((f(r, "latency_us") for r in intra), default=np.nan))
 
@@ -167,15 +172,19 @@ def plot_inter_intra_compact(local_rows: list[dict[str, str]]) -> None:
     bars2 = ax.bar(x + w / 2, intra_values, w, label="Intra-query", color="#DD8452")
     for bar in bars1:
         h = bar.get_height()
-        ax.text(bar.get_x() + bar.get_width() / 2, h, f"{h:.0f}", ha="center", va="bottom", fontsize=7)
+        if np.isfinite(h):
+            ax.text(bar.get_x() + bar.get_width() / 2, h * 1.04, f"{h:.0f}", ha="center", va="bottom", fontsize=7)
     for bar in bars2:
         h = bar.get_height()
-        ax.text(bar.get_x() + bar.get_width() / 2, h, f"{h:.0f}", ha="center", va="bottom", fontsize=7)
+        if np.isfinite(h):
+            ax.text(bar.get_x() + bar.get_width() / 2, h * 1.04, f"{h:.0f}", ha="center", va="bottom", fontsize=7)
     ax.set_xticks(x)
     ax.set_xticklabels(labels)
     ax.set_ylabel("Latency / us")
-    ax.set_title("Best 16-thread inter-query vs intra-query latency")
-    ax.grid(True, axis="y", alpha=0.25)
+    ax.set_yscale("log")
+    ax.set_ylim(40, 8000)
+    ax.set_title("Best 16-thread inter-query vs intra-query latency (log scale)")
+    ax.grid(True, axis="y", which="both", alpha=0.25)
     ax.legend(frameon=False)
     fig.savefig(OUT / "inter_intra_compact.pdf")
     plt.close(fig)

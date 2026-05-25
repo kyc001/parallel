@@ -584,7 +584,7 @@ Trade-off 额外扫描 PQ 的 $p$，IVF 的 \code{nprobe}，以及 IVF-PQ 的 gl
   \label{fig:speedup}
 \end{figure}
 
-从图 \ref{fig:speedup} 可见，绝大多数算法在 1 到 8 线程之间具有稳定收益，16 线程时开始受内存带宽、候选堆和系统调度影响。按“同算法 inter-query 内最优 1 线程”作基准，Flat 在本地达到约 $10.7\times$，SQ 约 $8.5\times$，PQ 约 $8.9\times$，FastScan 约 $15.8\times$，IVF-PQ 约 $11.3\times$。这里的 1T 分母依次为 Flat 3188.90 $\mu$s、SQ 738.48 $\mu$s、PQ 1175.36 $\mu$s、FastScan 1984.79 $\mu$s、IVF 758.45 $\mu$s、IVF-PQ 650.09 $\mu$s，对应变体见 \code{results/local_best.csv}；因此 SQ 的 $8.5\times$ 是 $738.48 / 86.53$，不是表 \ref{tab:best} 中 \code{pthread_dynamic_inter} 自身 $1012.61 / 86.53$ 得到的 $11.70\times$。也就是说，图 \ref{fig:speedup} 画的是“算法整体随线程数扩展”的趋势，而表 \ref{tab:best} 更适合比较某个实现变体自身从 1T 到高线程的放大倍数。
+从图 \ref{fig:speedup} 可见，绝大多数算法在 1 到 8 线程之间具有稳定收益，16 线程时开始受内存带宽、候选堆和系统调度影响。按“同算法 inter-query 内最优 1 线程”作基准，Flat 在本地达到约 $10.7\times$，SQ 约 $8.5\times$，PQ 约 $8.9\times$，FastScan 约 $15.8\times$，IVF-PQ 约 $11.3\times$。这里的 1T 分母依次为 Flat 3188.90 $\mu$s、SQ 738.48 $\mu$s、PQ 1175.36 $\mu$s、FastScan 1984.79 $\mu$s、IVF 758.45 $\mu$s、IVF-PQ 650.09 $\mu$s，均来自 \code{results/local_summary.csv} 中满足 Recall@10 $\ge 0.95$ 的最快 inter-query t=1 行；因此 SQ 的 $8.5\times$ 是 $738.48 / 86.53$，不是表 \ref{tab:best} 中 \code{pthread_dynamic_inter} 自身 $1012.61 / 86.53$ 得到的 $11.70\times$。也就是说，图 \ref{fig:speedup} 画的是“算法整体随线程数扩展”的趋势，而表 \ref{tab:best} 更适合比较某个实现变体自身从 1T 到高线程的放大倍数。
 
 \subsubsection*{并行机制深入分析}
 
@@ -593,7 +593,7 @@ Trade-off 额外扫描 PQ 的 $p$，IVF 的 \code{nprobe}，以及 IVF-PQ 的 gl
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.82\textwidth]{inter_intra_compact.pdf}
-  \caption{本地 16 线程下 inter-query 与 intra-query 的最优延迟对比（IVF-PQ 的 intra 数据因 local 模式下 intra 实现未覆盖而缺失，鲲鹏侧 IVF-PQ local intra t=16 为 1630 $\mu$s，比 inter 的 141 $\mu$s 慢 $11.5\times$）}
+  \caption{本地 16 线程下 inter-query 与 intra-query 的最优延迟对比（对数纵轴）。IVF-PQ 采用 local 模式；其最优 inter 为 57.61 $\mu$s，最优 intra 为 1925.08 $\mu$s，后者慢约 $33.4\times$}
   \label{fig:inter_intra}
 \end{figure}
 
@@ -773,7 +773,7 @@ Dynamic 调度通过原子计数器抢任务，能让较快的线程继续处理
 
 \subsection{i9-13900H P-core / E-core 亲和性实验}\label{sec:pe_affinity}
 
-i9-13900H 是 Alder Lake-H 架构的异构多核 CPU：6 个 P-core（performance core, 5.4 GHz boost, 含 HT 共 12 logical CPU, Windows 通常映射到 logical 0--11）+ 8 个 E-core（efficient core, 4.1 GHz, 无 HT, 共 8 logical CPU, 映射到 logical 12--19），合计 14 物理核 / 20 logical CPU。本节用 \code{cmd /AFFINITY} 在启动进程时设置 CPU mask，强制把所有 OpenMP 线程限制在 P-core 或 E-core 子集上，定量观察异构核对扫描性能的影响（固定 N=100k Flat OMP inter）。
+i9-13900H 是 6 个 P-core + 8 个 E-core 的异构移动处理器：P-core 最高约 5.4 GHz，含 HT 共 12 logical CPU（Windows 通常映射到 logical 0--11）；E-core 最高约 4.1 GHz，无 HT，共 8 logical CPU（通常映射到 logical 12--19），合计 14 物理核 / 20 logical CPU。这里不依赖具体核心代号，只利用 P-core / E-core 的频率、SIMD 吞吐和调度行为差异。本节用 \code{cmd /AFFINITY} 在启动进程时设置 CPU mask，强制把所有 OpenMP 线程限制在 P-core 或 E-core 子集上，定量观察异构核对扫描性能的影响（固定 N=100k Flat OMP inter）。
 
 \begin{table}[H]
   \centering\small
@@ -791,7 +791,7 @@ i9-13900H 是 Alder Lake-H 架构的异构多核 CPU：6 个 P-core（performanc
   \label{tab:pe_affinity}
 \end{table}
 
-我先只绑 P-core 和 E-core 分别跑一遍。E-core only 8 线程是 934.10 $\mu$s，P-core HT 12 线程是 305.65 $\mu$s，差了约 $3.06\times$；这基本就是 SIMD / FMA 吞吐和频率的双重差距。Intel 公开资料里 P-core 是 Golden Cove，每周期能发射 2 条 256-bit FMA；E-core 是 Gracemont，每周期 1 条 128-bit FMA，数量级能对上。
+我先只绑 P-core 和 E-core 分别跑一遍。E-core only 8 线程是 934.10 $\mu$s，P-core HT 12 线程是 305.65 $\mu$s，差了约 $3.06\times$；这基本就是 SIMD / FMA 吞吐和频率的双重差距。P-core 具有更高频率和更强的 256-bit SIMD/FMA 吞吐，而 E-core 更偏向能效，单线程浮点吞吐较低，数量级能和实测差距对上。
 
 然后把 8 个 E-core 加回去看边际收益：P-only 12 logical 到 P+E full 20 logical，延迟从 305.65 降到 249.41 $\mu$s，只多出 $1.23\times$。换句话说，8 个 E-core 的总贡献大约相当于 23\% 的 P-core 12-thread 性能；按 E-core 单核算力约为 P-core 的 $1/3$ 粗估，8 个 E-core 的上限约等于 $8/3$ 个 P-core，占 12 个 P-core logical slot 的 $22\%$，和实测很接近。
 
@@ -896,7 +896,7 @@ IVF-PQ 的 local 构建在固定 $p=100$ 时 recall 始终高于 global，证明
 
 HNSW baseline 已经很快，但 recall 低于多入口和边划分方案。多入口点可以把 Recall@10 提升到 1.0，却要付出多条搜索路径的计算代价；Layer0 点划分几乎退化为底层图全扫描，延迟很高。结论是：HNSW 的并行化应主要服务于 recall 提升或复杂查询的鲁棒性，而不是期待像数组扫描一样线性加速。
 
-\textbf{鲲鹏 HNSW 多入口点线程伸缩。} 在鲲鹏 920 上用 inter-query 粒度测试 HNSW baseline（ef=50）的线程伸缩性：
+\textbf{鲲鹏 HNSW baseline inter-query 线程伸缩。} 在鲲鹏 920 上用 inter-query 粒度测试 HNSW baseline（ef=50）的线程伸缩性：
 
 \begin{table}[H]
   \centering\small
@@ -953,7 +953,7 @@ HNSW 在 inter-query 粒度下表现出接近线性的伸缩（8 线程 $4.74\ti
     \toprule
     项目 & 鲲鹏 920 & i9-13900H \\
     \midrule
-    微架构 & TaiShan v110 (ARMv8.2) & Golden Cove (P) + Gracemont (E) \\
+    微架构 & TaiShan v110 (ARMv8.2) & 6P + 8E 异构 x86 核心 \\
     SIMD 宽度 & 128-bit NEON & 256-bit AVX2 + FMA \\
     核心数 & 8 物理核，无 HT & 6P$\times$HT + 8E = 20 logical \\
     Boost 频率 & 2.6 GHz & 5.4 GHz (P) / 4.1 GHz (E) \\
@@ -980,7 +980,7 @@ HNSW 在 inter-query 粒度下表现出接近线性的伸缩（8 线程 $4.74\ti
 
 \subsection{VTune Hotspots}
 
-本地 i9 使用 Intel VTune 2025 Hotspots 分析。Top 函数见表 \ref{tab:vtune}。
+本地 i9 使用 Intel VTune 2025 Hotspots 分析。Top 函数见表 \ref{tab:vtune}。需要说明的是，这次 VTune run 覆盖了离线构建和查询入口，因此 \code{argmin_l2_blocked}、\code{train_fastscan} 属于训练 / 编码准备热点；分析检索阶段扩展性时，主要看 \code{adc_distance}、\code{ann_avx2::ip_distance_avx2}、候选排序和查询封装函数。
 
 \begin{table}[H]
   \centering\scriptsize
@@ -1001,7 +1001,7 @@ HNSW 在 inter-query 粒度下表现出接近线性的伸缩（8 线程 $4.74\ti
   \label{tab:vtune}
 \end{table}
 
-Hotspots 结果与前面的性能现象一致：PQ/IVF-PQ 的主要开销在 SIMD 距离循环、ADC 查表和候选排序；Flat 的距离计算是规则 FMA；FastScan 虽降低 ADC 常数，但仍有候选维护和 rerank。单线程 VTune 中 spin time 和 overhead time 基本为 0，因此多线程扩展性的主要限制不是锁等待，而是内存带宽、候选堆、runtime 调度和图搜索控制流。
+扣除离线构建热点后，Hotspots 结果与前面的性能现象一致：PQ/IVF-PQ 的主要开销在 SIMD 距离循环、ADC 查表和候选排序；Flat 的距离计算是规则 FMA；FastScan 虽降低 ADC 常数，但仍有候选维护和 rerank。单线程 VTune 中 spin time 和 overhead time 基本为 0，因此多线程扩展性的主要限制不是锁等待，而是内存带宽、候选堆、runtime 调度和图搜索控制流。
 
 \subsection{汇编与时钟证据}
 
@@ -1225,9 +1225,9 @@ for ef in 10 25 50 100 200 400; do ./build/sweep_hnsw_ef.exe $ef; done  # -> res
     \multicolumn{5}{l}{\textit{Flat（高召回 0.99995）}} \\
     flat\_pthread\_dynamic\_inter & 1  & 0.99995 & 3312.96 & $1.00\times$ \\
     flat\_pthread\_dynamic\_inter & 16 & 0.99995 &  298.95 & $11.08\times$ \\
-    flat\_omp\_inter              & 1  & 0.99995 & 6769.48 & $1.00\times$ \\
+    flat\_omp\_static\_inter      & 1  & 0.99995 & 6769.48 & $1.00\times$ \\
     flat\_pthread\_pool\_inter    & 16 & 0.99995 &  347.41 & $9.18\times$ \\
-    flat\_omp\_inter              & 16 & 0.99995 &  341.55 & $19.82\times$ \\
+    flat\_omp\_static\_inter      & 16 & 0.99995 &  341.55 & $19.82\times$ \\
     \midrule
     \multicolumn{5}{l}{\textit{SQ p=100（高召回 0.99995）}} \\
     sq\_pthread\_static\_inter    & 1  & 0.99995 &  738.48 & $1.00\times$ \\
@@ -1237,21 +1237,21 @@ for ef in 10 25 50 100 200 400; do ./build/sweep_hnsw_ef.exe $ef; done  # -> res
     \midrule
     \multicolumn{5}{l}{\textit{PQ p=1000（高召回 0.98335）}} \\
     pq\_pthread\_dynamic\_inter   & 1  & 0.98335 & 1175.36 & $1.00\times$ \\
-    pq\_omp\_inter                & 1  & 0.98335 & 1183.89 & $1.00\times$ \\
-    pq\_omp\_inter                & 16 & 0.98335 &  131.97 & $8.97\times$ \\
+    pq\_omp\_static\_inter        & 1  & 0.98335 & 1183.89 & $1.00\times$ \\
+    pq\_omp\_static\_inter        & 16 & 0.98335 &  131.97 & $8.97\times$ \\
     pq\_pthread\_dynamic\_inter   & 16 & 0.98335 &  136.47 & $8.61\times$ \\
     \midrule
     \multicolumn{5}{l}{\textit{FastScan p=1000（高召回 0.97525）}} \\
     fastscan\_pthread\_dynamic\_inter & 1  & 0.97525 & 2402.37 & $1.00\times$ \\
     fastscan\_pthread\_dynamic\_inter & 16 & 0.97525 &  125.81 & $19.10\times$ \\
-    fastscan\_omp\_inter              & 1  & 0.97525 & 1984.79 & $1.00\times$ \\
-    fastscan\_omp\_inter              & 16 & 0.97525 &  139.26 & $14.25\times$ \\
+    fastscan\_omp\_static\_inter      & 1  & 0.97525 & 1984.79 & $1.00\times$ \\
+    fastscan\_omp\_static\_inter      & 16 & 0.97525 &  139.26 & $14.25\times$ \\
     \midrule
     \multicolumn{5}{l}{\textit{IVF nprobe=4（高召回 0.96225）}} \\
     ivf\_pthread\_pool\_inter     & 1  & 0.96225 &  758.45 & $1.00\times$ \\
     ivf\_pthread\_pool\_inter     & 16 & 0.96225 &  104.67 & $7.25\times$ \\
-    ivf\_omp\_inter               & 1  & 0.96225 &  931.00 & $1.00\times$ \\
-    ivf\_omp\_inter               & 16 & 0.96225 &  113.90 & $8.18\times$ \\
+    ivf\_omp\_static\_inter       & 1  & 0.96225 &  931.00 & $1.00\times$ \\
+    ivf\_omp\_static\_inter       & 16 & 0.96225 &  113.90 & $8.18\times$ \\
     \midrule
     \multicolumn{5}{l}{\textit{IVF-PQ local nprobe=4 p=1000（高召回 0.95945）}} \\
     ivfpq\_pthread\_pool\_inter   & 1  & 0.95945 &  650.09 & $1.00\times$ \\
@@ -1263,7 +1263,7 @@ for ef in 10 25 50 100 200 400; do ./build/sweep_hnsw_ef.exe $ef; done  # -> res
     hnsw\_multi\_entry\_omp       & 4  & 1.00000 & 464.85  & -- \\
     \bottomrule
   \end{tabular}
-  \caption{本地 i9-13900H 上各算法族 Recall@10 $\ge$ 0.95 准入下的代表性数据（从 \texttt{results/local\_summary.csv} 精选）。最后一列按当前行所属 label 的 t=1 结果计算；为避免跨变体误读，表中补列了 \code{flat\_omp\_inter}、\code{sq\_pthread\_static\_inter}、\code{pq\_omp\_inter}、\code{fastscan\_omp\_inter} 与 \code{ivf\_omp\_inter} 的 t=1 基准。完整 319 行矩阵见 CSV 文件。\code{flat\_omp\_inter} 的 $19.82\times$ 来自同一 OpenMP static inter 变体内部的 $6769.48/341.55$；该 1T 基准明显慢于 Pthread 1T，反映的是该变体自身的弱单线程基线，因此只作为附录记录，不用于正文图 \ref{fig:speedup} 的算法级结论}
+  \caption{本地 i9-13900H 上各算法族 Recall@10 $\ge$ 0.95 准入下的代表性数据（从 \texttt{results/local\_summary.csv} 精选）。最后一列按当前行所属 label 的 t=1 结果计算；为避免跨变体误读，表中补列了 \code{flat\_omp\_static\_inter}、\code{sq\_pthread\_static\_inter}、\code{pq\_omp\_static\_inter}、\code{fastscan\_omp\_static\_inter} 与 \code{ivf\_omp\_static\_inter} 的 t=1 基准。完整 319 行矩阵见 CSV 文件。\code{flat\_omp\_static\_inter} 的 $19.82\times$ 来自同一 OpenMP static inter 变体内部的 $6769.48/341.55$；该 1T 基准明显慢于 Pthread 1T，反映的是该变体自身的弱单线程基线，因此只作为附录记录，不用于正文图 \ref{fig:speedup} 的算法级结论}
   \label{tab:local_picks}
 \end{table}
 
