@@ -203,3 +203,36 @@ Fixed pthread-omp report data/caption consistency issues, restored IVF-PQ in mec
 ### Next Steps
 
 - None - task complete
+
+
+## Session 7: Review pthread-omp report rendering
+
+**Date**: 2026-05-26
+**Task**: Review pthread-omp report rendering
+**Branch**: `master`
+
+### Summary
+
+Fixed visible LaTeX escape artifacts and rendering/data-caption issues in the ann-pthread-omp report, rebuilt the PDF, and verified text extraction plus rendered key pages.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `6a6f1b6` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
