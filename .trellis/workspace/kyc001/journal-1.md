@@ -170,3 +170,36 @@ Expanded the ANN MPI lab report with full Windows and Kunpeng PBS experiment art
 ### Next Steps
 
 - None - task complete
+
+
+## Session 6: Pthread OMP report consistency polish
+
+**Date**: 2026-05-26
+**Task**: Pthread OMP report consistency polish
+**Branch**: `master`
+
+### Summary
+
+Fixed pthread-omp report data/caption consistency issues, restored IVF-PQ in mechanism plots, clarified speedup baselines, and rebuilt the final PDF.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `ee792f3` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
