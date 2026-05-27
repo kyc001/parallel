@@ -1,6 +1,7 @@
 """
 协程 vs 多线程基准测试 — Python 版
 测试场景：I/O 密集型 (模拟网络请求) 和 CPU 密集型
+每个测试跑 N_REPEAT 次，报告 mean ± std
 """
 import asyncio
 import threading
@@ -9,10 +10,12 @@ import sys
 import os
 import platform
 import tracemalloc
+import statistics
 
 N_IO = 10_000       # I/O 任务数
 N_CPU = 1_000       # CPU 任务数
 FIB_N = 25          # 斐波那契数列第 n 项
+N_REPEAT = 5        # 重复测量次数
 
 def fib(n):
     if n <= 1:
@@ -149,6 +152,26 @@ class MemorySampler:
         self._thread.join()
         self._sample()
 
+# ==================== 重复测量 ====================
+
+def run_repeated(bench_fn, n=N_REPEAT, use_async=False):
+    """跑 n 次 benchmark，返回 (mean_time, std_time, mean_mem, std_mem)"""
+    times = []
+    mems = []
+    for i in range(n):
+        tracemalloc.start()
+        with MemorySampler() as sampler:
+            if use_async:
+                elapsed = asyncio.run(bench_fn())
+            else:
+                elapsed = bench_fn()
+        peak_mb = sampler.peak_mb
+        tracemalloc.stop()
+        times.append(elapsed)
+        mems.append(peak_mb)
+    return (statistics.mean(times), statistics.stdev(times) if n > 1 else 0,
+            statistics.mean(mems), statistics.stdev(mems) if n > 1 else 0)
+
 # ==================== 主函数 ====================
 
 def main():
@@ -156,51 +179,40 @@ def main():
 
     print(f"{'='*60}")
     print(f"Python 协程 vs 多线程基准测试")
-    print(f"N_IO={N_IO}, N_CPU={N_CPU}, FIB_N={FIB_N}")
+    print(f"N_IO={N_IO}, N_CPU={N_CPU}, FIB_N={FIB_N}, N_REPEAT={N_REPEAT}")
     print(f"{'='*60}")
 
     results = {}
 
     if mode in ("all", "io_async", "async"):
-        tracemalloc.start()
-        with MemorySampler() as sampler:
-            elapsed = asyncio.run(bench_async_io())
-        peak_mb = sampler.peak_mb
-        tracemalloc.stop()
-        results["async_io"] = {"time": elapsed, "mem": peak_mb}
-        print(f"\n[asyncio I/O]     {elapsed:.3f}s  peak WS: {peak_mb:.1f}MB")
+        mean_t, std_t, mean_m, std_m = run_repeated(bench_async_io, use_async=True)
+        results["async_io"] = {"time_mean": mean_t, "time_std": std_t, "mem_mean": mean_m, "mem_std": std_m}
+        print(f"\n[asyncio I/O]     {mean_t:.3f}±{std_t:.3f}s  peak WS: {mean_m:.1f}±{std_m:.1f}MB")
 
     if mode in ("all", "io_thread", "thread"):
-        tracemalloc.start()
-        with MemorySampler() as sampler:
-            elapsed = bench_thread_io()
-        peak_mb = sampler.peak_mb
-        tracemalloc.stop()
-        results["thread_io"] = {"time": elapsed, "mem": peak_mb}
-        print(f"[threading I/O]   {elapsed:.3f}s  peak WS: {peak_mb:.1f}MB")
+        mean_t, std_t, mean_m, std_m = run_repeated(bench_thread_io)
+        results["thread_io"] = {"time_mean": mean_t, "time_std": std_t, "mem_mean": mean_m, "mem_std": std_m}
+        print(f"[threading I/O]   {mean_t:.3f}±{std_t:.3f}s  peak WS: {mean_m:.1f}±{std_m:.1f}MB")
 
     if mode in ("all", "cpu_async"):
-        tracemalloc.start()
-        with MemorySampler() as sampler:
-            elapsed = asyncio.run(bench_async_cpu())
-        peak_mb = sampler.peak_mb
-        tracemalloc.stop()
-        results["async_cpu"] = {"time": elapsed, "mem": peak_mb}
-        print(f"[asyncio CPU]     {elapsed:.3f}s  peak WS: {peak_mb:.1f}MB")
+        mean_t, std_t, mean_m, std_m = run_repeated(bench_async_cpu, use_async=True)
+        results["async_cpu"] = {"time_mean": mean_t, "time_std": std_t, "mem_mean": mean_m, "mem_std": std_m}
+        print(f"[asyncio CPU]     {mean_t:.3f}±{std_t:.3f}s  peak WS: {mean_m:.1f}±{std_m:.1f}MB")
 
     if mode in ("all", "cpu_thread"):
-        tracemalloc.start()
-        with MemorySampler() as sampler:
-            elapsed = bench_thread_cpu()
-        peak_mb = sampler.peak_mb
-        tracemalloc.stop()
-        results["thread_cpu"] = {"time": elapsed, "mem": peak_mb}
-        print(f"[threading CPU]   {elapsed:.3f}s  peak WS: {peak_mb:.1f}MB")
+        mean_t, std_t, mean_m, std_m = run_repeated(bench_thread_cpu)
+        results["thread_cpu"] = {"time_mean": mean_t, "time_std": std_t, "mem_mean": mean_m, "mem_std": std_m}
+        print(f"[threading CPU]   {mean_t:.3f}±{std_t:.3f}s  peak WS: {mean_m:.1f}±{std_m:.1f}MB")
 
     if mode in ("all", "ctx"):
-        elapsed = asyncio.run(bench_context_switch())
-        results["ctx_switch"] = {"time": elapsed}
-        print(f"[ctx switch 1M]   {elapsed:.3f}s")
+        times = []
+        for _ in range(N_REPEAT):
+            elapsed = asyncio.run(bench_context_switch())
+            times.append(elapsed)
+        mean_t = statistics.mean(times)
+        std_t = statistics.stdev(times) if N_REPEAT > 1 else 0
+        results["ctx_switch"] = {"time_mean": mean_t, "time_std": std_t}
+        print(f"[ctx switch 1M]   {mean_t:.3f}±{std_t:.3f}s")
 
     print(f"\n{'='*60}")
     print("完成!")

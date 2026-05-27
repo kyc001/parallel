@@ -1,14 +1,18 @@
+import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryMXBean;
+import java.lang.management.MemoryUsage;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Java 虚拟线程 vs 平台线程基准测试
- * 测试场景：I/O 密集型和上下文切换
+ * 测试场景：I/O 密集型、CPU 密集型和上下文切换
+ * 每个测试跑 N_REPEAT 次，报告 mean ± std
  */
 public class Bench {
     static final int N_IO = 10_000;
     static final int N_CPU = 1_000;
     static final int FIB_N = 25;
+    static final int N_REPEAT = 5;
 
     static int fib(int n) {
         if (n <= 1) return n;
@@ -90,31 +94,64 @@ public class Bench {
         return (System.nanoTime() - start) / 1_000_000;
     }
 
+    // ==================== 统计工具 ====================
+
+    static double mean(long[] data) {
+        long sum = 0;
+        for (long v : data) sum += v;
+        return (double) sum / data.length;
+    }
+
+    static double std(long[] data) {
+        double m = mean(data);
+        double sumSq = 0;
+        for (long v : data) sumSq += (v - m) * (v - m);
+        return Math.sqrt(sumSq / data.length);
+    }
+
+    static long getMemoryMB() {
+        MemoryMXBean memBean = ManagementFactory.getMemoryMXBean();
+        MemoryUsage heap = memBean.getHeapMemoryUsage();
+        MemoryUsage nonHeap = memBean.getNonHeapMemoryUsage();
+        return (heap.getUsed() + nonHeap.getUsed()) / (1024 * 1024);
+    }
+
     // ==================== 主函数 ====================
 
     public static void main(String[] args) throws Exception {
         System.out.println("============================================================");
         System.out.println("Java 虚拟线程 vs 平台线程基准测试");
-        System.out.printf("N_IO=%d, N_CPU=%d, FIB_N=%d%n", N_IO, N_CPU, FIB_N);
+        System.out.printf("N_IO=%d, N_CPU=%d, FIB_N=%d, N_REPEAT=%d%n", N_IO, N_CPU, FIB_N, N_REPEAT);
         System.out.println("============================================================");
 
-        // I/O 密集
-        long ms = benchVirtualThreadIO();
-        System.out.printf("%n[VirtualThread I/O x%d]   %d ms%n", N_IO, ms);
+        // Virtual Thread I/O
+        long[] vtIoTimes = new long[N_REPEAT];
+        for (int i = 0; i < N_REPEAT; i++) vtIoTimes[i] = benchVirtualThreadIO();
+        System.out.printf("%n[VirtualThread I/O x%d]   %.0f±%.0f ms%n", N_IO, mean(vtIoTimes), std(vtIoTimes));
 
-        ms = benchPlatformThreadIO();
-        System.out.printf("[PlatformThread I/O x%d]  %d ms%n", N_IO, ms);
+        // Platform Thread I/O
+        long[] ptIoTimes = new long[N_REPEAT];
+        for (int i = 0; i < N_REPEAT; i++) ptIoTimes[i] = benchPlatformThreadIO();
+        System.out.printf("[PlatformThread I/O x%d]  %.0f±%.0f ms%n", N_IO, mean(ptIoTimes), std(ptIoTimes));
 
-        // CPU 密集
-        ms = benchVirtualThreadCPU();
-        System.out.printf("[VirtualThread CPU x%d]   %d ms%n", N_CPU, ms);
+        // Virtual Thread CPU
+        long[] vtCpuTimes = new long[N_REPEAT];
+        for (int i = 0; i < N_REPEAT; i++) vtCpuTimes[i] = benchVirtualThreadCPU();
+        System.out.printf("[VirtualThread CPU x%d]   %.0f±%.0f ms%n", N_CPU, mean(vtCpuTimes), std(vtCpuTimes));
 
-        ms = benchPlatformThreadCPU();
-        System.out.printf("[PlatformThread CPU x%d]  %d ms%n", N_CPU, ms);
+        // Platform Thread CPU
+        long[] ptCpuTimes = new long[N_REPEAT];
+        for (int i = 0; i < N_REPEAT; i++) ptCpuTimes[i] = benchPlatformThreadCPU();
+        System.out.printf("[PlatformThread CPU x%d]  %.0f±%.0f ms%n", N_CPU, mean(ptCpuTimes), std(ptCpuTimes));
 
-        // 上下文切换
-        ms = benchVirtualThreadSwitch(100_000);
-        System.out.printf("%n[VirtualThread switch x100k] %d ms%n", ms);
+        // Virtual Thread Switch
+        long[] vtSwTimes = new long[N_REPEAT];
+        for (int i = 0; i < N_REPEAT; i++) vtSwTimes[i] = benchVirtualThreadSwitch(100_000);
+        System.out.printf("%n[VirtualThread switch x100k] %.0f±%.0f ms%n", mean(vtSwTimes), std(vtSwTimes));
+
+        // Memory
+        long memMB = getMemoryMB();
+        System.out.printf("[Java memory]              %d MB (heap+nonHeap after tests)%n", memMB);
 
         System.out.println("\n============================================================");
         System.out.println("完成!");
