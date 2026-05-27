@@ -78,6 +78,8 @@ perf.data.old
 # Lab result noise: keep checked-in summaries, ignore raw profiler projects/logs
 hw2/results/run.log
 hw2/results/vtune_cli/*/
+ann-mpi/results/vtune_*_profile/
+ann-mpi/results/vtune_uarch_hnsw_admin/
 
 # ANN local build/analysis artifacts
 ann/files/
@@ -104,3 +106,4 @@ parallel-master.zip
 ann-pthread-omp-full.tar.gz
 ann-pthread-omp.tar.gz
 ann.tar.gz
+*.class

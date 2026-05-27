@@ -86,13 +86,17 @@
 \tableofcontents
 \newpage
 
+% ============================================================
 \section{摘要}
+% ============================================================
 
 随着云服务、网络后端和数据处理系统的并发度不断提高，传统 ``一个请求一个线程'' 的编程方式逐渐遇到内存、调度和可维护性瓶颈。协程提供了一种比操作系统线程更轻量的并发抽象：程序员仍然书写接近同步风格的代码，而编译器和运行时在暂停点保存执行状态，并在 I/O 就绪或调度条件满足时恢复执行。
 
 本文围绕 ``为什么会演进到协程、协程如何实现、主流语言如何支持、协程与线程性能差异如何'' 四个问题展开。结论可以概括为三点：第一，协程的核心价值不是让单段 CPU 计算更快，而是用更低的内存和调度开销承载大规模 I/O 并发；第二，协程机制需要编译器、语言运行时和操作系统 I/O 多路复用协同完成；第三，语言选型时应关注调度器、取消语义、阻塞调用兼容性和现有生态，而不是只比较 ``是否支持 async/await''。
 
+% ============================================================
 \section{并发执行机制为何演进到协程}
+% ============================================================
 
 \subsection{从进程、线程到事件循环}
 
@@ -120,11 +124,13 @@
 
 协程的暂停点通常出现在 I/O、定时器、channel 收发或显式 yield 处。暂停时，当前协程让出执行权，运行时调度其他可运行协程；事件就绪后再恢复原协程。这一过程避免了 ``线程阻塞在内核中等待''，也避免了大量线程长期占用栈空间。因此协程最适合高并发 I/O，而不是直接加速 CPU 密集型计算。
 
-\section{协程的定义、分类与应用范式}
+% ============================================================
+\section{协程的定义、分类与底层机制}
+% ============================================================
 
 \subsection{定义与心智模型}
 
-协程可以被看作 ``可暂停和恢复的函数''。普通函数调用以后必须一路执行到返回，而协程可以在 \verb|await|、\verb|yield| 或阻塞点处挂起，保存局部变量、程序计数位置和必要的运行时信息，之后再由调度器恢复。
+协程的概念最早可追溯到 1963 年 Conway 的编译器设计\cite{conway1963design}，1966 年 Bernstein 对其进行了系统化阐述\cite{bernstein1966coroutines}。协程可以被看作 ``可暂停和恢复的函数''。普通函数调用以后必须一路执行到返回，而协程可以在 \verb|await|、\verb|yield| 或阻塞点处挂起，保存局部变量、程序计数位置和必要的运行时信息，之后再由调度器恢复。
 
 \begin{lstlisting}[language=C++,caption={C++20 风格的协程伪代码}]
 Task<Response> handle(Request req) {
@@ -144,12 +150,6 @@ Task<Response> handle(Request req) {
   \item \textbf{有栈协程}：每个协程拥有自己的用户态栈，切换时保存/恢复寄存器和栈指针。优点是可以在较深调用链中挂起，普通函数和协程函数边界更模糊；缺点是需要管理栈空间和栈增长。Go goroutine 与 Java 21 虚拟线程都接近这一类。
   \item \textbf{无栈协程}：协程函数被编译器改写成状态机，局部变量存放在协程 frame 中。优点是内存更小，编译器优化空间大；缺点是函数颜色问题明显，只有被标记的 async/coroutine 函数才能挂起。C++20、Python asyncio、C\# async/await、Rust async 都属于这一类。
 \end{itemize}
-
-\subsection{三种应用范式}
-
-主流协程实践大致可以分为三类。第一类是 \textbf{async/await}，以 Future/Task 为返回值，适合请求链、RPC 和异步 I/O。第二类是 \textbf{CSP/channel}，协程之间通过 channel 通信，Go 是典型代表。第三类是 \textbf{结构化并发}，父任务持有子任务生命周期，使取消和异常传播更可控。实际工程中，选择范式往往等价于选择错误传播、取消语义和资源回收方式。
-
-\section{底层机制：编译器、运行时与操作系统协同}
 
 \subsection{无栈协程：编译器生成状态机}
 
@@ -174,9 +174,46 @@ switch_ctx:
     ret
 \end{lstlisting}
 
-Go 的 goroutine 初始栈很小，并可按需增长；运行时通过 G-M-P 调度模型把大量 goroutine 映射到较少的操作系统线程上。Java 21 虚拟线程则把轻量线程引入 JVM 标准能力，虚拟线程运行在 carrier 平台线程之上，由 JVM 调度并在多数 JDK 阻塞 I/O 处自动让出 carrier\cite{jep444}。
+Go 的 goroutine 初始栈很小（2KB），并可按需增长到 GB 级；运行时通过 G-M-P 调度模型把大量 goroutine 映射到较少的操作系统线程上。Java 21 虚拟线程则把轻量线程引入 JVM 标准能力，虚拟线程运行在 carrier 平台线程之上，由 JVM 调度并在多数 JDK 阻塞 I/O 处自动让出 carrier\cite{jep444}。
 
-\subsection{运行时与操作系统的分工}
+% ============================================================
+\section{主流语言支持对比}
+% ============================================================
+
+\subsection{有栈协程语言：Go 与 Java 21}
+
+Go 语言自 1.0（2012）起就内建了 goroutine 和 channel。goroutine 是有栈协程，初始栈仅 2KB，运行时通过 G-M-P 模型调度\cite{goScheduler}：G 是 goroutine，M 是操作系统线程，P 是逻辑处理器（持有本地运行队列）。网络 I/O 通过内建的 netpoller（底层使用 epoll/kqueue/IOCP）自动挂起和恢复。Go 1.14 引入基于信号的抢占式调度，避免长时间计算的 goroutine 饿死其他任务\cite{goRuntime}。
+
+Java 21（2023）通过 JEP 444 引入虚拟线程\cite{jep444}。虚拟线程是 JVM 管理的有栈协程，运行在少量 carrier 平台线程之上。JDK 内所有阻塞 API（Socket、JDBC、\verb|Thread.sleep|）已被改造为在阻塞点自动 yield carrier，而非阻塞内核线程。虚拟线程的最大卖点是 ``同步代码无需修改''：开发者用 \verb|Thread.ofVirtual()| 替换 \verb|new Thread()| 即可获得协程级并发能力。但 \verb|synchronized| 块和 JNI 调用会把虚拟线程 pin 到 carrier 上，是使用时的主要陷阱。
+
+\subsection{无栈协程语言：C++20、Python、C\#、Rust}
+
+C++20（2020）在语言层面引入了 \verb|co_await|、\verb|co_yield|、\verb|co_return| 三个关键字，但标准库不提供调度器、Task 类型或异步 I/O。开发者需要依赖 cppcoro、libcoro 或 Boost.Asio 等第三方库来构建完整的异步生态。这种 ``只给机制，不给策略'' 的设计给予了最大灵活性，但也提高了入门门槛。
+
+Python 的 asyncio（PEP 492/525/530）\cite{pep492} 使用单线程事件循环，\verb|async def| 返回 coroutine 对象，被包装为 Task 后由事件循环推进。底层通过 \verb|selector| 模块调用 epoll/kqueue 等系统调用。Python 的 GIL 限制了 CPU 密集型任务的并行能力，因此 asyncio 最适合 I/O 密集型场景。阻塞同步调用（如 \verb|time.sleep|、\verb|requests.get|）会阻塞整个事件循环，是使用时的主要风险。
+
+C\# 5.0（2012）是现代 async/await 的 ``开山鼻祖''。编译器把 \verb|async| 方法改写为 \verb|IAsyncStateMachine|，\verb|Task| 类型充当 Future，\verb|SynchronizationContext| 决定恢复在哪个线程（WinForms/WPF 回 UI 线程，ASP.NET 回请求线程）。C++20、Rust、Python 的 async/await 在语义和实现上都深度借鉴了 C\# 的设计。
+
+Rust（1.39，2019）的 \verb|async/await| 编译为 \verb|Future| 状态机，但语言不提供运行时，需要 tokio 或 async-std 等第三方库。Rust 的所有权和生命周期系统使得 async 函数的 frame 管理更复杂，学习曲线较陡，但换来了零成本抽象和无垃圾回收的性能保证。
+
+\begin{table}[H]
+  \centering
+  \caption{主流语言协程能力对比}
+  \begin{tabularx}{\textwidth}{lXXXX}
+    \toprule
+    语言 & 关键机制 & 类型 & 调度器 & 主要特点 \\
+    \midrule
+    Go & \texttt{go}/channel & 有栈 & GMP 内建 & 语法轻，普通函数可直接作为 goroutine \\
+    Java 21 & Virtual Thread & 有栈 & JVM ForkJoin & 保持同步代码风格，降低迁移成本 \\
+    C++20 & \texttt{co\_await} & 无栈 & 标准不提供 & 只给底层机制，Task 和 I/O 需库实现 \\
+    Python & \texttt{async/await} & 无栈 & 单线程事件循环 & 适合 I/O；CPU 密集受 GIL 限制 \\
+    C\# & \texttt{async/await} & 无栈 & 线程池/上下文 & 工程化成熟，UI/服务端生态完善 \\
+    Rust & \texttt{async/await} & 无栈 & 第三方运行时 & 零成本抽象强，但生态和学习成本高 \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsection{运行时与操作系统的协同}
 
 协程不是脱离操作系统独立存在的机制。它通常需要三层协作：
 
@@ -186,28 +223,9 @@ Go 的 goroutine 初始栈很小，并可按需增长；运行时通过 G-M-P �
   \item \textbf{操作系统}：提供非阻塞 I/O、多路复用、线程和定时器等基础能力。运行时等待 fd 就绪后，再恢复对应协程。
 \end{enumerate}
 
-\section{主流语言支持对比}
-
-\begin{table}[H]
-  \centering
-  \caption{主流语言协程能力对比}
-  \begin{tabularx}{\textwidth}{lXXXX}
-    \toprule
-    语言 & 关键机制 & 类型 & 调度器 & 主要特点 \\
-    \midrule
-    C++20 & \texttt{co\_await} & 无栈 & 标准不提供 & 只给底层机制，Task、调度器和 I/O 需库实现 \\
-    Go & \texttt{go}/channel & 有栈 & GMP 内建 & 语法轻，普通函数可直接作为 goroutine 执行 \\
-    Python & \texttt{async/await} & 无栈 & 单线程事件循环 & 适合 I/O；CPU 密集受 GIL 和单线程循环限制 \\
-    C\# & \texttt{async/await} & 无栈 & 线程池/上下文 & 工程化成熟，UI/服务端生态完善 \\
-    Java 21 & Virtual Thread & 有栈 & JVM 调度 & 保持同步代码风格，降低旧系统迁移成本 \\
-    Rust & \texttt{async/await} & 无栈 & 第三方运行时 & 零成本抽象强，但生态和生命周期学习成本高 \\
-    \bottomrule
-  \end{tabularx}
-\end{table}
-
-值得注意的是，C++20 和 Rust 都把 ``协程语法'' 与 ``运行时'' 分离，因此同样的 async 代码在不同 executor 上表现可能不同。Go 和 Java 21 则更强调运行时内建调度，把开发者从 executor 选择中解放出来。Python asyncio 上手简单，但所有阻塞同步调用都会阻塞事件循环；C\# async/await 则展示了无栈状态机在工业语言中的成熟形态。
-
+% ============================================================
 \section{实验设计与结果}
+% ============================================================
 
 \subsection{实验环境与方法}
 
@@ -217,37 +235,37 @@ Go 的 goroutine 初始栈很小，并可按需增长；运行时通过 G-M-P �
   \item CPU：13th Gen Intel(R) Core(TM) i9-13900H，14 核 20 逻辑处理器；
   \item 操作系统：Windows 11 Home China 64-bit，版本 10.0.26200；
   \item Python：3.12.9；Go：1.25.6；Java：OpenJDK 21.0.5；
-  \item 实验日期：2026 年 5 月 25 日；图表由 \verb|plot_results.py| 在 \verb|test| 环境中生成。
+  \item 实验日期：2026 年 5 月 27 日（重测）；图表由 \verb|plot_results.py| 在 \verb|test| 环境中生成。
 \end{itemize}
 
-测试分为三类：I/O 密集型测试创建 10000 个任务，每个任务 sleep 100 ms，用于模拟大量网络等待；CPU 密集型测试创建 1000 个任务，每个任务计算 \verb|fib(25)|；上下文切换测试使用大量 yield/sleep(0)、channel 交互或轻量任务估计调度开销。完整代码见同目录下 \verb|bench.py|、\verb|bench.go| 和 \verb|Bench.java|。原始输出记录在 \verb|results/| 目录的 20260525 benchmark 文件中。
+测试分为三类：I/O 密集型测试创建 10000 个任务，每个任务 sleep 100 ms，用于模拟大量网络等待；CPU 密集型测试创建 1000 个任务，每个任务计算 \verb|fib(25)|；上下文切换测试使用大量 yield/sleep(0)、channel 交互或轻量任务估计调度开销。\textbf{每项测试重复 5 次，报告均值和标准差}。完整代码见同目录下 \verb|bench.py|、\verb|bench.go| 和 \verb|Bench.java|。原始输出记录在 \verb|results/| 目录中。
 
 \subsection{I/O 密集型结果}
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.88\textwidth]{io_throughput.png}
-  \caption{10000 个 I/O 等待任务耗时对比}
+  \caption{10000 个 I/O 等待任务耗时对比（5 次重复，误差线为标准差）}
   \label{fig:io}
 \end{figure}
 
 \begin{table}[H]
   \centering
-  \caption{I/O 密集型实验结果}
+  \caption{I/O 密集型实验结果（5 次重复）}
   \begin{tabularx}{\textwidth}{l l X}
     \toprule
     模型 & 10000 任务耗时 & 对照口径 \\
     \midrule
-    Python threading & 5.524 s & Python 线程基线 \\
-    Python asyncio & 0.601 s & 比 Python threading 快约 9.2$\times$ \\
-    Go goroutine & 0.156 s & Go 运行时内建轻量任务 \\
-    Java platform thread（200 固定线程池） & 5.447 s & Java 线程池基线 \\
-    Java virtual thread & 0.190 s & 比 Java platform thread 快约 28.7$\times$ \\
+    Python threading & 3.130$\pm$0.426 s & Python 线程基线 \\
+    Python asyncio & 0.446$\pm$0.012 s & 比 Python threading 快约 7.0$\times$ \\
+    Go goroutine & 0.116$\pm$0.020 s & Go 运行时内建轻量任务 \\
+    Java platform thread（200 固定线程池） & 5.458$\pm$0.013 s & Java 线程池基线 \\
+    Java virtual thread & 0.235$\pm$0.173 s & 比 Java platform thread 快约 23.2$\times$ \\
     \bottomrule
   \end{tabularx}
 \end{table}
 
-结果符合预期：I/O 密集场景中，协程/虚拟线程能在等待期间释放执行权，使少量内核线程服务大量逻辑任务。Python asyncio 相比 Python threading 快约 9.2 倍；Go goroutine 和 Java 虚拟线程都能在 0.2 秒量级完成 10000 个 sleep 任务，Java 虚拟线程相比固定平台线程池快约 28.7 倍。
+结果符合预期：I/O 密集场景中，协程/虚拟线程能在等待期间释放执行权，使少量内核线程服务大量逻辑任务。Python asyncio 相比 Python threading 快约 7.0 倍；Go goroutine 和 Java 虚拟线程都能在 0.2 秒量级完成 10000 个 sleep 任务，Java 虚拟线程相比固定平台线程池快约 23.2 倍。Java 虚拟线程的标准差较大（$\pm$173 ms），可能与 JIT 预热有关。
 
 \subsection{CPU 密集型与切换开销}
 
@@ -270,35 +288,47 @@ Go 的 goroutine 初始栈很小，并可按需增长；运行时通过 G-M-P �
 
 Python 的 threading 与 asyncio 在 CPU 密集型测试中都没有获得真正的多核计算收益，threading 还会额外承担大量线程创建和 GIL 竞争开销；这说明协程并不会减少计算本身的 CPU 成本。Go 和 Java 的 CPU 测试更快，主要原因不是 ``协程让计算变快''，而是运行时可以把任务分配到多核上执行。Java 平台线程池在该测试中略快于虚拟线程，也说明虚拟线程的优势不在短小 CPU 任务，而在大量阻塞等待任务。
 
-切换开销图使用对数坐标展示量级差异。Python asyncio 的百万次 yield 约为 7.824 秒，Go goroutine 的 100000 次 channel 交互约为 122.9 ms，Java 虚拟线程的 100000 个 sleep(0) 任务约为 124 ms。由于不同语言的微基准并不完全等价，这些数字更适合用于判断量级，而不应作为绝对排名。
+切换开销图使用对数坐标展示量级差异。Python asyncio 的百万次 yield 约为 2.494$\pm$0.144 秒，Go goroutine 的 100000 次 channel 交互约为 122$\pm$15 ms，Java 虚拟线程的 100000 个 sleep(0) 任务约为 75$\pm$32 ms。由于不同语言的微基准并不完全等价，这些数字更适合用于判断量级，而不应作为绝对排名。
 
-\subsection{内存记录说明}
+\subsection{内存使用对比}
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.70\textwidth]{memory_usage.png}
-  \caption{Python 进程峰值工作集记录值对比}
+  \caption{各语言 I/O 并发任务内存使用对比（10K 任务）}
   \label{fig:memory}
 \end{figure}
 
-本次 Python 脚本使用采样线程记录 benchmark 期间的进程峰值工作集。该结果可用于比较 Python threading 与 asyncio 在同一脚本中的相对内存占用，但 Go/Java 未使用同一方法采样峰值 RSS，因此报告不把它作为严格跨语言内存排名依据。若要进一步精确比较，应使用外部采样器或平台一致的监控工具记录峰值 RSS，并在 Java/Go 中补充 GC 前后内存统计。
+本次实验中，Python 使用采样线程记录 benchmark 期间的进程峰值工作集，Go 使用 \verb|runtime.ReadMemStats| 的 \verb|Sys| 字段，Java 使用 \verb|MemoryMXBean| 的 heap + nonHeap 用量。三种语言使用不同的内存测量方法和运行时模型，因此跨语言对比仅作参考。Python 的内存优势主要来自协程 frame 极小（几十到几百字节）；Go/Java 的较高内存反映了运行时系统本身（调度器、GC、JIT 编译器等）的开销。
 
-\section{实验洞察、风险与选型建议}
+\subsection{实验局限性}
 
-\subsection{实验洞察}
+本次实验存在以下局限性，读者在参考数据时应注意：
 
 \begin{enumerate}
-  \item \textbf{I/O 密集任务中协程优势显著。} 大量任务处于等待态时，协程通过用户态调度避免大量内核线程阻塞，吞吐和资源利用率明显优于传统线程池。
-  \item \textbf{CPU 密集任务不应期待协程自动加速。} 如果瓶颈是计算，应使用多线程、多进程、SIMD 或 GPU；协程只能减少等待和调度成本。
-  \item \textbf{阻塞调用会破坏协程模型。} 在 Python async 函数中调用同步 requests，在 Java 虚拟线程中进入长时间 synchronized/JNI 区域，都会使运行时难以释放底层执行资源。
-  \item \textbf{取消与生命周期管理同样重要。} 大量协程如果没有结构化管理，可能变成任务泄漏、资源泄漏或异常被吞掉。
+  \item \textbf{I/O 模拟}：使用 \verb|sleep(0.1s)| 模拟网络等待，不涉及真实协议栈和网络延迟。
+  \item \textbf{CPU 测试}：\verb|fib(25)| 用来展示 ``协程不自动加速计算''；Go/Java 的优势来自多核调度，不来自协程语义本身。
+  \item \textbf{切换测试}：Python asyncio yield、Go channel、Java sleep(0) 的操作不完全同构，适合看数量级，不适合做精确排名。
+  \item \textbf{内存测试}：三种语言使用不同测量方法，跨语言对比仅作参考。
 \end{enumerate}
+
+% ============================================================
+\section{选型建议与总结}
+% ============================================================
 
 \subsection{选型建议}
 
 如果项目瓶颈在 CPU，优先考虑并行计算手段，而不是协程。如果瓶颈在 I/O 且并发量较小，传统线程池已经足够；当并发量达到数千以上时，再考虑协程或虚拟线程。新建高并发后端服务可以优先考虑 Go goroutine；JVM 旧系统希望保留同步代码风格时，Java 21 虚拟线程很有吸引力；Python Web 或爬虫任务适合 asyncio/FastAPI/uvloop，但必须严格避免阻塞调用；系统级高性能服务可以考虑 Rust tokio 或 C++20 协程与 io\_uring/asio 组合。
 
+\subsection{总结}
+
+协程的本质不是 ``神奇的快速线程''，而是把等待态任务从昂贵的内核线程中解放出来，用编译器状态机、用户态调度器和操作系统 I/O 多路复用共同支撑高并发。它让程序员可以用近似同步的代码表达异步控制流，是云时代服务端编程的重要抽象。
+
+从技术趋势看，协程正在朝两个方向发展：一类是 C++20/Rust/Python/C\# 代表的无栈 async/await，强调精细控制和低内存；另一类是 Go goroutine 与 Java 21 虚拟线程代表的有栈轻量线程，强调普通同步代码的可扩展性。面对具体工程问题时，最关键的判断不是 ``哪种协程更先进''，而是瓶颈是否在 I/O、阻塞调用能否被运行时接管、错误和取消能否被结构化管理。
+
+% ============================================================
 \section{AI 使用说明}
+% ============================================================
 
 按照作业要求，本次调研和材料制作中使用 AI 的方式如下：
 
@@ -309,12 +339,6 @@ Python 的 threading 与 asyncio 在 CPU 密集型测试中都没有获得真正
   \item 对关键版本号、JEP/PEP、语言特性和运行时机制回查官方文档或源代码说明，避免把 AI 输出直接当作事实。
   \item 最终 Slides 与报告文字均围绕本人实验和理解重新组织，避免大段复制资料原文。
 \end{enumerate}
-
-\section{总结}
-
-协程的本质不是 ``神奇的快速线程''，而是把等待态任务从昂贵的内核线程中解放出来，用编译器状态机、用户态调度器和操作系统 I/O 多路复用共同支撑高并发。它让程序员可以用近似同步的代码表达异步控制流，是云时代服务端编程的重要抽象。
-
-从技术趋势看，协程正在朝两个方向发展：一类是 C++20/Rust/Python/C\# 代表的无栈 async/await，强调精细控制和低内存；另一类是 Go goroutine 与 Java 21 虚拟线程代表的有栈轻量线程，强调普通同步代码的可扩展性。面对具体工程问题时，最关键的判断不是 ``哪种协程更先进''，而是瓶颈是否在 I/O、阻塞调用能否被运行时接管、错误和取消能否被结构化管理。
 
 \newpage
 \bibliographystyle{plain}
