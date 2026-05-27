@@ -542,8 +542,8 @@ try (var exec = Executors.newVirtualThreadPerTaskExecutor()) {
       \textbf{测试用例}
       \begin{enumerate}
         \item \textbf{I/O 密集}：10000 个并发任务，每个 sleep(0.1s)
-        \item \textbf{CPU 密集}：10000 个并发任务，斐波那契(n=25)
-        \item \textbf{上下文切换}：百万次 yield/resume
+        \item \textbf{CPU 密集}：1000 个并发任务，斐波那契(n=25)
+        \item \textbf{上下文切换}：yield / channel / sleep(0) 量级测试
       \end{enumerate}
     \end{column}
     \begin{column}{0.48\textwidth}
@@ -555,7 +555,7 @@ try (var exec = Executors.newVirtualThreadPerTaskExecutor()) {
       \end{itemize}
       \vspace{0.2cm}
       \textbf{指标}\\
-      吞吐 (req/s)、P99 延迟、RSS 内存、CPU 时间
+      总耗时、峰值工作集、切换/轻量任务开销量级
     \end{column}
   \end{columns}
 \end{frame}
@@ -622,7 +622,7 @@ try (var exec = Executors.newVirtualThreadPerTaskExecutor()) {
     \item \textbf{I/O 测试}：10000 个 sleep(0.1s) 任务，模拟大量请求等待；它衡量的是调度和等待管理，不是网络协议栈真实性能。
     \item \textbf{CPU 测试}：fib(25) 用来展示 ``协程不自动加速计算''；Go/Java 的优势来自多核调度，不来自协程语义本身。
     \item \textbf{切换测试}：Python asyncio、Go channel、Java sleep(0) 的操作不完全同构，适合看数量级，不适合做精确排名。
-    \item \textbf{内存测试}：Python RSS 为脚本记录值，跨语言峰值 RSS 未统一采样；最终结论以耗时和机制解释为主。
+    \item \textbf{内存测试}：Python 为 benchmark 期间峰值工作集；跨语言峰值 RSS 未统一采样，最终结论以耗时和机制解释为主。
   \end{itemize}
 \end{frame}
 

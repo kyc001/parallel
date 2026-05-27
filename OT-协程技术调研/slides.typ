@@ -546,8 +546,8 @@
     [
       *测试用例*
       + *I/O 密集*：10000 个并发任务，每个 sleep(0.1s)
-      + *CPU 密集*：10000 个并发任务，斐波那契(n=25)
-      + *上下文切换*：百万次 yield/resume
+      + *CPU 密集*：1000 个并发任务，斐波那契(n=25)
+      + *上下文切换*：yield / channel / sleep(0) 量级测试
     ],
     [
       *对比对象*
@@ -556,7 +556,7 @@
       - Java：平台线程池 vs Virtual Thread
 
       #v(8pt)
-      *指标*：吞吐 (req/s)、P99 延迟、RSS 内存、CPU 时间
+      *指标*：总耗时、峰值工作集、切换/轻量任务开销量级
     ],
   )
 ]
@@ -572,11 +572,11 @@
       table.header(
         [*模型*], [*10K I/O 耗时*], [*相对线程基线*], [*备注*],
       ),
-      [Python threading], [3.435 s], [1.0×], [OS 线程],
-      [*Python asyncio*], [*0.464 s*], [7.4×], [单线程事件循环],
-      [*Go goroutine*], [*0.166 s*], [20.7×], [GMP 调度],
-      [Java platform], [5.467 s], [1.0×], [200 固定线程池],
-      [*Java virtual*], [*0.191 s*], [28.6×], [JDK 21 虚拟线程],
+      [Python threading], [5.524 s], [1.0×], [OS 线程],
+      [*Python asyncio*], [*0.601 s*], [9.2×], [单线程事件循环],
+      [*Go goroutine*], [*0.156 s*], [Go 内建], [GMP 调度],
+      [Java platform], [5.447 s], [1.0×], [200 固定线程池],
+      [*Java virtual*], [*0.190 s*], [28.7×], [JDK 21 虚拟线程],
     )
   ]
 
@@ -600,11 +600,11 @@
         align: (left, center),
         stroke: 0.5pt + gray,
         table.header([*模型*], [*耗时*]),
-        [Python threading], [8.211 s],
-        [Python asyncio], [8.239 s],
-        [*Go goroutine*], [*0.057 s*],
-        [Java platform], [0.039 s],
-        [Java virtual], [0.076 s],
+        [Python threading], [20.805 s],
+        [Python asyncio], [15.419 s],
+        [*Go goroutine*], [*0.053 s*],
+        [Java platform], [0.032 s],
+        [Java virtual], [0.062 s],
       )
 
       #v(8pt)
@@ -619,9 +619,9 @@
         stroke: 0.5pt + gray,
         table.header([*模型*], [*ns/次*]),
         [Python threading], [~5000],
-        [Python asyncio], [~2178],
-        [*Go goroutine*], [*~1457*],
-        [Java virtual], [~1480],
+        [Python asyncio], [~7824],
+        [*Go goroutine*], [*~1229*],
+        [Java virtual], [~1240],
       )
 
       #v(8pt)
@@ -639,7 +639,7 @@
     [
       #block(fill: green.lighten(90%), stroke: green, radius: 6pt, inset: 10pt)[
         *关键发现*
-        - *I/O 密集*：协程对 OS 线程优势 10–20×
+        - *I/O 密集*：协程/虚拟线程对 OS 线程优势显著
         - *百万并发*：goroutine/虚拟线程/asyncio 都能扛，OS 线程约10k崩
         - *CPU 密集*：协程*没有任何加速*
       ]
@@ -669,7 +669,7 @@
   - *I/O 测试*：10000 个 sleep(0.1s) 任务，模拟大量请求等待；衡量调度和等待管理，不等同真实网络协议栈性能。
   - *CPU 测试*：fib(25) 用来展示“协程不自动加速计算”；Go/Java 的优势来自多核调度，不来自协程语义本身。
   - *切换测试*：Python asyncio、Go channel、Java sleep(0) 的操作不完全同构，适合看数量级，不适合做精确排名。
-  - *内存测试*：Python RSS 为脚本记录值，跨语言峰值 RSS 未统一采样；最终结论以耗时和机制解释为主。
+  - *内存测试*：Python 为 benchmark 期间峰值工作集；跨语言峰值 RSS 未统一采样，最终结论以耗时和机制解释为主。
 ]
 
 // ================================================================

@@ -7,6 +7,7 @@ import threading
 import time
 import sys
 import os
+import platform
 import tracemalloc
 
 N_IO = 10_000       # I/O 任务数
@@ -78,17 +79,77 @@ async def bench_context_switch():
     elapsed = time.perf_counter() - t
     return elapsed
 
-# ==================== 主函数 ====================
+# ==================== 内存采样 ====================
 
 def get_memory_mb():
-    """获取当前进程 RSS 内存 (MB)"""
+    """获取当前进程工作集/RSS 内存 (MB)"""
     try:
         import psutil
         return psutil.Process(os.getpid()).memory_info().rss / 1024 / 1024
     except ImportError:
-        # fallback: 使用 tracemalloc
-        current, peak = tracemalloc.get_traced_memory()
-        return peak / 1024 / 1024
+        pass
+
+    if platform.system() == "Windows":
+        try:
+            import ctypes
+            from ctypes import wintypes
+
+            class PROCESS_MEMORY_COUNTERS(ctypes.Structure):
+                _fields_ = [
+                    ("cb", wintypes.DWORD),
+                    ("PageFaultCount", wintypes.DWORD),
+                    ("PeakWorkingSetSize", ctypes.c_size_t),
+                    ("WorkingSetSize", ctypes.c_size_t),
+                    ("QuotaPeakPagedPoolUsage", ctypes.c_size_t),
+                    ("QuotaPagedPoolUsage", ctypes.c_size_t),
+                    ("QuotaPeakNonPagedPoolUsage", ctypes.c_size_t),
+                    ("QuotaNonPagedPoolUsage", ctypes.c_size_t),
+                    ("PagefileUsage", ctypes.c_size_t),
+                    ("PeakPagefileUsage", ctypes.c_size_t),
+                ]
+
+            counters = PROCESS_MEMORY_COUNTERS()
+            counters.cb = ctypes.sizeof(PROCESS_MEMORY_COUNTERS)
+            handle = ctypes.windll.kernel32.GetCurrentProcess()
+            ok = ctypes.windll.psapi.GetProcessMemoryInfo(
+                handle, ctypes.byref(counters), counters.cb
+            )
+            if ok:
+                return counters.WorkingSetSize / 1024 / 1024
+        except Exception:
+            pass
+
+    current, peak = tracemalloc.get_traced_memory()
+    return peak / 1024 / 1024
+
+class MemorySampler:
+    """后台采样当前进程工作集，记录 benchmark 期间的峰值。"""
+
+    def __init__(self, interval=0.005):
+        self.interval = interval
+        self.peak_mb = 0.0
+        self._stop = threading.Event()
+        self._thread = threading.Thread(target=self._run, daemon=True)
+
+    def _sample(self):
+        self.peak_mb = max(self.peak_mb, get_memory_mb())
+
+    def _run(self):
+        while not self._stop.is_set():
+            self._sample()
+            time.sleep(self.interval)
+
+    def __enter__(self):
+        self._sample()
+        self._thread.start()
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        self._stop.set()
+        self._thread.join()
+        self._sample()
+
+# ==================== 主函数 ====================
 
 def main():
     mode = sys.argv[1] if len(sys.argv) > 1 else "all"
@@ -102,37 +163,39 @@ def main():
 
     if mode in ("all", "io_async", "async"):
         tracemalloc.start()
-        mem_before = get_memory_mb()
-        elapsed = asyncio.run(bench_async_io())
-        mem_after = get_memory_mb()
+        with MemorySampler() as sampler:
+            elapsed = asyncio.run(bench_async_io())
+        peak_mb = sampler.peak_mb
         tracemalloc.stop()
-        results["async_io"] = {"time": elapsed, "mem": mem_after}
-        print(f"\n[asyncio I/O]     {elapsed:.3f}s  RSS: {mem_after:.1f}MB")
+        results["async_io"] = {"time": elapsed, "mem": peak_mb}
+        print(f"\n[asyncio I/O]     {elapsed:.3f}s  peak WS: {peak_mb:.1f}MB")
 
     if mode in ("all", "io_thread", "thread"):
         tracemalloc.start()
-        mem_before = get_memory_mb()
-        elapsed = bench_thread_io()
-        mem_after = get_memory_mb()
+        with MemorySampler() as sampler:
+            elapsed = bench_thread_io()
+        peak_mb = sampler.peak_mb
         tracemalloc.stop()
-        results["thread_io"] = {"time": elapsed, "mem": mem_after}
-        print(f"[threading I/O]   {elapsed:.3f}s  RSS: {mem_after:.1f}MB")
+        results["thread_io"] = {"time": elapsed, "mem": peak_mb}
+        print(f"[threading I/O]   {elapsed:.3f}s  peak WS: {peak_mb:.1f}MB")
 
     if mode in ("all", "cpu_async"):
         tracemalloc.start()
-        elapsed = asyncio.run(bench_async_cpu())
-        mem_after = get_memory_mb()
+        with MemorySampler() as sampler:
+            elapsed = asyncio.run(bench_async_cpu())
+        peak_mb = sampler.peak_mb
         tracemalloc.stop()
-        results["async_cpu"] = {"time": elapsed, "mem": mem_after}
-        print(f"[asyncio CPU]     {elapsed:.3f}s  RSS: {mem_after:.1f}MB")
+        results["async_cpu"] = {"time": elapsed, "mem": peak_mb}
+        print(f"[asyncio CPU]     {elapsed:.3f}s  peak WS: {peak_mb:.1f}MB")
 
     if mode in ("all", "cpu_thread"):
         tracemalloc.start()
-        elapsed = bench_thread_cpu()
-        mem_after = get_memory_mb()
+        with MemorySampler() as sampler:
+            elapsed = bench_thread_cpu()
+        peak_mb = sampler.peak_mb
         tracemalloc.stop()
-        results["thread_cpu"] = {"time": elapsed, "mem": mem_after}
-        print(f"[threading CPU]   {elapsed:.3f}s  RSS: {mem_after:.1f}MB")
+        results["thread_cpu"] = {"time": elapsed, "mem": peak_mb}
+        print(f"[threading CPU]   {elapsed:.3f}s  peak WS: {peak_mb:.1f}MB")
 
     if mode in ("all", "ctx"):
         elapsed = asyncio.run(bench_context_switch())

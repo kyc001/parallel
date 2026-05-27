@@ -217,10 +217,10 @@ Go 的 goroutine 初始栈很小，并可按需增长；运行时通过 G-M-P �
   \item CPU：13th Gen Intel(R) Core(TM) i9-13900H，14 核 20 逻辑处理器；
   \item 操作系统：Windows 11 Home China 64-bit，版本 10.0.26200；
   \item Python：3.12.9；Go：1.25.6；Java：OpenJDK 21.0.5；
-  \item 图表生成：\verb|micromamba activate test| 后执行 \verb|python plot_results.py|。
+  \item 实验日期：2026 年 5 月 25 日；图表由 \verb|plot_results.py| 在 \verb|test| 环境中生成。
 \end{itemize}
 
-测试分为三类：I/O 密集型测试创建 10000 个任务，每个任务 sleep 100 ms，用于模拟大量网络等待；CPU 密集型测试创建 1000 个任务，每个任务计算 \verb|fib(25)|；上下文切换测试使用大量 yield/sleep(0) 或轻量任务估计调度开销。完整代码见同目录下 \verb|bench.py|、\verb|bench.go| 和 \verb|Bench.java|。
+测试分为三类：I/O 密集型测试创建 10000 个任务，每个任务 sleep 100 ms，用于模拟大量网络等待；CPU 密集型测试创建 1000 个任务，每个任务计算 \verb|fib(25)|；上下文切换测试使用大量 yield/sleep(0)、channel 交互或轻量任务估计调度开销。完整代码见同目录下 \verb|bench.py|、\verb|bench.go| 和 \verb|Bench.java|。原始输出记录在 \verb|results/| 目录的 20260525 benchmark 文件中。
 
 \subsection{I/O 密集型结果}
 
@@ -234,20 +234,20 @@ Go 的 goroutine 初始栈很小，并可按需增长；运行时通过 G-M-P �
 \begin{table}[H]
   \centering
   \caption{I/O 密集型实验结果}
-  \begin{tabular}{lcc}
+  \begin{tabularx}{\textwidth}{l l X}
     \toprule
-    模型 & 10000 任务耗时 & 相对线程基线 \\
+    模型 & 10000 任务耗时 & 对照口径 \\
     \midrule
-    Python threading & 3.435 s & 1.0$\times$ \\
-    Python asyncio & 0.464 s & 7.4$\times$ \\
-    Go goroutine & 0.166 s & 20.7$\times$ \\
-    Java platform thread（200 固定线程池） & 5.467 s & 1.0$\times$ \\
-    Java virtual thread & 0.191 s & 28.6$\times$ \\
+    Python threading & 5.524 s & Python 线程基线 \\
+    Python asyncio & 0.601 s & 比 Python threading 快约 9.2$\times$ \\
+    Go goroutine & 0.156 s & Go 运行时内建轻量任务 \\
+    Java platform thread（200 固定线程池） & 5.447 s & Java 线程池基线 \\
+    Java virtual thread & 0.190 s & 比 Java platform thread 快约 28.7$\times$ \\
     \bottomrule
-  \end{tabular}
+  \end{tabularx}
 \end{table}
 
-结果符合预期：I/O 密集场景中，协程/虚拟线程能在等待期间释放执行权，使少量内核线程服务大量逻辑任务。Python asyncio 相比 Python threading 快约 7.4 倍；Go goroutine 和 Java 虚拟线程都能在 0.2 秒量级完成 10000 个 sleep 任务，明显优于基于平台线程的对照。
+结果符合预期：I/O 密集场景中，协程/虚拟线程能在等待期间释放执行权，使少量内核线程服务大量逻辑任务。Python asyncio 相比 Python threading 快约 9.2 倍；Go goroutine 和 Java 虚拟线程都能在 0.2 秒量级完成 10000 个 sleep 任务，Java 虚拟线程相比固定平台线程池快约 28.7 倍。
 
 \subsection{CPU 密集型与切换开销}
 
@@ -268,20 +268,20 @@ Go 的 goroutine 初始栈很小，并可按需增长；运行时通过 G-M-P �
   \label{fig:cpu-switch}
 \end{figure}
 
-Python 的 threading 与 asyncio 在 CPU 密集型测试中耗时几乎相同，说明协程并不会减少计算本身的 CPU 成本。Go 和 Java 的 CPU 测试更快，主要原因不是 ``协程让计算变快''，而是运行时可以把任务分配到多核上执行。Java 平台线程池在该测试中略快于虚拟线程，也说明虚拟线程的优势不在短小 CPU 任务，而在大量阻塞等待任务。
+Python 的 threading 与 asyncio 在 CPU 密集型测试中都没有获得真正的多核计算收益，threading 还会额外承担大量线程创建和 GIL 竞争开销；这说明协程并不会减少计算本身的 CPU 成本。Go 和 Java 的 CPU 测试更快，主要原因不是 ``协程让计算变快''，而是运行时可以把任务分配到多核上执行。Java 平台线程池在该测试中略快于虚拟线程，也说明虚拟线程的优势不在短小 CPU 任务，而在大量阻塞等待任务。
 
-切换开销图使用对数坐标展示量级差异。Python asyncio 的百万次 yield 约为 2.178 秒，Go goroutine 的 100000 次 channel 交互约为 145.7 ms，Java 虚拟线程的 100000 个 sleep(0) 任务约为 148 ms。由于不同语言的微基准并不完全等价，这些数字更适合用于判断量级，而不应作为绝对排名。
+切换开销图使用对数坐标展示量级差异。Python asyncio 的百万次 yield 约为 7.824 秒，Go goroutine 的 100000 次 channel 交互约为 122.9 ms，Java 虚拟线程的 100000 个 sleep(0) 任务约为 124 ms。由于不同语言的微基准并不完全等价，这些数字更适合用于判断量级，而不应作为绝对排名。
 
 \subsection{内存记录说明}
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.70\textwidth]{memory_usage.png}
-  \caption{Python 进程 RSS 记录值对比}
+  \caption{Python 进程峰值工作集记录值对比}
   \label{fig:memory}
 \end{figure}
 
-本次 Python 脚本记录的是任务结束附近的进程 RSS，而不是统一采样得到的跨语言峰值 RSS，因此只用于辅助说明 asyncio 的对象与栈开销较低，报告不把它作为严格内存排名依据。若要进一步精确比较，应使用外部采样器或平台一致的监控工具记录峰值 RSS，并在 Java/Go 中补充 GC 前后内存统计。
+本次 Python 脚本使用采样线程记录 benchmark 期间的进程峰值工作集。该结果可用于比较 Python threading 与 asyncio 在同一脚本中的相对内存占用，但 Go/Java 未使用同一方法采样峰值 RSS，因此报告不把它作为严格跨语言内存排名依据。若要进一步精确比较，应使用外部采样器或平台一致的监控工具记录峰值 RSS，并在 Java/Go 中补充 GC 前后内存统计。
 
 \section{实验洞察、风险与选型建议}
 
