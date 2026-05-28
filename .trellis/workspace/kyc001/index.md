@@ -8,8 +8,8 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 7
-- **Last Active**: 2026-05-26
+- **Total Sessions**: 8
+- **Last Active**: 2026-05-29
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~238 | Active |
+| `journal-1.md` | ~271 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 8 | 2026-05-29 | Finish non-blocking MPI task | `b6b2927` | `master` |
 | 7 | 2026-05-26 | Review pthread-omp report rendering | `6a6f1b6` | `master` |
 | 6 | 2026-05-26 | Pthread OMP report consistency polish | `ee792f3` | `master` |
 | 5 | 2026-05-25 | Expand ANN MPI report experiments | `b0ee4a9` | `master` |

@@ -236,3 +236,36 @@ Fixed visible LaTeX escape artifacts and rendering/data-caption issues in the an
 ### Next Steps
 
 - None - task complete
+
+
+## Session 8: Finish non-blocking MPI task
+
+**Date**: 2026-05-29
+**Task**: Finish non-blocking MPI task
+**Branch**: `master`
+
+### Summary
+
+Archived the ANN MPI non-blocking communication task after verifying MPI/no-MPI builds, script syntax, and local blocking/non-blocking smoke runs.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `b6b2927` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
