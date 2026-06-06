@@ -1,0 +1,38 @@
+Kunpeng PBS representative submission
+Date: 2026-06-05 22:26:48
+JOB: 41915.master_ubss1
+COMMAND: qsub qsub_mpi.sh
+--- test.o
+ANN MPI representative submission
+Date: 2026-06-05 22:26:29
+NP=4
+OMP_NUM_THREADS=2
+main_default=Block-HNSW m=16 ef=50 query_n=2000
+ANN_DATA_PATH=/anndata
+COMMAND: /usr/local/bin/mpiexec -np 4 -machinefile $PBS_NODEFILE /home/s2413575/main
+comm_mode=blocking
+mpi_thread_requested=funneled, mpi_thread_provided=funneled
+base_partition=contiguous
+block_hnsw_mpi_omp_multi_entry, mpi_procs=4, nthreads=2, hnsw_m=16, ef=50, query_n=2000
+average recall: 1.00000
+average latency (us): 296.35239
+max local search latency (us): 294.00921
+comm+merge latency (us): 2.34318
+per-rank search latency (us): rank0=294.00921 rank1=242.93530 rank2=204.42438 rank3=293.40875
+--- test.e
+
+Authorized users only. All activities may be monitored and reported.
+
+Authorized users only. All activities may be monitored and reported.
+
+Authorized users only. All activities may be monitored and reported.
+
+Authorized users only. All activities may be monitored and reported.
+
+Authorized users only. All activities may be monitored and reported.
+
+Authorized users only. All activities may be monitored and reported.
+
+Authorized users only. All activities may be monitored and reported.
+
+Authorized users only. All activities may be monitored and reported.

@@ -7,7 +7,7 @@
 set -eu
 
 PROJECT=ann-mpi
-NP=${NP:-8}
+NP=${NP:-4}
 OMP_NUM_THREADS=${OMP_NUM_THREADS:-2}
 QUERY_N=${QUERY_N:-2000}
 NLIST=${NLIST:-16}
@@ -15,7 +15,6 @@ NPROBE=${NPROBE:-4}
 RERANK_P=${RERANK_P:-1000}
 HNSW_M=${HNSW_M:-16}
 HNSW_EF=${HNSW_EF:-50}
-HNSW_ON_HNSW_NPROBE=${HNSW_ON_HNSW_NPROBE:-$NLIST}
 export OMP_NUM_THREADS
 
 NODES=$(sort -u "$PBS_NODEFILE")
@@ -31,17 +30,16 @@ elif [ -d /home/${USER}/files ]; then
     export ANN_DATA_PATH=/home/${USER}/files
 fi
 
-/usr/local/bin/mpiexec -np "$NP" -machinefile "$PBS_NODEFILE" \
-    "/home/${USER}/main" "$OMP_NUM_THREADS" "$NLIST" "$NPROBE" "$RERANK_P" "$QUERY_N" local
+echo "ANN MPI representative submission"
+echo "Date: $(date '+%Y-%m-%d %H:%M:%S')"
+echo "NP=$NP"
+echo "OMP_NUM_THREADS=$OMP_NUM_THREADS"
+echo "main_default=Block-HNSW m=16 ef=50 query_n=2000"
+echo "ANN_DATA_PATH=${ANN_DATA_PATH:-}"
+echo "COMMAND: /usr/local/bin/mpiexec -np $NP -machinefile \$PBS_NODEFILE /home/${USER}/main"
 
 /usr/local/bin/mpiexec -np "$NP" -machinefile "$PBS_NODEFILE" \
-    "/home/${USER}/main" "$OMP_NUM_THREADS" "$HNSW_M" "$HNSW_EF" "$RERANK_P" "$QUERY_N" hnsw
-
-/usr/local/bin/mpiexec -np "$NP" -machinefile "$PBS_NODEFILE" \
-    "/home/${USER}/main" "$OMP_NUM_THREADS" "$NLIST" "$NPROBE" "$HNSW_EF" "$QUERY_N" ivf-hnsw
-
-/usr/local/bin/mpiexec -np "$NP" -machinefile "$PBS_NODEFILE" \
-    "/home/${USER}/main" "$OMP_NUM_THREADS" "$NLIST" "$HNSW_ON_HNSW_NPROBE" "$HNSW_EF" "$QUERY_N" hnsw-on-hnsw
+    "/home/${USER}/main"
 
 if [ -d /home/${USER}/files ]; then
     scp -r "/home/${USER}/files/" "master_ubss1:/home/${USER}/${PROJECT}/" 2>&1

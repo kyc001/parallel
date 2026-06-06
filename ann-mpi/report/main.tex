@@ -101,7 +101,7 @@
 
 本实验在前两次 ANN 实验已有的 SIMD 距离内核、IVF-PQ 和 HNSW 结构基础上，将搜索任务迁移到 MPI 多进程环境，并在每个 MPI rank 内继续使用 OpenMP 做进程内并行。程序采用统一入口 \code{main.cc}，支持四种搜索模式：IVF-PQ、分块 HNSW、IVF+HNSW 嵌套索引，以及 HNSW-on-HNSW 分层图索引。MPI 层负责 base 向量划分、query 广播、候选集 gather 和 rank 0 的 top-$k$ 合并；OpenMP 层负责本地倒排表、HNSW 块或候选块之间的并行搜索。
 
-实验使用 DEEP100K 数据集，距离度量为内积距离，统一评价 Recall@10、平均单 query 延迟、本地最慢 rank 搜索时间、通信与合并开销，以及各 rank 搜索时间分布。正式结果只展示 Windows MS-MPI 和鲲鹏 PBS 两个平台。参数扫描覆盖 IVF-PQ、Block-HNSW、IVF+HNSW 和 HNSW-on-HNSW 的核心参数；扩展性实验覆盖 \code{np=1,2,4,8}；通信模式实验在鲲鹏 PBS 上比较阻塞 gather 与非阻塞 gather。结果表明：相同参数下两平台 Recall 完全一致；在 \code{np=8, threads=2, query=2000} 的代表配置中，通信与 merge 占比通常低于 1.1\%，主要瓶颈仍在各 rank 的本地 ANN 搜索。图索引方面，Block-HNSW 达到 Recall@10=1.00000；HNSW-on-HNSW 在全 block 探测配置下达到 Recall@10=0.99995，但延迟显著更高，体现了典型 recall-latency trade-off。
+实验使用 DEEP100K 数据集，距离度量为内积距离，统一评价 Recall@10、平均单 query 延迟、本地最慢 rank 搜索时间、通信与合并开销，以及各 rank 搜索时间分布。正式结果只展示 Windows MS-MPI 和鲲鹏 PBS 两个平台。参数扫描覆盖 IVF-PQ、Block-HNSW、IVF+HNSW 和 HNSW-on-HNSW 的核心参数；扩展性实验覆盖 \code{np=1,2,4,8}；通信模式实验比较阻塞/非阻塞 gather 与 \code{MPI_THREAD_FUNNELED}/\code{MPI_THREAD_MULTIPLE} 初始化模式，并补充了构建前随机打散 base 的负载均衡对比。结果表明：相同参数下两平台 Recall 完全一致；在 \code{np=8, threads=2, query=2000} 的代表配置中，通信与 merge 占比通常低于 1.1\%，主要瓶颈仍在各 rank 的本地 ANN 搜索。图索引方面，Block-HNSW 达到 Recall@10=1.00000；HNSW-on-HNSW 在全 block 探测配置下达到 Recall@10=0.99995，但延迟显著更高，体现了典型 recall-latency trade-off。
 
 \noindent\textbf{关键词：} ANN；MPI；OpenMP；IVF-PQ；HNSW；HNSW-on-HNSW；负载均衡；通信开销
 
@@ -126,6 +126,7 @@ Recall@$k$ 定义为返回集合与 ground truth top-$k$ 的交集比例：
   \item query 如何广播，各 rank 如何维护本地索引并返回局部 top-$k$；
   \item rank 0 的 gather/merge 开销相对本地搜索是否显著；
   \item MPI 与 OpenMP 如何组合，进程间并行和进程内并行的边界在哪里；
+  \item 阻塞、非阻塞以及 MPI 线程支持等通信/运行时范式对本实验是否有实际收益；
   \item IVF-PQ 与三类图索引方案在 recall-latency 上有什么差异；
   \item Windows MS-MPI 与鲲鹏 PBS 两个平台上是否能得到一致且可复现的结果。
 \end{enumerate}
@@ -144,7 +145,7 @@ Recall@$k$ 定义为返回集合与 ground truth top-$k$ 的交集比例：
     混合布局 & 固定 worker 预算下，MPI 进程数与 rank 内线程数如何分配。 & 第 6 节 \\
     负载均衡 & 各 rank 搜索时间是否接近，最慢 rank 是否拖尾。 & 第 7 节 \\
     性能剖析 & VTune 符号化热点、汇编观察与硬件事件实测。 & 第 8 节 \\
-    通信模式 & 阻塞 MPI 与非阻塞 MPI 的实验对比。 & 第 9 节 \\
+    通信模式 & 阻塞/非阻塞 MPI 与 \code{MPI_Init_thread} 线程支持。 & 第 9 节 \\
     \bottomrule
   \end{tabularx}
   \caption{正文阅读线索}
@@ -207,6 +208,8 @@ Recall@$k$ 定义为返回集合与 ground truth top-$k$ 的交集比例：
 \mathrm{imbalance}=\frac{\max_i T_i}{\frac{1}{P}\sum_i T_i}
 \]
 衡量最慢 rank 与平均 rank 的差异。
+
+分布式 cache locality 主要体现在两层。第一，\code{MPI_Scatterv} 后每个 rank 的 base shard 是一段连续 \code{float} 数组，IVF-PQ 的 reordered list、PQ 编码和 HNSW 构图都只访问本进程内存，避免跨 rank 的远程随机访存；候选 gather 只传输 compact 的 top-$k$ 结果，而不是把原始向量拉回 rank 0。第二，默认连续切分保留了原始 id 的空间局部性，候选 id 映射代价很低；启用随机打散时，程序同步 scatter 一份 \code{local_global_ids}，以很小的额外整数数组代价保留全局 id 正确性。连续切分的代价是随机化不足：如果原始 base 顺序本身带有类别或聚类偏斜，某些 rank 可能持有更难搜索的局部图。第 7 节的 imbalance 指标正是用来判断这种 locality 与负载均衡之间的取舍。
 
 \begin{lstlisting}[language=C++]
 Range PartitionRange(size_t n, int rank, int world_size) {
@@ -419,7 +422,7 @@ search_begin = MPI_Wtime();
 local_topk = SearchLocal(index, queries, nthreads);
 search_us = MPI_Wtime() - search_begin;
 
-PackCandidates(local_topk, range.begin, local_distances, local_ids);
+PackCandidates(local_topk, local_global_ids, local_distances, local_ids);
 GatherCandidates(local_distances, local_ids, all_distances, all_ids);
 MPI_Reduce(search_us, max_search_us, MPI_MAX, 0, MPI_COMM_WORLD);
 
@@ -503,6 +506,8 @@ micromamba run -n test python scripts/parse_mpi_results.py
     \fcell{affinity}{20260525_205832.txt} & Windows 亲和性 & 默认、P-core、E-core 与 P/E 全开的真实 MPI 作业对比。\\
     \fcell{kunpeng_pbs_sweep}{20260525_153105.txt} & 鲲鹏 PBS 参数与扩展性 & 24 个参数点和 16 个扩展性点，共 40 个结果。\\
     \fcell{kunpeng_pbs_comm_modes}{20260525_154940.txt} & 鲲鹏 PBS 通信模式 & 阻塞与非阻塞 MPI 的四算法对比。\\
+    \fcell{final_gap_experiments}{20260605_210724.txt} & Windows 最终补充实验 & base shuffle 负载均衡与 MPI 线程级别对比。\\
+    \fcell{kunpeng_pbs_final_gaps}{20260605_211922.txt} & 鲲鹏 PBS 最终补充实验 & 同一 PBS 作业中的 base shuffle 与 \code{MPI_Init_thread} 对比。\\
     \code{vtune_exports/} 与 \code{vtune_notes.md} & Windows profiling & VTune 符号化 hotspots、汇编摘录、uarch 普通会话日志与管理员实测导出。\\
     \bottomrule
   \end{tabularx}
@@ -543,7 +548,7 @@ micromamba run -n test python scripts/parse_mpi_results.py
   \label{tab:default_points}
 \end{table}
 
-相同算法参数下，两平台 Recall 完全一致，说明 base shard 的全局 id 偏移、候选 gather 顺序和 rank 0 top-$k$ merge 在跨平台上是稳定的。延迟上，Windows 的图索引明显更快；鲲鹏 PBS 的通信/merge 绝对值更低，但本地 HNSW 图搜索耗时更高，说明主要差异来自图访问、优先队列和分支路径，而不是 MPI 传输。
+相同算法参数下，两平台 Recall 完全一致，表明 base shard 的全局 id 偏移、候选 gather 顺序和 rank 0 top-$k$ merge 在跨平台上是稳定的。延迟上，Windows 的图索引明显更快；鲲鹏 PBS 的通信/merge 绝对值更低，但本地 HNSW 图搜索耗时更高，主要差异来自图访问、优先队列和分支路径，而不是 MPI 传输。
 
 \subsection{Windows 参数曲线}
 
@@ -558,7 +563,7 @@ micromamba run -n test python scripts/parse_mpi_results.py
 
 \subsection{双平台参数曲线}
 
-图 \ref{fig:param_cross} 将同一组参数曲线放到 Windows 与鲲鹏 PBS 两个平台比较。两平台曲线在纵轴上几乎重合，说明参数对召回的影响由算法结构主导；横轴位置不同，说明硬件、MPI runtime 和服务器队列环境决定了绝对延迟。这个结果也解释了为什么报告必须同时给出 recall 和 latency：只看召回无法区分不同平台的性能代价，只看延迟又可能忽略算法返回质量。
+图 \ref{fig:param_cross} 将同一组参数曲线放到 Windows 与鲲鹏 PBS 两个平台比较。两平台曲线在纵轴上几乎重合，参数对召回的影响由算法结构主导；横轴位置不同，则来自硬件、MPI runtime 和服务器队列环境对绝对延迟的影响。这个结果也解释了为什么报告必须同时给出 recall 和 latency：只看召回无法区分不同平台的性能代价，只看延迟又可能忽略算法返回质量。
 
 \begin{figure}[H]
   \centering
@@ -586,7 +591,7 @@ IVF-PQ 额外扫描了 \code{nlist=8,16,32,64}。图 \ref{fig:nlist} 固定 \cod
 
 \subsection{Windows 强扩展}
 
-图 \ref{fig:scalability_windows} 给出 Windows 上 \code{np=1,2,4,8} 的加速比和并行效率。IVF-PQ 在 4 个进程时达到 $1.30\times$，但 8 个进程回落到 $0.99\times$；IVF+HNSW 在 2 个进程时达到 $1.32\times$，之后因为本地图搜索变短而通信、调度和索引常数项占比上升。Block-HNSW 和 HNSW-on-HNSW 在 Windows 上没有线性加速，说明图搜索的局部结构、内存访问和进程启动/通信成本已经抵消了 shard 变小带来的收益。
+图 \ref{fig:scalability_windows} 给出 Windows 上 \code{np=1,2,4,8} 的加速比和并行效率。IVF-PQ 在 4 个进程时达到 $1.30\times$，但 8 个进程回落到 $0.99\times$；IVF+HNSW 在 2 个进程时达到 $1.32\times$，之后因为本地图搜索变短而通信、调度和索引常数项占比上升。Block-HNSW 和 HNSW-on-HNSW 在 Windows 上没有线性加速，原因在于图搜索的局部结构、内存访问和进程启动/通信成本已经抵消了 shard 变小带来的收益。
 
 \begin{figure}[H]
   \centering
@@ -597,7 +602,7 @@ IVF-PQ 额外扫描了 \code{nlist=8,16,32,64}。图 \ref{fig:nlist} 固定 \cod
 
 \subsection{双平台扩展性}
 
-图 \ref{fig:scalability_cross} 直接比较两平台的延迟曲线。鲲鹏 PBS 上 IVF-PQ 从 \code{np=1} 的 571.67 $\mu$s 降到 \code{np=4} 的 311.45 $\mu$s，随后 \code{np=8} 回升到 532.36 $\mu$s；Block-HNSW 从 \code{np=1} 的 341.73 $\mu$s 降到 \code{np=4} 的 248.00 $\mu$s，但 \code{np=8} 上升到 776.99 $\mu$s。这个拐点说明，在当前数据量和 query batch 下，增加进程数并不总是等价于更快：当每个 rank 的本地任务过小，固定通信、合并、调度、HNSW 图构建差异和节点负载噪声会更突出。
+图 \ref{fig:scalability_cross} 直接比较两平台的延迟曲线。鲲鹏 PBS 上 IVF-PQ 从 \code{np=1} 的 571.67 $\mu$s 降到 \code{np=4} 的 311.45 $\mu$s，随后 \code{np=8} 回升到 532.36 $\mu$s；Block-HNSW 从 \code{np=1} 的 341.73 $\mu$s 降到 \code{np=4} 的 248.00 $\mu$s，但 \code{np=8} 上升到 776.99 $\mu$s。这个拐点反映出，在当前数据量和 query batch 下，增加进程数并不总是等价于更快：当每个 rank 的本地任务过小，固定通信、合并、调度、HNSW 图构建差异和节点负载噪声会更突出。
 
 \begin{figure}[H]
   \centering
@@ -637,7 +642,7 @@ IVF-PQ 额外扫描了 \code{nlist=8,16,32,64}。图 \ref{fig:nlist} 固定 \cod
 \[
 \alpha \approx \frac{1/S_4-1/4}{1-1/4}.
 \]
-鲲鹏 PBS 上 IVF-PQ 的 $S_4=571.67/311.45=1.84$，得到 $\alpha\approx0.39$；Windows IVF-PQ 的 $S_4=303.31/232.45=1.30$，得到 $\alpha\approx0.69$。这个估计不是严格算法串行比例，而是把小规模 shard 下的额外成本也折算进“不可扩展部分”。它说明在 100K base、2000 query 的规模下，MPI 强扩展已经不是理想均匀计算模型，通信和运行时常数需要与本地搜索一起考虑。
+鲲鹏 PBS 上 IVF-PQ 的 $S_4=571.67/311.45=1.84$，得到 $\alpha\approx0.39$；Windows IVF-PQ 的 $S_4=303.31/232.45=1.30$，得到 $\alpha\approx0.69$。这个估计不是严格算法串行比例，而是把小规模 shard 下的额外成本也折算进“不可扩展部分”。在 100K base、2000 query 的规模下，MPI 强扩展已经不是理想均匀计算模型，通信和运行时常数需要与本地搜索一起考虑。
 
 \subsection{MPI/OpenMP 混合布局}
 
@@ -650,7 +655,7 @@ IVF-PQ 额外扫描了 \code{nlist=8,16,32,64}。图 \ref{fig:nlist} 固定 \cod
   \label{fig:hybrid_layout}
 \end{figure}
 
-图 \ref{fig:hybrid_layout} 显示，不同算法适合的布局并不相同。IVF-PQ 在 16 worker 预算下以 \code{2x8} 最快，延迟为 121.23 $\mu$s/query；它既保留了 MPI shard 缩小带来的扫描减少，也让每个 rank 内仍有足够线程处理倒排表。Block-HNSW 更偏向更多 MPI shard，8 worker 下 \code{8x1} 达到 128.05 $\mu$s/query，说明图搜索中 rank 内并行收益有限，缩小本地图规模更直接。IVF+HNSW 的最好点是 \code{4x4}，延迟为 189.48 $\mu$s/query，介于倒排筛选和图遍历之间。HNSW-on-HNSW 在该中等探测配置下也是 \code{4x4} 最稳，过多 rank 会增加 top-level block 选择和候选合并的尾部。
+图 \ref{fig:hybrid_layout} 显示，不同算法适合的布局并不相同。IVF-PQ 在 16 worker 预算下以 \code{2x8} 最快，延迟为 121.23 $\mu$s/query；它既保留了 MPI shard 缩小带来的扫描减少，也让每个 rank 内仍有足够线程处理倒排表。Block-HNSW 更偏向更多 MPI shard，8 worker 下 \code{8x1} 达到 128.05 $\mu$s/query，图搜索中的 rank 内并行收益有限，缩小本地图规模更直接。IVF+HNSW 的最好点是 \code{4x4}，延迟为 189.48 $\mu$s/query，介于倒排筛选和图遍历之间。HNSW-on-HNSW 在该中等探测配置下也是 \code{4x4} 最稳，过多 rank 会增加 top-level block 选择和候选合并的尾部。
 
 \subsection{Windows 亲和性实验}
 
@@ -663,7 +668,7 @@ IVF-PQ 额外扫描了 \code{nlist=8,16,32,64}。图 \ref{fig:nlist} 固定 \cod
   \label{fig:affinity}
 \end{figure}
 
-结果中 E-core-only 对所有算法都明显变慢，IVF+HNSW 从默认的 227.71 $\mu$s/query 增加到 814.81 $\mu$s/query，HNSW-on-HNSW 也增加到 625.63 $\mu$s/query。这与后文 VTune uarch 中大量采样落在 E-core、Back-End Bound 和 Memory Bound 较高的现象一致。P-core-only 对 Block-HNSW 最有帮助，延迟从 274.61 降到 179.60 $\mu$s/query；IVF-PQ 则在 P/E 全开时最快，说明规则扫描和多 rank 并发能利用更多逻辑核。实际复现实验时，我保留默认调度作为跨平台主结果，同时把亲和性作为解释本地波动和混合架构影响的补充证据。
+结果中 E-core-only 对所有算法都明显变慢，IVF+HNSW 从默认的 227.71 $\mu$s/query 增加到 814.81 $\mu$s/query，HNSW-on-HNSW 也增加到 625.63 $\mu$s/query。这与后文 VTune uarch 中大量采样落在 E-core、Back-End Bound 和 Memory Bound 较高的现象一致。P-core-only 对 Block-HNSW 最有帮助，延迟从 274.61 降到 179.60 $\mu$s/query；IVF-PQ 则在 P/E 全开时最快，规则扫描和多 rank 并发能利用更多逻辑核。实际复现实验时，本文保留默认调度作为跨平台主结果，同时把亲和性作为解释本地波动和混合架构影响的补充证据。
 
 \section{通信开销与负载均衡}
 
@@ -680,7 +685,7 @@ IVF-PQ 额外扫描了 \code{nlist=8,16,32,64}。图 \ref{fig:nlist} 固定 \cod
 
 \subsection{通信占比}
 
-表 \ref{tab:comm_ratio} 使用代表参数点计算通信与 merge 占总延迟比例。Windows 上 HNSW-on-HNSW 因总搜索时间很长，通信占比仅 0.37\%；鲲鹏 PBS 上四种算法的通信占比均不超过 0.53\%。这说明本实验规模中，优化方向应优先放在本地索引结构和 rank 内搜索，而不是立即重写通信拓扑。
+表 \ref{tab:comm_ratio} 使用代表参数点计算通信与 merge 占总延迟比例。Windows 上 HNSW-on-HNSW 因总搜索时间很长，通信占比仅 0.37\%；鲲鹏 PBS 上四种算法的通信占比均不超过 0.53\%。在本实验规模中，优化方向应优先放在本地索引结构和 rank 内搜索，而不是立即重写通信拓扑。
 
 \begin{table}[H]
   \centering\small
@@ -698,13 +703,36 @@ IVF-PQ 额外扫描了 \code{nlist=8,16,32,64}。图 \ref{fig:nlist} 固定 \cod
 
 \subsection{负载不均衡分析}
 
-负载不均衡度采用 $\max(T_i)/\mathrm{mean}(T_i)$。Windows 上代表参数点均低于 1.07，说明本地机器的各 rank 搜索时间比较接近。鲲鹏 PBS 上图索引的不均衡更明显：代表参数点中 Block-HNSW 为 1.19441，HNSW-on-HNSW 为 1.17062；扩展性实验 \code{np=8} 时 Block-HNSW 甚至达到 1.41。这说明图搜索路径与数据分布有关，即使 base 数量均分，不同 rank 的图遍历代价仍可能不同。
+负载不均衡度采用 $\max(T_i)/\mathrm{mean}(T_i)$。Windows 上代表参数点均低于 1.07，本地机器的各 rank 搜索时间比较接近。鲲鹏 PBS 上图索引的不均衡更明显：代表参数点中 Block-HNSW 为 1.19441，HNSW-on-HNSW 为 1.17062；扩展性实验 \code{np=8} 时 Block-HNSW 甚至达到 1.41。图搜索路径与数据分布有关，即使 base 数量均分，不同 rank 的图遍历代价仍可能不同。
 
 从算法结构看，IVF-PQ 的扫描量由 selected list 长度决定，list 长度不均会引入尾部；Block-HNSW 的搜索路径由图邻接和 query 位置决定，某些 shard 可能需要扩展更多节点；IVF+HNSW 同时受聚类和图搜索影响；HNSW-on-HNSW 又加入了 top-level block 选择，若探测全部 block，负载更接近 block 内图搜索总和。
 
-\subsection{改进方向}
+\subsection{随机打散 base 的实证}
 
-如果后续要进一步优化负载均衡，可以考虑三种做法。第一，将 base 在构建前随机打散，使连续区间 shard 更接近全局分布；第二，对 IVF inverted list 按 list 粒度重新分配，而不是按 base id 连续切分；第三，对图索引记录每个 rank 的历史搜索时间，将慢 rank 的 block 拆得更细。当前实现选择连续切分，是因为它简单、可复现、通信位移清楚，并且在代表参数下已经能保持可接受的不均衡。
+为了把负载均衡分析落到实现层面，本文增加了构建前随机打散 base 的路径。设置
+\begin{lstlisting}[language=bash]
+USE_SHUFFLED_BASE=1
+BASE_SHUFFLE_SEED=20260525
+\end{lstlisting}
+后，rank 0 先用固定 seed 打乱 base 向量和原始全局 id，再分别 \code{MPI_Scatterv} 给各 rank。本地搜索仍只看连续内存 shard；候选打包时通过同步散发的 \code{local_global_ids} 把本地 id 映射回原始 id，因此 Recall 仍可直接和 ground truth 对齐。未设置该开关时仍保留连续切分，作为正文主结果和对照组。
+
+\begin{table}[H]
+  \centering\footnotesize
+  \begin{tabular}{p{2.8cm}C{1.7cm}C{1.9cm}C{1.9cm}C{1.9cm}C{1.5cm}}
+    \toprule
+    平台 & base & latency & local max & imbalance & Recall \\
+    \midrule
+    Windows MS-MPI & 连续 & 219.80120 & 216.95125 & 1.00781 & 1.00000 \\
+    Windows MS-MPI & 打散 & 222.93255 & 220.35495 & 1.00581 & 1.00000 \\
+    鲲鹏 PBS & 连续 & 781.51286 & 778.25868 & 1.06455 & 1.00000 \\
+    鲲鹏 PBS & 打散 & 769.51754 & 766.40415 & 1.01648 & 1.00000 \\
+    \bottomrule
+  \end{tabular}
+  \caption{Block-HNSW 在 \code{np=8,threads=2,ef=50,query_n=2000} 下的 base 打散对比。延迟单位为 $\mu$s/query。}
+  \label{tab:base_shuffle}
+\end{table}
+
+表 \ref{tab:base_shuffle} 中 Windows 原本已经接近平衡，打散只把 imbalance 从 1.00781 降到 1.00581，延迟差异主要落在运行噪声内。鲲鹏 PBS 的同一作业中效果更明显：rank 最慢/平均比从 1.06455 降到 1.01648，平均延迟从 781.51286 降到 769.51754 $\mu$s/query。结合前述旧扩展性日志中 \code{np=8} 曾出现的 1.41364，可以看到随机打散不能消除所有调度和图遍历波动，但能降低“某个连续 shard 明显更难搜”的尾部风险。list 粒度重分配、按历史时间拆分慢 rank 仍属于更细的后续均衡策略。
 
 \section{VTune 性能剖析}
 
@@ -836,23 +864,29 @@ vtss service...OK
   \label{tab:uarch_admin}
 \end{table}
 
-需要说明的是，本地机器是 P-core/E-core 混合架构，本次 workload 的绝大多数 clockticks 与 retired instructions 落在 E-core 上：E-core clockticks 为 11.929B，而 P-core 仅 0.177B。因此表 \ref{tab:uarch_admin} 主要引用 E-core Top-Down 指标，P-core 子树中部分 0.0\% 或 FPU capacity 指标不作为全局结论。函数级 \code{uarch_admin_hotspots.csv} 也支持这一判断：\code{searchBaseLayer} 的 E-core Memory Bound 为 47.1\%，Load STLB Miss 为 35.8\%，Bad Speculation 为 22.1\%；\code{InnerProductSIMD16ExtAVX} 和 \code{_mm256_mul_ps} 仍是热点，但它们嵌在图遍历和候选队列维护之中。
+本地机器是 P-core/E-core 混合架构，本次 workload 的绝大多数 clockticks 与 retired instructions 落在 E-core 上：E-core clockticks 为 11.929B，而 P-core 仅 0.177B。因此表 \ref{tab:uarch_admin} 主要引用 E-core Top-Down 指标，P-core 子树中部分 0.0\% 或 FPU capacity 指标不作为全局结论。函数级 \code{uarch_admin_hotspots.csv} 也支持这一判断：\code{searchBaseLayer} 的 E-core Memory Bound 为 47.1\%，Load STLB Miss 为 35.8\%，Bad Speculation 为 22.1\%；\code{InnerProductSIMD16ExtAVX} 和 \code{_mm256_mul_ps} 仍是热点，但它们嵌在图遍历和候选队列维护之中。
 
 因此，硬件事件与汇编观察给出的结论一致：距离计算路径已经使用 AVX 指令，SIMD 并不是缺失项；更主要的限制来自 HNSW 搜索的随机邻接访问、visited/TLB 压力、候选优先队列比较以及少量同步开销。对于 MPI 版本，通信/merge 只占微秒级，优化优先级仍应放在 rank 内图访问局部性和候选维护上。
 
-\section{阻塞与非阻塞通信实验}
+\section{通信范式实验与分析}
 
 \subsection{实现方式}
 
-默认程序使用阻塞 \code{MPI_Bcast} 与 gather。为了比较通信模式，gather 包装处增加了一个环境变量开关：
+默认程序使用阻塞 \code{MPI_Bcast} 与 gather。为了比较双边通信模式，broadcast 和 gather 包装处增加了一个环境变量开关：
 \begin{lstlisting}[language=bash]
 USE_NONBLOCKING_MPI=1
 \end{lstlisting}
 阻塞模式走常规 gather；非阻塞模式使用 \code{MPI_Igather} 并在数据真正需要前 \code{MPI_Wait}。由于本程序的本地搜索必须在 gather 前完成，非阻塞 gather 主要减少 runtime 等待和进程到达时间差的影响，并不能完全重叠本地搜索。
 
+同时，MPI 初始化从 \code{MPI_Init} 改为 \code{MPI_Init_thread}，默认请求 \code{MPI_THREAD_FUNNELED}；若设置
+\begin{lstlisting}[language=bash]
+USE_MPI_THREAD_MULTIPLE=1
+\end{lstlisting}
+程序会请求 \code{MPI_THREAD_MULTIPLE}，并在 rank 0 输出请求级别和实际提供级别。本实现中只有主线程调用 MPI，OpenMP worker 只参与 rank 内搜索，因此 \code{FUNNELED} 已满足正确性需求；\code{MULTIPLE} 主要用于覆盖和验证 MPI 自身多线程支持这一编程范式。若 MPI runtime 为 \code{MULTIPLE} 额外加锁，端到端延迟可能不降反升，因此正文主结果仍使用默认 \code{FUNNELED}。
+
 \subsection{鲲鹏 PBS 结果}
 
-图 \ref{fig:comm_modes} 和表 \ref{tab:comm_modes} 给出鲲鹏 PBS 的通信模式实验。四种算法的 Recall 在阻塞与非阻塞模式下完全一致。非阻塞模式在 IVF-PQ 上降低 5.13\%，在 IVF+HNSW 上降低 6.37\%，在 Block-HNSW 上降低 0.52\%；HNSW-on-HNSW 则慢 0.89\%。这说明非阻塞通信在当前实现中不是稳定万能优化，而是取决于本地搜索结束时间差、runtime 调度和 gather 数据到达节奏。
+图 \ref{fig:comm_modes} 和表 \ref{tab:comm_modes} 给出鲲鹏 PBS 的通信模式实验。四种算法的 Recall 在阻塞与非阻塞模式下完全一致。非阻塞模式在 IVF-PQ 上降低 5.13\%，在 IVF+HNSW 上降低 6.37\%，在 Block-HNSW 上降低 0.52\%；HNSW-on-HNSW 则慢 0.89\%。非阻塞通信在当前实现中不是稳定万能优化，收益取决于本地搜索结束时间差、runtime 调度和 gather 数据到达节奏。
 
 \begin{figure}[H]
   \centering
@@ -877,15 +911,37 @@ USE_NONBLOCKING_MPI=1
   \label{tab:comm_modes}
 \end{table}
 
+\subsection{MPI 线程级别结果}
+
+\code{MPI_THREAD_FUNNELED} 与 \code{MPI_THREAD_MULTIPLE} 使用 IVF-PQ 代表参数单独复测，结果见表 \ref{tab:thread_levels}。两平台都能提供所请求的线程级别，Recall 保持 0.96515，说明初始化模式变化没有影响候选正确性。Windows MS-MPI 上 \code{MULTIPLE} 本次延迟低于 \code{FUNNELED}，鲲鹏 PBS 上则略慢；这更像 runtime 和队列状态共同造成的差异，而不是算法层面的必然加速。
+
+\begin{table}[H]
+  \centering\footnotesize
+  \begin{tabular}{p{2.8cm}C{2.0cm}C{2.0cm}C{1.9cm}C{1.9cm}C{1.5cm}}
+    \toprule
+    平台 & 请求/提供 & latency & local max & imbalance & Recall \\
+    \midrule
+    Windows MS-MPI & F/F & 352.21655 & 349.14490 & 1.06109 & 0.96515 \\
+    Windows MS-MPI & M/M & 331.35360 & 327.46555 & 1.05676 & 0.96515 \\
+    鲲鹏 PBS & F/F & 527.78804 & 523.55194 & 1.03130 & 0.96515 \\
+    鲲鹏 PBS & M/M & 534.69348 & 531.34584 & 1.05617 & 0.96515 \\
+    \bottomrule
+  \end{tabular}
+  \caption{IVF-PQ 在 \code{np=8,threads=2,nprobe=4,p=1000,query_n=2000} 下的 MPI 线程级别对比。F/F 表示请求并获得 \code{FUNNELED}，M/M 表示请求并获得 \code{MULTIPLE}；延迟单位为 $\mu$s/query。}
+  \label{tab:thread_levels}
+\end{table}
+
 \subsection{通信模式结论}
 
-从数据上看，非阻塞 MPI 的正确性没有问题，四种算法 Recall 完全一致；性能上有小幅改善也有轻微退化。根本原因是本实验的通信数据量很小，且 gather 发生在本地搜索之后，真正可以重叠的空间有限。若要让非阻塞通信产生更稳定收益，需要把 query batch 切成多个 tile：当 tile $i$ 的候选在后台 gather 时，rank 可以搜索 tile $i+1$。这会改变代码结构和结果缓冲方式，因此更适合作为后续版本的通信流水线优化。
+从数据上看，非阻塞 MPI 的正确性没有问题，四种算法 Recall 完全一致；性能上有小幅改善也有轻微退化。线程级别实验也符合预期：\code{MULTIPLE} 能被 runtime 提供，但本程序没有 OpenMP worker 并发调用 MPI，因此它主要是编程范式覆盖，而不是必要优化。当前通信数据量很小，且 gather 发生在本地搜索之后，真正可以重叠的空间有限。若要让非阻塞通信产生更稳定收益，需要把 query batch 切成多个 tile：当 tile $i$ 的候选在后台 gather 时，rank 可以搜索 tile $i+1$。这会改变代码结构和结果缓冲方式，因此更适合作为后续版本的通信流水线优化。
+
+单边通信（RMA）的候选收集也做了设计分析：可以让 rank 0 建立 \code{MPI_Win}，其他 rank 用 \code{MPI_Put} 或 rank 0 用 \code{MPI_Get} 取回固定长度候选块。由于本实验每个 rank 的候选区已经是定长数组，RMA 在接口上可行；但它仍需要同步窗口 epoch，并且无法减少 $QPk$ 个候选的总传输量。当前通信/merge 占比低于 1\%，RMA 的实现风险和调试成本高于预期收益，因此本版只保留阻塞、非阻塞和 \code{MPI_Init_thread} 三类已落地范式，把 RMA 作为更多节点规模下的后续方向。
 
 \section{结果可信性与可复现性检查}
 
 \subsection{正确性一致性}
 
-四种模式在 Windows MS-MPI 与鲲鹏 PBS 中的代表参数 Recall 完全一致，尤其是 IVF-PQ 的 0.96515、IVF+HNSW 的 0.96450、Block-HNSW 的 1.00000 以及 HNSW-on-HNSW 的 0.99995 在两平台中一致。这说明跨 rank 候选 id 偏移、gather 缓冲布局和 rank 0 top-$k$ merge 没有平台相关错误。
+四种模式在 Windows MS-MPI 与鲲鹏 PBS 中的代表参数 Recall 完全一致，尤其是 IVF-PQ 的 0.96515、IVF+HNSW 的 0.96450、Block-HNSW 的 1.00000 以及 HNSW-on-HNSW 的 0.99995 在两平台中一致。跨 rank 候选 id 偏移、gather 缓冲布局和 rank 0 top-$k$ merge 没有平台相关错误。
 
 \subsection{计时一致性}
 
@@ -893,7 +949,7 @@ USE_NONBLOCKING_MPI=1
 \[
 \text{latency}\approx \text{max local search}+\text{comm+merge}.
 \]
-例如 Windows IVF-PQ 中 $331.10550+3.49005=334.59555$，与总延迟完全对齐；鲲鹏 PBS 的 HNSW-on-HNSW 中 $2486.21905+2.94542=2489.16447$，与总延迟完全对齐。这说明 \code{comm+merge latency} 的计算口径稳定，不是事后人为估计。
+例如 Windows IVF-PQ 中 $331.10550+3.49005=334.59555$，与总延迟完全对齐；鲲鹏 PBS 的 HNSW-on-HNSW 中 $2486.21905+2.94542=2489.16447$，与总延迟完全对齐。\code{comm+merge latency} 的计算口径稳定，不是事后人为估计。
 
 \subsection{脚本可复现}
 
@@ -901,7 +957,7 @@ USE_NONBLOCKING_MPI=1
 \begin{lstlisting}[language=bash]
 micromamba run -n test python scripts/parse_mpi_results.py
 \end{lstlisting}
-脚本会读取四个双平台原始日志以及两个 Windows 进阶 CSV，生成结构化 CSV 和九张 PDF 图。每张图都位于 \code{report/fig/}，并由本报告直接引用。服务器自动脚本读取 \code{KUNPENG_PASSWORD} 环境变量，不在仓库中写入密码；PBS 作业脚本通过 \code{NP}、\code{OMP_NUM_THREADS}、\code{QUERY_N}、\code{NPROBE}、\code{HNSW_EF} 等变量控制实验参数，复现实验不需要手改源代码。
+脚本会读取双平台原始日志、Windows 进阶 CSV 和最终补充实验 CSV，生成结构化 CSV 与 PDF 图。每张图都位于 \code{report/fig/}，并由本报告直接引用。服务器自动脚本读取 \code{KUNPENG_PASSWORD} 环境变量，不在仓库中写入密码；PBS 作业脚本通过 \code{NP}、\code{OMP_NUM_THREADS}、\code{QUERY_N}、\code{NPROBE}、\code{HNSW_EF}、\code{USE_SHUFFLED_BASE} 和 \code{USE_MPI_THREAD_MULTIPLE} 等变量控制实验参数，复现实验不需要手改源代码。
 
 \section{问题与改进方向}
 
@@ -909,7 +965,7 @@ micromamba run -n test python scripts/parse_mpi_results.py
 
 \textbf{HNSW-on-HNSW 参数。}\code{nprobe_blocks=16} 是偏向高召回的配置，相当于在 top-level graph 之后仍搜索全部 block。本次已经扫描 \code{1,2,4,8,16} 并画出 Recall@10 与延迟曲线；若把它作为低延迟方案，还需要在 \code{4} 到 \code{16} 之间补更细粒度的探测点，寻找召回刚接近目标值时的拐点。
 
-\textbf{更细的负载均衡。}当前 base 按连续区间切分，简单稳定，但没有根据 inverted list 长度、HNSW 图度数或查询热度做动态均衡。如果某些 rank 的局部图搜索持续更慢，可以考虑按随机打散、质心均衡或 list 粒度分配来减小尾部延迟。
+\textbf{更细的负载均衡。}本次已实现固定 seed 的 base 随机打散，并在鲲鹏 PBS 上把 Block-HNSW 的 imbalance 从 1.06455 压到 1.01648。它仍是静态均衡，尚未根据 inverted list 长度、HNSW 图度数或查询热度做动态重分配；如果某些 rank 长期更慢，可以继续尝试质心均衡、list 粒度分配或按历史搜索时间拆分慢 shard。
 
 \textbf{通信优化。}当前所有候选都 gather 到 rank 0。对于更多 rank，可以改为分层合并：先在节点内合并，再跨节点合并；或者使用自定义 top-$k$ 归约。但在本实验记录中通信/merge 占比很低，因此这不是当前首要瓶颈。
 
@@ -917,9 +973,9 @@ micromamba run -n test python scripts/parse_mpi_results.py
 
 \section{结论}
 
-本实验完成了 ANN 搜索从单机多线程到 MPI 多进程环境的迁移，并保留 OpenMP 作为 rank 内并行层。IVF-PQ 验证了基础倒排索引迁移；Block-HNSW、IVF+HNSW 和 HNSW-on-HNSW 分别代表三种图索引组织方式。双平台参数扫描显示，相同参数下 Recall 在 Windows 与鲲鹏 PBS 上完全一致，说明分布式 top-$k$ 合并逻辑正确；通信与 merge 开销在当前验证规模中很小，主要瓶颈仍是本地 ANN 搜索。
+本实验完成了 ANN 搜索从单机多线程到 MPI 多进程环境的迁移，并保留 OpenMP 作为 rank 内并行层。IVF-PQ 验证了基础倒排索引迁移；Block-HNSW、IVF+HNSW 和 HNSW-on-HNSW 分别代表三种图索引组织方式。双平台参数扫描显示，相同参数下 Recall 在 Windows 与鲲鹏 PBS 上完全一致，分布式 top-$k$ 合并逻辑正确；通信与 merge 开销在当前验证规模中很小，主要瓶颈仍是本地 ANN 搜索。
 
-从算法效果看，IVF-PQ 与 IVF+HNSW 的召回略低但保持较好的筛选效率；Block-HNSW 在代表参数下达到 Recall@10=1.00000，是当前最可靠的高召回图索引方案；HNSW-on-HNSW 证明了分层图结构的可行性和高召回能力，但全 block 探测配置带来了明显延迟代价。强扩展实验表明，\code{np=4} 通常比 \code{np=8} 更稳，说明在 DEEP100K 和 2000 query 的规模下，MPI 强扩展存在固定开销与负载不均衡拐点。VTune、硬件事件与汇编分析进一步说明，距离内核已经使用 AVX SIMD，而 E-core Back-End Bound 和 Memory Bound 分别达到 60.1\% 与 50.4\%，后续优化更应关注图遍历、候选队列、TLB/DRAM 压力和负载尾部。
+从算法效果看，IVF-PQ 与 IVF+HNSW 的召回略低但保持较好的筛选效率；Block-HNSW 在代表参数下达到 Recall@10=1.00000，是当前最可靠的高召回图索引方案；HNSW-on-HNSW 证明了分层图结构的可行性和高召回能力，但全 block 探测配置带来了明显延迟代价。强扩展实验表明，\code{np=4} 通常比 \code{np=8} 更稳，在 DEEP100K 和 2000 query 的规模下，MPI 强扩展存在固定开销与负载不均衡拐点。VTune、硬件事件与汇编分析进一步指出更具体的优化靶点：距离内核已经使用 AVX SIMD，而 E-core Back-End Bound 和 Memory Bound 分别达到 60.1\% 与 50.4\%，后续优化应集中在图遍历、候选队列、TLB/DRAM 压力和负载尾部。
 
 \clearpage
 \appendix
@@ -934,6 +990,7 @@ powershell -ExecutionPolicy Bypass -File scripts/run_parameter_sweep.ps1
 powershell -ExecutionPolicy Bypass -File scripts/run_scalability.ps1
 powershell -ExecutionPolicy Bypass -File scripts/run_hybrid_layout.ps1
 powershell -ExecutionPolicy Bypass -File scripts/run_affinity.ps1
+powershell -ExecutionPolicy Bypass -File scripts/run_final_gap_experiments.ps1
 micromamba run -n test python scripts/parse_mpi_results.py
 \end{lstlisting}
 
@@ -959,6 +1016,7 @@ qsub -v NP=8,OMP_NUM_THREADS=2,QUERY_N=2000 qsub_mpi.sh
 set KUNPENG_PASSWORD=<server_password>
 micromamba run -n test python scripts/run_kunpeng_pbs_sweep_auto.py
 micromamba run -n test python scripts/run_kunpeng_pbs_comm_auto.py
+micromamba run -n test python scripts/run_kunpeng_pbs_final_gaps_auto.py
 \end{lstlisting}
 
 \subsection{生成产物}
@@ -975,6 +1033,8 @@ micromamba run -n test python scripts/run_kunpeng_pbs_comm_auto.py
     \fcell{affinity}{20260525_205832.csv} & Windows P-core/E-core 亲和性结果，16 行。\\
     \fcell{kunpeng_pbs_sweep}{20260525_153105.csv} & 鲲鹏 PBS 参数扫描与扩展性结构化结果，40 行。\\
     \fcell{kunpeng_pbs_comm_modes}{20260525_154940.csv} & 鲲鹏 PBS 阻塞/非阻塞通信模式结果，8 行。\\
+    \fcell{final_gap_experiments}{20260605_210724.csv} & Windows base shuffle 与 MPI 线程级别补充结果，4 行。\\
+    \fcell{kunpeng_pbs_final_gaps}{20260605_211922.csv} & 鲲鹏 PBS base shuffle 与 MPI 线程级别补充结果，4 行。\\
     \code{results/vtune_exports/*} & VTune Hotspots、汇编摘录、uarch 普通会话日志和管理员实测导出位置。\\
     \code{report/fig/*.pdf} & 由解析脚本从 CSV 生成的所有图。\\
     \bottomrule
@@ -1028,6 +1088,44 @@ micromamba run -n test python scripts/run_kunpeng_pbs_comm_auto.py
 \subsection{复现注意事项}
 
 复现实验时有三点需要保持一致。第一，Windows 与鲲鹏 PBS 都应使用同一份 DEEP100K 数据，避免不同数据目录造成 recall 差异。第二，绘图脚本必须在 \code{micromamba} 的 \code{test} 环境中运行，因为该环境已经包含 \code{matplotlib}、\code{numpy} 和服务器自动化所需的 \code{paramiko}。第三，PBS 实验以作业输出为准，正文不展示非 PBS 路径的服务器数据；这样与提交指南的队列运行方式保持一致。
+
+\clearpage
+\section{AI 使用报告与对话记录节选}
+
+本附录记录本实验中使用生成式 AI 辅助学习和调试的主要过程。AI 只用于解释 MPI、SIMD、OpenMP 设计，辅助排查代码和整理报告表达；所有实验数据均来自本地 Windows MS-MPI 或鲲鹏 PBS 的实际运行日志，图表由 \code{results/*.csv} 和解析脚本生成，未使用 AI 编造或替换实验结果。
+
+\begin{table}[H]
+  \centering\footnotesize
+  \begin{tabularx}{\textwidth}{p{3.0cm}Y Y}
+    \toprule
+    主题 & 提问节选 & AI 回复要点与采纳情况 \\
+    \midrule
+    MPI 数据划分 &
+    如何把 DEEP100K base data 分到多个 MPI rank，同时保证全局 id 在 merge 后还能和 ground truth 对齐？ &
+    建议先用连续区间划分保证实现清晰，再为随机打散方案保留原始全局 id 映射。本文采纳该思路，实现为 \code{PartitionRange}、\code{MPI_Scatterv} 和 \code{PackCandidates(..., local_global_ids, ...)}；默认连续切分时 \code{local_global_ids} 等价于 shard 偏移，shuffle 时仍能和 ground truth 对齐。\\
+    \midrule
+    候选 gather 与 top-$k$ merge &
+    每个 rank 返回局部 top-$k$ 后，rank 0 应该如何组织缓冲区，才能低成本合并所有 query 的候选？ &
+    建议把距离和 id 拆成定长数组，按 query 优先布局；rank 0 对每个 query 扫描 $P\times k$ 个候选并维护小堆。该建议被采纳，报告第 2.3 节给出复杂度 $O(QPk\log k)$ 和候选缓冲示意。\\
+    \midrule
+    阻塞与非阻塞通信 &
+    非阻塞 \code{MPI_Igather} 是否一定能和本地 ANN 搜索重叠？为什么实测可能只带来小幅变化？ &
+    AI 提醒本程序的 gather 发生在本地搜索之后，若不把 query batch 切成 tile，非阻塞 gather 的可重叠空间有限。本文据此增加 \code{USE_NONBLOCKING_MPI} 开关，并在鲲鹏 PBS 上如实报告小幅加速和轻微退化并存的结果。\\
+    \midrule
+    MPI 线程支持 &
+    OpenMP 与 MPI 混用时是否需要 \code{MPI_THREAD_MULTIPLE}？它和 \code{MPI_THREAD_FUNNELED} 的区别是什么？ &
+    回复指出如果只有主线程调用 MPI，\code{FUNNELED} 已足够；\code{MULTIPLE} 允许多个线程并发调用 MPI，但可能引入 runtime 锁开销。本文据此将初始化改为 \code{MPI_Init_thread}，默认请求 \code{FUNNELED}，提供 \code{USE_MPI_THREAD_MULTIPLE=1} 验证路径，并在双平台补充实验中记录 FUNNELED/MULTIPLE 延迟。\\
+    \midrule
+    VTune 解释 &
+    HNSW 图搜索已经用了 AVX 距离内核，为什么仍然看到 Back-End Bound 和 Memory Bound 很高？ &
+    AI 帮助区分“距离内核已向量化”和“整体图遍历仍受随机邻接访问、候选队列和 TLB/DRAM 压力限制”。本文结合 VTune Hotspots、uarch 指标和汇编摘录，将优化重点落到图访问局部性和候选维护，而不是继续单纯追求 SIMD。\\
+    \bottomrule
+  \end{tabularx}
+  \caption{与生成式 AI 的主要对话记录节选}
+  \label{tab:ai_dialogue}
+\end{table}
+
+除表 \ref{tab:ai_dialogue} 中的技术问答外，AI 还用于报告层面的语言整理，例如减少“这说明”等重复连接词、统一为“本文/本实验”的客观表述、检查进阶要求是否覆盖双平台、通信模式、AI 附录和 cache locality。最终取舍仍以课程要求、源码可编译性、结果文件和复现实验为准。
 
 \begin{thebibliography}{9}
 \bibitem{mpi}

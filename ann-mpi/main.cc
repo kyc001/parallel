@@ -10,6 +10,9 @@
 //   5. Rank 0 gathers per-rank local top-k candidates and merges them into the
 //      global top-k used for Recall@10.
 //
+// Running without algorithm arguments selects the representative submission
+// path: Block-HNSW with m=16, ef=50, query_n=2000.
+//
 // Server build:
 //   mpic++ main.cc -o main -O2 -std=c++11 -I. -fopenmp -lpthread
 //   Add -mavx2 -mfma on x86. The Makefile handles this automatically.
@@ -28,6 +31,7 @@
 #include <iostream>
 #include <limits>
 #include <memory>
+#include <random>
 #include <set>
 #include <stdexcept>
 #include <string>
@@ -90,6 +94,16 @@ int EnvInt(const char* name, int fallback) {
     }
     const int parsed = std::atoi(value);
     return parsed > 0 ? parsed : fallback;
+}
+
+uint64_t EnvUint64(const char* name, uint64_t fallback) {
+    const char* value = std::getenv(name);
+    if (!value || !value[0]) {
+        return fallback;
+    }
+    char* end = NULL;
+    const unsigned long long parsed = std::strtoull(value, &end, 10);
+    return end != value ? static_cast<uint64_t>(parsed) : fallback;
 }
 
 int ParseIntArg(int argc, char** argv, int index, int fallback) {
@@ -155,6 +169,21 @@ void GatherDoubleHelper(double* send_buf, int send_count, double* recv_buf,
                    0, MPI_COMM_WORLD);
     }
 }
+
+const char* MpiThreadLevelName(int level) {
+    switch (level) {
+    case MPI_THREAD_SINGLE:
+        return "single";
+    case MPI_THREAD_FUNNELED:
+        return "funneled";
+    case MPI_THREAD_SERIALIZED:
+        return "serialized";
+    case MPI_THREAD_MULTIPLE:
+        return "multiple";
+    default:
+        return "unknown";
+    }
+}
 #endif
 
 size_t ParseSizeArg(int argc, char** argv, int index, size_t fallback) {
@@ -195,11 +224,13 @@ bool IsHnswOnHnswArg(const std::string& value) {
 }
 
 Params ParseParams(int argc, char** argv) {
+    const bool representative_default = (argc <= 1);
     Params params;
     params.nthreads = ParseIntArg(argc, argv, 1, EnvInt("OMP_NUM_THREADS", 2));
     params.nthreads = std::max(1, params.nthreads);
     params.nlist = ParseSizeArg(argc, argv, 2, 16);
-    params.nprobe = ParseSizeArg(argc, argv, 3, 4);
+    params.nprobe = ParseSizeArg(argc, argv, 3,
+                                 representative_default ? 50 : 4);
     params.rerank_p = ParseSizeArg(argc, argv, 4, 1000);
     params.query_limit = ParseSizeArg(argc, argv, 5, 2000);
     params.mode = ParseMode(argc, argv, 6, ann_ivfpq::BuildMode::IVFLocalPQ);
@@ -223,6 +254,9 @@ Params ParseParams(int argc, char** argv) {
     }
     if (argc > 7 && IsHnswOnHnswArg(std::string(argv[7]))) {
         params.use_hnsw_on_hnsw = true;
+    }
+    if (representative_default) {
+        params.use_hnsw = true;
     }
     if (params.use_nested_hnsw || params.use_hnsw_on_hnsw) {
         params.use_hnsw = false;
@@ -279,8 +313,38 @@ DataBundle LoadAllData(size_t query_limit) {
     return data;
 }
 
+void ApplyBasePermutation(DataBundle& data, std::vector<uint64_t>& global_ids,
+                          uint64_t seed) {
+    global_ids.resize(data.base_n);
+    std::vector<size_t> permutation(data.base_n);
+    for (size_t i = 0; i < data.base_n; ++i) {
+        permutation[i] = i;
+    }
+
+    std::mt19937_64 rng(seed);
+    std::shuffle(permutation.begin(), permutation.end(), rng);
+
+    std::vector<float> shuffled(data.base_n * data.base_d);
+    for (size_t dst = 0; dst < data.base_n; ++dst) {
+        const size_t src = permutation[dst];
+        std::memcpy(shuffled.data() + dst * data.base_d,
+                    data.base.get() + src * data.base_d,
+                    data.base_d * sizeof(float));
+        global_ids[dst] = static_cast<uint64_t>(src);
+    }
+    std::memcpy(data.base.get(), shuffled.data(),
+                shuffled.size() * sizeof(float));
+}
+
+void FillIdentityIds(size_t n, std::vector<uint64_t>& global_ids) {
+    global_ids.resize(n);
+    for (size_t i = 0; i < n; ++i) {
+        global_ids[i] = static_cast<uint64_t>(i);
+    }
+}
+
 void PackCandidates(std::vector<SearchHeap>& results, size_t query_n,
-                    size_t k, uint64_t global_offset,
+                    size_t k, const std::vector<uint64_t>& local_global_ids,
                     std::vector<float>& distances,
                     std::vector<uint64_t>& ids) {
     distances.assign(query_n * k, std::numeric_limits<float>::infinity());
@@ -293,7 +357,9 @@ void PackCandidates(std::vector<SearchHeap>& results, size_t query_n,
             const std::pair<float, uint32_t> item = heap.top();
             heap.pop();
             distances[qi * k + slot] = item.first;
-            ids[qi * k + slot] = global_offset + item.second;
+            if (static_cast<size_t>(item.second) < local_global_ids.size()) {
+                ids[qi * k + slot] = local_global_ids[item.second];
+            }
             ++slot;
         }
     }
@@ -409,7 +475,13 @@ void BroadcastSize(size_t& value) {
 }
 
 int RunMpi(int argc, char** argv) {
-    MPI_Init(&argc, &argv);
+    const bool request_thread_multiple =
+        (std::getenv("USE_MPI_THREAD_MULTIPLE") != nullptr);
+    const int requested_thread_level =
+        request_thread_multiple ? MPI_THREAD_MULTIPLE : MPI_THREAD_FUNNELED;
+    int provided_thread_level = MPI_THREAD_SINGLE;
+    MPI_Init_thread(&argc, &argv, requested_thread_level,
+                    &provided_thread_level);
 
     int rank = 0;
     int world_size = 1;
@@ -418,15 +490,33 @@ int RunMpi(int argc, char** argv) {
 
     const Params params = ParseParams(argc, argv);
     const bool use_nonblocking = (std::getenv("USE_NONBLOCKING_MPI") != nullptr);
+    const bool use_shuffled_base = (std::getenv("USE_SHUFFLED_BASE") != nullptr);
+    const uint64_t shuffle_seed = EnvUint64("BASE_SHUFFLE_SEED", 20260525ULL);
 
     if (rank == 0) {
         std::cout << "comm_mode=" << (use_nonblocking ? "nonblocking" : "blocking") << "\n";
+        std::cout << "mpi_thread_requested="
+                  << MpiThreadLevelName(requested_thread_level)
+                  << ", mpi_thread_provided="
+                  << MpiThreadLevelName(provided_thread_level) << "\n";
+        std::cout << "base_partition="
+                  << (use_shuffled_base ? "shuffled" : "contiguous");
+        if (use_shuffled_base) {
+            std::cout << ", shuffle_seed=" << shuffle_seed;
+        }
+        std::cout << "\n";
     }
 
     try {
         DataBundle root_data;
+        std::vector<uint64_t> root_global_ids;
         if (rank == 0) {
             root_data = LoadAllData(params.query_limit);
+            if (use_shuffled_base) {
+                ApplyBasePermutation(root_data, root_global_ids, shuffle_seed);
+            } else {
+                FillIdentityIds(root_data.base_n, root_global_ids);
+            }
         }
 
         size_t query_n = root_data.query_n;
@@ -457,29 +547,47 @@ int RunMpi(int argc, char** argv) {
         }
 
         std::vector<float> local_base(local_n * base_d);
-        std::vector<int> send_counts;
-        std::vector<int> displs;
+        std::vector<uint64_t> local_global_ids(local_n);
+        std::vector<int> base_send_counts;
+        std::vector<int> base_displs;
+        std::vector<int> id_send_counts;
+        std::vector<int> id_displs;
         if (rank == 0) {
-            send_counts.resize(static_cast<size_t>(world_size));
-            displs.resize(static_cast<size_t>(world_size));
+            base_send_counts.resize(static_cast<size_t>(world_size));
+            base_displs.resize(static_cast<size_t>(world_size));
+            id_send_counts.resize(static_cast<size_t>(world_size));
+            id_displs.resize(static_cast<size_t>(world_size));
             for (int r = 0; r < world_size; ++r) {
                 const Range range = PartitionRange(base_n, r, world_size);
-                send_counts[static_cast<size_t>(r)] =
+                base_send_counts[static_cast<size_t>(r)] =
                     CheckedMpiCount((range.end - range.begin) * base_d,
                                     "base scatter count");
-                displs[static_cast<size_t>(r)] =
+                base_displs[static_cast<size_t>(r)] =
                     CheckedMpiCount(range.begin * base_d,
                                     "base scatter displacement");
+                id_send_counts[static_cast<size_t>(r)] =
+                    CheckedMpiCount(range.end - range.begin,
+                                    "id scatter count");
+                id_displs[static_cast<size_t>(r)] =
+                    CheckedMpiCount(range.begin,
+                                    "id scatter displacement");
             }
         }
 
         MPI_Scatterv(rank == 0 ? root_data.base.get() : NULL,
-                     rank == 0 ? send_counts.data() : NULL,
-                     rank == 0 ? displs.data() : NULL,
+                     rank == 0 ? base_send_counts.data() : NULL,
+                     rank == 0 ? base_displs.data() : NULL,
                      MPI_FLOAT,
                      local_base.data(),
                      CheckedMpiCount(local_base.size(), "local base count"),
                      MPI_FLOAT, 0, MPI_COMM_WORLD);
+        MPI_Scatterv(rank == 0 ? root_global_ids.data() : NULL,
+                     rank == 0 ? id_send_counts.data() : NULL,
+                     rank == 0 ? id_displs.data() : NULL,
+                     MPI_UNSIGNED_LONG_LONG,
+                     local_global_ids.data(),
+                     CheckedMpiCount(local_global_ids.size(), "local id count"),
+                     MPI_UNSIGNED_LONG_LONG, 0, MPI_COMM_WORLD);
 
         const size_t local_nlist = std::max<size_t>(
             1, std::min(params.nlist, local_n));
@@ -538,7 +646,7 @@ int RunMpi(int argc, char** argv) {
 
         std::vector<float> local_distances;
         std::vector<uint64_t> local_ids;
-        PackCandidates(local_results, query_n, kTopK, local_range.begin,
+        PackCandidates(local_results, query_n, kTopK, local_global_ids,
                        local_distances, local_ids);
 
         std::vector<float> all_distances;
