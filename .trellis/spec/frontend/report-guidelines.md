@@ -68,6 +68,19 @@ adding a note explaining why the number changed.
 the `.typ` source and do not translate it into LaTeX unless the task asks for a
 format conversion.
 
+For presentation polish, prefer a coherent slide system over one-off decorative
+boxes:
+
+- Use a small palette and one typography scale across the deck; avoid making
+  every fact a separate colored card.
+- For comparison-heavy slides, prefer booktabs-style tables or open columns
+  with sparse horizontal rules. Avoid full table grids and dense outlined boxes.
+- Use callouts sparingly for the main takeaway or caveat. If most content is in
+  callout boxes, the deck will read as a dashboard instead of a presentation.
+- After visual changes, render representative pages with `pdftoppm` and inspect
+  the PNGs. A Typst compile can pass while spacing, chart scale, or text balance
+  still looks poor on a projected slide.
+
 ## Template Boundaries
 
 Files under `参考模板/` are examples. Do not alter them while editing an active

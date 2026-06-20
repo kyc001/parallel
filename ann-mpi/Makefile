@@ -24,6 +24,7 @@ COMMON_FLAGS := -O2 -std=c++11 -I. -fopenmp -lpthread
 ifeq ($(PLATFORM),x86)
   COMMON_FLAGS += -mavx2 -mfma
 endif
+MPI_HEADERS := mpi_ann_runner.h $(wildcard mpi/*.h)
 
 .PHONY: all mpi local clean
 
@@ -31,12 +32,12 @@ all: mpi
 
 mpi: $(TARGET)
 
-$(TARGET): main.cc
+$(TARGET): main.cc $(MPI_HEADERS)
 	$(CXX) $< -o $@ $(COMMON_FLAGS)
 
 local: $(BUILD_DIR)/main_no_mpi
 
-$(BUILD_DIR)/main_no_mpi: main.cc
+$(BUILD_DIR)/main_no_mpi: main.cc $(MPI_HEADERS)
 	@$(MKDIR_BUILD)
 	$(LOCAL_CXX) $< -o $@ $(COMMON_FLAGS) -DANN_NO_MPI
 

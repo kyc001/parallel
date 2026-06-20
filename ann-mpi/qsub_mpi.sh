@@ -6,7 +6,7 @@
 
 set -eu
 
-PROJECT=ann-mpi
+PROJECT=ann
 NP=${NP:-4}
 OMP_NUM_THREADS=${OMP_NUM_THREADS:-2}
 QUERY_N=${QUERY_N:-2000}

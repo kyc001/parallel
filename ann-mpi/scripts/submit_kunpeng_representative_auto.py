@@ -16,11 +16,11 @@ JUMP_PORT = 9001
 TARGET_HOST = "192.168.90.141"
 USER = "s2413575"
 PASSWORD = os.environ.get("KUNPENG_PASSWORD")
-REMOTE_DIR = f"/home/{USER}/ann-mpi"
+REMOTE_DIR = f"/home/{USER}/ann"
 BASE = Path(__file__).resolve().parent.parent
 RESULTS = BASE / "results"
-SOURCE_DIRS = ["ivf", "hnsw", "simd", "omp", "pthread", "hnswlib"]
-SOURCE_FILES = ["main.cc", "Makefile", "qsub_mpi.sh"]
+SOURCE_DIRS = ["mpi", "ivf", "hnsw", "simd", "omp", "pthread", "hnswlib"]
+SOURCE_FILES = ["main.cc", "mpi_ann_runner.h", "Makefile", "qsub_mpi.sh"]
 
 
 def connect() -> tuple[paramiko.SSHClient, paramiko.SSHClient]:
