@@ -93,9 +93,9 @@
 \section*{摘要}
 \addcontentsline{toc}{section}{摘要}
 
-本次 GPU 编程作业按两个独立任务组织。任务一是 AMD AUP HIP 云平台学习：在在线平台完成 HIP 课程 Lab1--Lab6 的 notebook 填空与运行验证，内容覆盖向量加法、矩阵转置、直方图、归约、蒙特卡罗积分和 K-Means。在线学习的通过截图放在附录中，正文保留代码补全和分析填空答案，并总结各实验对应的 GPU 编程模式：合并访存、共享内存 tile、两级归约、减少全局原子操作、grid-stride 循环、多 kernel 编排以及 warp/wave 级归约。
+本次 GPU 编程作业包括 HIP 云平台学习和 ANN GPU 加速实现两部分。HIP 部分在 AMD AUP 在线平台完成 Lab1--Lab6 的 notebook 填空与运行验证，内容覆盖向量加法、矩阵转置、直方图、归约、蒙特卡罗积分和 K-Means。在线学习的通过截图放在附录中，正文保留代码补全和分析填空答案，并总结各实验对应的 GPU 编程模式：合并访存、共享内存 tile、两级归约、减少全局原子操作、grid-stride 循环、多 kernel 编排以及 warp/wave 级归约。
 
-任务二是 ANN 近似最近邻搜索的 GPU 实现。根据作业要求，单个 query 难以充分利用 GPU，因此本实验采用 batch 查询，将内积距离计算转化为矩阵乘法：
+ANN 部分面向近似最近邻搜索的 GPU 实现。针对单个 query 难以充分利用 GPU 的问题，本实验采用 batch 查询，将内积距离计算转化为矩阵乘法：
 \[
 S=BQ^\top,\quad B\in\mathbb{R}^{N\times D},\ Q^\top\in\mathbb{R}^{D\times M}.
 \]
@@ -103,22 +103,18 @@ S=BQ^\top,\quad B\in\mathbb{R}^{N\times D},\ Q^\top\in\mathbb{R}^{D\times M}.
 
 程序实现了多条 GPU 搜索与对照路径。Flat 路径包含手写 $16\times16$ tiled GEMM、cuBLAS SGEMM 基线、线程 0 合并 Top-$k$ 基线以及共享内存树形合并 Top-$k$ 优化版；IVF 路径包含 per-query probe list 基线和按 probe 簇分桶后的 grouped-IVF GEMM 扫描版本。3 次重复测量中，\code{cublas_tree} 全量扫描达到 Recall@10 = 0.99995、在线延迟 83.24 $\mu$s/query；\code{ivf_grouped 2000 16 4} 达到 Recall@10 = 0.96280、在线延迟 145.32 $\mu$s/query；\code{ivf_grouped 2000 16 8} 达到 Recall@10 = 0.99345、在线延迟 189.90 $\mu$s/query。报告围绕问题建模、CUDA 数据流、关键 kernel 设计、评价指标、重复实验、加速比与本地工具链验证展开。
 
-\section{实验说明与任务划分}
+\section{实验说明}
 
-\subsection{两个独立任务}
+实验工作分为 HIP 学习记录与 ANN GPU 实现两条线索。HIP 部分完成 AMD AUP 云端课程 Lab1--Lab6 的学习与验证，内容涉及向量加法、矩阵转置、直方图、归约、蒙特卡罗积分和 K-Means 等典型 GPU 程序。ANN 部分延续前序近似最近邻搜索实验，将原先主要运行在 CPU 上的距离计算和 Top-$k$ 后处理迁移到 GPU，并围绕 batch 矩阵乘法、Top-$k$ 合并和 IVF 分组搜索进行对照分析。
 
-本次 GPU 编程实验由两个相对独立的任务组成。第一项任务是 AMD AUP 云端 HIP 学习：在在线 notebook 中完成 Lab1--Lab6 的代码补全、分析填空和运行验证，并在报告中整理主要填空答案、附上学习通过截图。第二项任务是自选 GPU 编程实现：本次实验选取前几次 ANN 实验延续使用的近似最近邻搜索任务，将原先主要运行在 CPU 上的距离计算和 Top-$k$ 后处理迁移到 GPU。
-
-全文按照上述两项任务组织：第 \ref{sec:hip_learning} 节记录 HIP 云平台学习内容；第 \ref{sec:ann_gpu_exp} 节起讨论 ANN GPU 实现，并分别说明问题背景、统一实验设置、程序设计、正确性验证和性能分析。两项任务对应不同验收材料：HIP 任务包括 notebook 填空整理和学习通过截图，ANN 任务包括 CUDA 代码设计、运行结果、Recall@10 和延迟分析。二者构成学习经验向 GPU ANN 实现的迁移关系，而非同一实验的连续步骤。
-
-按照作业说明，HIP 云学习属于基础要求，ANN GPU 实现属于进阶选题；“研究报告篇幅不超过 12 页”按进阶选题主体理解。报告将 HIP 云学习材料与 ANN 研究报告主体分别组织：HIP notebook 填空与学习通过截图作为基础要求材料保留，ANN 部分采用独立研究报告结构控制篇幅和叙述重点。
+报告首先整理 HIP 学习中的主要代码补全、分析结果和通过截图，随后重点讨论 ANN GPU 实现。ANN 部分按问题建模、CUDA 程序设计、正确性与性能评估、实验分析和总结展开；HIP 学习中关于访存合并、共享内存、归约和多 kernel 编排的经验，也作为后续 ANN kernel 设计的参考。
 
 \section{HIP 云平台学习}
 \label{sec:hip_learning}
 
-\subsection{任务说明与课程内容概览}
+\subsection{课程内容概览}
 
-HIP 云学习任务要求在 AMD AUP 云端平台完成 HIP 课程的六个 notebook。根据作业说明，报告重点记录 notebook 中的代码填空和分析填空；GPU 型号、设备名称等基础硬件信息不作为填空答案展开。据此，本节首先概括六个 Lab 的主题，再逐项整理主要填空答案。
+AMD AUP HIP 学习部分共包含六个 notebook。每个 notebook 以一个典型 GPU 编程问题为主线，通过代码补全、运行结果观察和性能问题分析逐步展开。本节概述六个 Lab 的主题，并整理其中与索引计算、kernel 配置、访存模式和并行归约相关的主要答案。
 
 AMD AUP HIP 课程从一维数据并行逐步过渡到多 kernel 协作应用。六个 Lab 的主题不同，但背后的 GPU 编程思路具有连续性：先建立线程索引与 grid/block 层次，再学习如何控制全局内存访问、如何借助共享内存复用数据、如何减少原子操作，以及如何把迭代型算法拆成多个 kernel。表 \ref{tab:hip_labs} 总结了每个实验的主要瓶颈和学习到的优化方法。
 
@@ -734,7 +730,7 @@ Q^\top\in\mathbb{R}^{D\times M},\quad S=BQ^\top,\quad S\in\mathbb{R}^{N\times M}
     \draw[arrow, dashed] (devquery.south) .. controls +(0,-0.9) and +(0,-0.9) ..
       node[below]{next chunk} (topk.south);
   \end{tikzpicture}
-  \caption{CUDA batch ANN 搜索的数据流与任务划分}
+  \caption{CUDA batch ANN 搜索的数据流与阶段划分}
   \label{fig:cuda_flow}
 \end{figure}
 
@@ -1114,9 +1110,9 @@ IVF profile 结果更集中地反映候选组织方式的影响：per-query 路�
 
 \section{总结}
 
-任务一 HIP 云学习系统梳理了 GPU 编程的共性方法：访存合并决定带宽型 kernel 的上限，共享内存适合做片上复用和重排，两级归约可以显著减少全局原子，warp/wave 内原语能够降低同步开销，多 kernel 编排则适合 K-Means 这类阶段性算法。
+HIP 云学习部分系统梳理了 GPU 编程的共性方法：访存合并决定带宽型 kernel 的上限，共享内存适合做片上复用和重排，两级归约可以显著减少全局原子，warp/wave 内原语能够降低同步开销，多 kernel 编排则适合 K-Means 这类阶段性算法。
 
-任务二 ANN GPU 实现完成了多条 GPU 搜索与对照路径。Flat 路径严格对应作业要求中的 batch 矩阵乘法，并进一步比较了手写 tiled GEMM、cuBLAS SGEMM、基础 Top-$k$ 和树形 Top-$k$；IVF 路径在 per-query probe list 基线之外，实现了按 probe 簇分桶的 grouped-IVF，对同一簇内向量矩阵与 query 小 batch 做 GEMM 式扫描。实测结果表明，\code{cublas_tree} 在 Recall@10 接近 1 时达到 83.24 $\mu$s/query；grouped-IVF 在 \code{nprobe=4} 时以 Recall@10 = 0.96280 换取 145.32 $\mu$s/query，在 \code{nprobe=8} 时以 189.90 $\mu$s/query 达到 Recall@10 = 0.99345。CUDA event、重复测量、cuobjdump 资源占用与 PTX/SASS 片段共同表明：ANN GPU 优化除距离计算外，还受到 Top-$k$ 合并和 IVF 候选组织方式的制约。
+ANN GPU 实现部分完成了多条 GPU 搜索与对照路径。Flat 路径严格对应作业要求中的 batch 矩阵乘法，并进一步比较了手写 tiled GEMM、cuBLAS SGEMM、基础 Top-$k$ 和树形 Top-$k$；IVF 路径在 per-query probe list 基线之外，实现了按 probe 簇分桶的 grouped-IVF，对同一簇内向量矩阵与 query 小 batch 做 GEMM 式扫描。实测结果表明，\code{cublas_tree} 在 Recall@10 接近 1 时达到 83.24 $\mu$s/query；grouped-IVF 在 \code{nprobe=4} 时以 Recall@10 = 0.96280 换取 145.32 $\mu$s/query，在 \code{nprobe=8} 时以 189.90 $\mu$s/query 达到 Recall@10 = 0.99345。CUDA event、重复测量、cuobjdump 资源占用与 PTX/SASS 片段共同表明：ANN GPU 优化除距离计算外，还受到 Top-$k$ 合并和 IVF 候选组织方式的制约。
 
 \clearpage
 \section*{参考文献}
@@ -1198,7 +1194,7 @@ IVF profile 结果更集中地反映候选组织方式的影响：per-query 路�
     \midrule
     作业范围确认 &
     明确 HIP 在线学习、ANN GPU 加速以及页数限制之间的关系。 &
-    报告划分为两个独立任务；HIP 填空和截图作为基础要求材料，ANN 主体按进阶选题研究报告组织。 \\
+    报告保留 HIP 填空与学习截图，ANN GPU 加速部分按实验研究报告结构组织。 \\
     \midrule
     ANN GPU 路线 &
     比较单 query 与 batch query 的 GPU 实现方式，并评估完整 score 矩阵回传的必要性。 &
