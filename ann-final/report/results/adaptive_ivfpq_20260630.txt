@@ -1,0 +1,27 @@
+adaptive_ivfpq_final_experiment
+data_path=files/
+query_n=2000, nthreads=8, nlist=16, k=10, mode=local, tau_low=0.03368, tau_high=0.08289
+fixed_low_np2_p500, schedule=dynamic, order=original, average recall: 0.86940, average latency (us): 148.42735, counts(low,mid,high)=0/2000/0, avg_nprobe=2.00000, avg_rerank_p=500.00000, avg_scanned=15984.49700
+  hard(count/recall/us/scanned)=623/0.74462/1145.84767/14555.44623, medium=569/0.86591/1280.52355/15279.33040, easy=808/0.96807/1132.04814/17582.93564
+fixed_mid_np4_p1000, schedule=dynamic, order=original, average recall: 0.95945, average latency (us): 229.06365, counts(low,mid,high)=0/2000/0, avg_nprobe=4.00000, avg_rerank_p=1000.00000, avg_scanned=28709.52700
+  hard(count/recall/us/scanned)=623/0.91830/1888.19695/27360.46709, medium=569/0.96116/1774.15835/28034.48506, easy=808/0.98998/1789.56324/30225.07550
+fixed_mid_grouped_np4_p1000, schedule=dynamic, order=grouped, average recall: 0.95945, average latency (us): 250.72045, counts(low,mid,high)=0/2000/0, avg_nprobe=4.00000, avg_rerank_p=1000.00000, avg_scanned=28709.52700
+  hard(count/recall/us/scanned)=623/0.91830/2140.43917/27360.46709, medium=569/0.96116/1994.63550/28034.48506, easy=808/0.98998/1865.40149/30225.07550
+fixed_mid_static_np4_p1000, schedule=static, order=original, average recall: 0.95945, average latency (us): 268.16015, counts(low,mid,high)=0/2000/0, avg_nprobe=4.00000, avg_rerank_p=1000.00000, avg_scanned=28709.52700
+  hard(count/recall/us/scanned)=623/0.91830/2148.53981/27360.46709, medium=569/0.96116/2070.76397/28034.48506, easy=808/0.98998/2086.26139/30225.07550
+fixed_mid_static_grouped_np4_p1000, schedule=static, order=grouped, average recall: 0.95945, average latency (us): 305.98985, counts(low,mid,high)=0/2000/0, avg_nprobe=4.00000, avg_rerank_p=1000.00000, avg_scanned=28709.52700
+  hard(count/recall/us/scanned)=623/0.91830/2227.22039/27360.46709, medium=569/0.96116/2206.71406/28034.48506, easy=808/0.98998/2158.37661/30225.07550
+fixed_near_np5_p1000, schedule=dynamic, order=original, average recall: 0.97300, average latency (us): 324.81535, counts(low,mid,high)=0/2000/0, avg_nprobe=5.00000, avg_rerank_p=1000.00000, avg_scanned=34697.01150
+  hard(count/recall/us/scanned)=623/0.94398/2635.59213/33333.01284, medium=569/0.97592/2539.42425/34012.45343, easy=808/0.99332/2578.08069/36230.77970
+fixed_high_np8_p1500, schedule=dynamic, order=original, average recall: 0.99265, average latency (us): 340.32470, counts(low,mid,high)=0/2000/0, avg_nprobe=8.00000, avg_rerank_p=1500.00000, avg_scanned=52971.10650
+  hard(count/recall/us/scanned)=623/0.98427/2815.96870/51436.47191, medium=569/0.99490/2676.46151/52606.78207, easy=808/0.99752/2655.87748/54410.93069
+adaptive_conservative, schedule=dynamic, order=original, average recall: 0.96520, average latency (us): 217.38480, counts(low,mid,high)=808/569/623, avg_nprobe=3.90750, avg_rerank_p=919.20000, avg_scanned=28107.18500
+  hard(count/recall/us/scanned)=623/0.94398/1977.45746/33333.01284, medium=569/0.96116/1816.96011/28034.48506, easy=808/0.98441/1465.90322/24129.06064
+adaptive_aggressive, schedule=dynamic, order=original, average recall: 0.97115, average latency (us): 216.00155, counts(low,mid,high)=808/569/623, avg_nprobe=4.43800, avg_rerank_p=953.75000, avg_scanned=31101.77800
+  hard(count/recall/us/scanned)=623/0.98427/2783.58507/51436.47191, medium=569/0.96116/1650.94148/28034.48506, easy=808/0.96807/929.77277/17582.93564
+adaptive_recall_oriented, schedule=dynamic, order=original, average recall: 0.98420, average latency (us): 301.43295, counts(low,mid,high)=808/569/623, avg_nprobe=5.53050, avg_rerank_p=1155.75000, avg_scanned=37909.93450
+  hard(count/recall/us/scanned)=623/0.98427/3283.87159/51436.47191, medium=569/0.97592/2086.54657/34012.45343, easy=808/0.98998/1939.09579/30225.07550
+adaptive_conservative_grouped, schedule=dynamic, order=grouped, average recall: 0.96520, average latency (us): 186.53825, counts(low,mid,high)=808/569/623, avg_nprobe=3.90750, avg_rerank_p=919.20000, avg_scanned=28107.18500
+  hard(count/recall/us/scanned)=623/0.94398/1753.01637/33333.01284, medium=569/0.96116/1530.36116/28034.48506, easy=808/0.98441/1243.75829/24129.06064
+adaptive_conservative_static, schedule=static, order=original, average recall: 0.96520, average latency (us): 220.64160, counts(low,mid,high)=808/569/623, avg_nprobe=3.90750, avg_rerank_p=919.20000, avg_scanned=28107.18500
+  hard(count/recall/us/scanned)=623/0.94398/1945.89567/33333.01284, medium=569/0.96116/1784.25870/28034.48506, easy=808/0.98441/1477.69220/24129.06064

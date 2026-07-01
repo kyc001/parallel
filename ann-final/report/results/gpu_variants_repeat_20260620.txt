@@ -1,0 +1,480 @@
+﻿==== rep=1 mode=gemm 2000 ====
+gpu_gemm_batch_topk, device="NVIDIA GeForce RTX 4060 Laptop GPU", query_n=2000, base_n=100000, dim=96
+average recall: 0.99990
+average latency (us): 224.69174
+wall latency including setup (us): 311.76480
+base/index copy or build (ms): 7.47107
+query copy (ms): 1.11990
+score/probe compute (ms): 226.98053
+topk/search compute (ms): 217.53754
+result copy (ms): 3.74554
+load data ..\files\DEEP100K.query.fbin
+dimension: 96  number:10000  size_per_element:4
+load data ..\files\DEEP100K.gt.query.100k.top100.bin
+dimension: 100  number:10000  size_per_element:4
+load data ..\files\DEEP100K.base.100k.fbin
+dimension: 96  number:100000  size_per_element:4
+==== rep=1 mode=gemm_tree 2000 ====
+gpu_gemm_batch_tree_topk, device="NVIDIA GeForce RTX 4060 Laptop GPU", query_n=2000, base_n=100000, dim=96
+average recall: 0.99995
+average latency (us): 177.89467
+wall latency including setup (us): 258.48850
+base/index copy or build (ms): 5.74490
+query copy (ms): 2.26742
+score/probe compute (ms): 246.04813
+topk/search compute (ms): 96.54374
+result copy (ms): 10.93008
+load data ..\files\DEEP100K.query.fbin
+dimension: 96  number:10000  size_per_element:4
+load data ..\files\DEEP100K.gt.query.100k.top100.bin
+dimension: 100  number:10000  size_per_element:4
+load data ..\files\DEEP100K.base.100k.fbin
+dimension: 96  number:100000  size_per_element:4
+==== rep=1 mode=cublas 2000 ====
+gpu_cublas_batch_topk, device="NVIDIA GeForce RTX 4060 Laptop GPU", query_n=2000, base_n=100000, dim=96
+average recall: 0.99990
+average latency (us): 144.84012
+wall latency including setup (us): 224.48900
+base/index copy or build (ms): 3.53056
+query copy (ms): 1.77702
+score/probe compute (ms): 68.48855
+topk/search compute (ms): 214.02318
+result copy (ms): 5.39152
+load data ..\files\DEEP100K.query.fbin
+dimension: 96  number:10000  size_per_element:4
+load data ..\files\DEEP100K.gt.query.100k.top100.bin
+dimension: 100  number:10000  size_per_element:4
+load data ..\files\DEEP100K.base.100k.fbin
+dimension: 96  number:100000  size_per_element:4
+==== rep=1 mode=cublas_tree 2000 ====
+gpu_cublas_batch_tree_topk, device="NVIDIA GeForce RTX 4060 Laptop GPU", query_n=2000, base_n=100000, dim=96
+average recall: 0.99995
+average latency (us): 82.05855
+wall latency including setup (us): 163.75870
+base/index copy or build (ms): 3.36566
+query copy (ms): 1.28192
+score/probe compute (ms): 71.22365
+topk/search compute (ms): 86.87002
+result copy (ms): 4.74154
+load data ..\files\DEEP100K.query.fbin
+dimension: 96  number:10000  size_per_element:4
+load data ..\files\DEEP100K.gt.query.100k.top100.bin
+dimension: 100  number:10000  size_per_element:4
+load data ..\files\DEEP100K.base.100k.fbin
+dimension: 96  number:100000  size_per_element:4
+==== rep=1 mode=ivf 2000 16 2 ====
+gpu_ivf_batch_topk, device="NVIDIA GeForce RTX 4060 Laptop GPU", query_n=2000, base_n=100000, dim=96, nlist=16, nprobe=2
+average recall: 0.87335
+average latency (us): 337.62531
+wall latency including setup (us): 553.60540
+base/index copy or build (ms): 230.37112
+query copy (ms): 3.76573
+score/probe compute (ms): 2.29805
+topk/search compute (ms): 658.11462
+result copy (ms): 11.07232
+load data ..\files\DEEP100K.query.fbin
+dimension: 96  number:10000  size_per_element:4
+load data ..\files\DEEP100K.gt.query.100k.top100.bin
+dimension: 100  number:10000  size_per_element:4
+load data ..\files\DEEP100K.base.100k.fbin
+dimension: 96  number:100000  size_per_element:4
+==== rep=1 mode=ivf_grouped 2000 16 2 ====
+gpu_ivf_grouped_batch_gemm_topk, device="NVIDIA GeForce RTX 4060 Laptop GPU", query_n=2000, base_n=100000, dim=96, nlist=16, nprobe=2
+average recall: 0.87340
+average latency (us): 98.58275
+wall latency including setup (us): 276.39235
+base/index copy or build (ms): 232.51196
+query copy (ms): 20.03846
+score/probe compute (ms): 52.27443
+topk/search compute (ms): 54.37951
+result copy (ms): 57.90426
+load data ..\files\DEEP100K.query.fbin
+dimension: 96  number:10000  size_per_element:4
+load data ..\files\DEEP100K.gt.query.100k.top100.bin
+dimension: 100  number:10000  size_per_element:4
+load data ..\files\DEEP100K.base.100k.fbin
+dimension: 96  number:100000  size_per_element:4
+==== rep=1 mode=ivf 2000 16 4 ====
+gpu_ivf_batch_topk, device="NVIDIA GeForce RTX 4060 Laptop GPU", query_n=2000, base_n=100000, dim=96, nlist=16, nprobe=4
+average recall: 0.96275
+average latency (us): 446.30533
+wall latency including setup (us): 626.18780
+base/index copy or build (ms): 230.61166
+query copy (ms): 1.04579
+score/probe compute (ms): 2.94198
+topk/search compute (ms): 882.74426
+result copy (ms): 5.87859
+load data ..\files\DEEP100K.query.fbin
+dimension: 96  number:10000  size_per_element:4
+load data ..\files\DEEP100K.gt.query.100k.top100.bin
+dimension: 100  number:10000  size_per_element:4
+load data ..\files\DEEP100K.base.100k.fbin
+dimension: 96  number:100000  size_per_element:4
+==== rep=1 mode=ivf_grouped 2000 16 4 ====
+gpu_ivf_grouped_batch_gemm_topk, device="NVIDIA GeForce RTX 4060 Laptop GPU", query_n=2000, base_n=100000, dim=96, nlist=16, nprobe=4
+average recall: 0.96280
+average latency (us): 138.28270
+wall latency including setup (us): 383.86390
+base/index copy or build (ms): 268.70270
+query copy (ms): 24.81415
+score/probe compute (ms): 84.94156
+topk/search compute (ms): 64.00411
+result copy (ms): 78.09286
+load data ..\files\DEEP100K.query.fbin
+dimension: 96  number:10000  size_per_element:4
+load data ..\files\DEEP100K.gt.query.100k.top100.bin
+dimension: 100  number:10000  size_per_element:4
+load data ..\files\DEEP100K.base.100k.fbin
+dimension: 96  number:100000  size_per_element:4
+==== rep=1 mode=ivf 2000 16 8 ====
+gpu_ivf_batch_topk, device="NVIDIA GeForce RTX 4060 Laptop GPU", query_n=2000, base_n=100000, dim=96, nlist=16, nprobe=8
+average recall: 0.99340
+average latency (us): 713.19409
+wall latency including setup (us): 908.72485
+base/index copy or build (ms): 259.29169
+query copy (ms): 0.74829
+score/probe compute (ms): 3.00899
+topk/search compute (ms): 1418.54712
+result copy (ms): 4.08368
+load data ..\files\DEEP100K.query.fbin
+dimension: 96  number:10000  size_per_element:4
+load data ..\files\DEEP100K.gt.query.100k.top100.bin
+dimension: 100  number:10000  size_per_element:4
+load data ..\files\DEEP100K.base.100k.fbin
+dimension: 96  number:100000  size_per_element:4
+==== rep=1 mode=ivf_grouped 2000 16 8 ====
+gpu_ivf_grouped_batch_gemm_topk, device="NVIDIA GeForce RTX 4060 Laptop GPU", query_n=2000, base_n=100000, dim=96, nlist=16, nprobe=8
+average recall: 0.99345
+average latency (us): 160.27431
+wall latency including setup (us): 401.83485
+base/index copy or build (ms): 311.50461
+query copy (ms): 20.02167
+score/probe compute (ms): 137.66252
+topk/search compute (ms): 87.28985
+result copy (ms): 60.45024
+load data ..\files\DEEP100K.query.fbin
+dimension: 96  number:10000  size_per_element:4
+load data ..\files\DEEP100K.gt.query.100k.top100.bin
+dimension: 100  number:10000  size_per_element:4
+load data ..\files\DEEP100K.base.100k.fbin
+dimension: 96  number:100000  size_per_element:4
+==== rep=2 mode=gemm 2000 ====
+gpu_gemm_batch_topk, device="NVIDIA GeForce RTX 4060 Laptop GPU", query_n=2000, base_n=100000, dim=96
+average recall: 0.99990
+average latency (us): 225.18698
+wall latency including setup (us): 332.19460
+base/index copy or build (ms): 8.80160
+query copy (ms): 1.90224
+score/probe compute (ms): 227.16884
+topk/search compute (ms): 215.52539
+result copy (ms): 5.77750
+load data ..\files\DEEP100K.query.fbin
+dimension: 96  number:10000  size_per_element:4
+load data ..\files\DEEP100K.gt.query.100k.top100.bin
+dimension: 100  number:10000  size_per_element:4
+load data ..\files\DEEP100K.base.100k.fbin
+dimension: 96  number:100000  size_per_element:4
+==== rep=2 mode=gemm_tree 2000 ====
+gpu_gemm_batch_tree_topk, device="NVIDIA GeForce RTX 4060 Laptop GPU", query_n=2000, base_n=100000, dim=96
+average recall: 0.99995
+average latency (us): 160.79657
+wall latency including setup (us): 286.60445
+base/index copy or build (ms): 6.84877
+query copy (ms): 1.40147
+score/probe compute (ms): 225.38521
+topk/search compute (ms): 88.31590
+result copy (ms): 6.49056
+load data ..\files\DEEP100K.query.fbin
+dimension: 96  number:10000  size_per_element:4
+load data ..\files\DEEP100K.gt.query.100k.top100.bin
+dimension: 100  number:10000  size_per_element:4
+load data ..\files\DEEP100K.base.100k.fbin
+dimension: 96  number:100000  size_per_element:4
+==== rep=2 mode=cublas 2000 ====
+gpu_cublas_batch_topk, device="NVIDIA GeForce RTX 4060 Laptop GPU", query_n=2000, base_n=100000, dim=96
+average recall: 0.99990
+average latency (us): 146.51166
+wall latency including setup (us): 252.05020
+base/index copy or build (ms): 4.86470
+query copy (ms): 1.30592
+score/probe compute (ms): 70.99881
+topk/search compute (ms): 215.34721
+result copy (ms): 5.37139
+load data ..\files\DEEP100K.query.fbin
+dimension: 96  number:10000  size_per_element:4
+load data ..\files\DEEP100K.gt.query.100k.top100.bin
+dimension: 100  number:10000  size_per_element:4
+load data ..\files\DEEP100K.base.100k.fbin
+dimension: 96  number:100000  size_per_element:4
+==== rep=2 mode=cublas_tree 2000 ====
+gpu_cublas_batch_tree_topk, device="NVIDIA GeForce RTX 4060 Laptop GPU", query_n=2000, base_n=100000, dim=96
+average recall: 0.99995
+average latency (us): 85.68766
+wall latency including setup (us): 169.23675
+base/index copy or build (ms): 3.43814
+query copy (ms): 1.39779
+score/probe compute (ms): 72.24716
+topk/search compute (ms): 91.65108
+result copy (ms): 6.07930
+load data ..\files\DEEP100K.query.fbin
+dimension: 96  number:10000  size_per_element:4
+load data ..\files\DEEP100K.gt.query.100k.top100.bin
+dimension: 100  number:10000  size_per_element:4
+load data ..\files\DEEP100K.base.100k.fbin
+dimension: 96  number:100000  size_per_element:4
+==== rep=2 mode=ivf 2000 16 2 ====
+gpu_ivf_batch_topk, device="NVIDIA GeForce RTX 4060 Laptop GPU", query_n=2000, base_n=100000, dim=96, nlist=16, nprobe=2
+average recall: 0.87335
+average latency (us): 268.99329
+wall latency including setup (us): 442.98415
+base/index copy or build (ms): 224.86441
+query copy (ms): 1.21344
+score/probe compute (ms): 2.82419
+topk/search compute (ms): 529.29230
+result copy (ms): 4.65667
+load data ..\files\DEEP100K.query.fbin
+dimension: 96  number:10000  size_per_element:4
+load data ..\files\DEEP100K.gt.query.100k.top100.bin
+dimension: 100  number:10000  size_per_element:4
+load data ..\files\DEEP100K.base.100k.fbin
+dimension: 96  number:100000  size_per_element:4
+==== rep=2 mode=ivf_grouped 2000 16 2 ====
+gpu_ivf_grouped_batch_gemm_topk, device="NVIDIA GeForce RTX 4060 Laptop GPU", query_n=2000, base_n=100000, dim=96, nlist=16, nprobe=2
+average recall: 0.87340
+average latency (us): 82.16580
+wall latency including setup (us): 270.61355
+base/index copy or build (ms): 241.55298
+query copy (ms): 14.44425
+score/probe compute (ms): 51.51886
+topk/search compute (ms): 49.48379
+result copy (ms): 40.66976
+load data ..\files\DEEP100K.query.fbin
+dimension: 96  number:10000  size_per_element:4
+load data ..\files\DEEP100K.gt.query.100k.top100.bin
+dimension: 100  number:10000  size_per_element:4
+load data ..\files\DEEP100K.base.100k.fbin
+dimension: 96  number:100000  size_per_element:4
+==== rep=2 mode=ivf 2000 16 4 ====
+gpu_ivf_batch_topk, device="NVIDIA GeForce RTX 4060 Laptop GPU", query_n=2000, base_n=100000, dim=96, nlist=16, nprobe=4
+average recall: 0.96275
+average latency (us): 507.96310
+wall latency including setup (us): 735.19325
+base/index copy or build (ms): 258.31021
+query copy (ms): 3.52899
+score/probe compute (ms): 3.52947
+topk/search compute (ms): 998.47473
+result copy (ms): 10.39290
+load data ..\files\DEEP100K.query.fbin
+dimension: 96  number:10000  size_per_element:4
+load data ..\files\DEEP100K.gt.query.100k.top100.bin
+dimension: 100  number:10000  size_per_element:4
+load data ..\files\DEEP100K.base.100k.fbin
+dimension: 96  number:100000  size_per_element:4
+==== rep=2 mode=ivf_grouped 2000 16 4 ====
+gpu_ivf_grouped_batch_gemm_topk, device="NVIDIA GeForce RTX 4060 Laptop GPU", query_n=2000, base_n=100000, dim=96, nlist=16, nprobe=4
+average recall: 0.96280
+average latency (us): 187.06654
+wall latency including setup (us): 433.02215
+base/index copy or build (ms): 315.98703
+query copy (ms): 45.13385
+score/probe compute (ms): 94.42567
+topk/search compute (ms): 68.58420
+result copy (ms): 127.42025
+load data ..\files\DEEP100K.query.fbin
+dimension: 96  number:10000  size_per_element:4
+load data ..\files\DEEP100K.gt.query.100k.top100.bin
+dimension: 100  number:10000  size_per_element:4
+load data ..\files\DEEP100K.base.100k.fbin
+dimension: 96  number:100000  size_per_element:4
+==== rep=2 mode=ivf 2000 16 8 ====
+gpu_ivf_batch_topk, device="NVIDIA GeForce RTX 4060 Laptop GPU", query_n=2000, base_n=100000, dim=96, nlist=16, nprobe=8
+average recall: 0.99340
+average latency (us): 887.57385
+wall latency including setup (us): 1092.15735
+base/index copy or build (ms): 231.66248
+query copy (ms): 3.23104
+score/probe compute (ms): 3.99110
+topk/search compute (ms): 1754.57886
+result copy (ms): 13.34650
+load data ..\files\DEEP100K.query.fbin
+dimension: 96  number:10000  size_per_element:4
+load data ..\files\DEEP100K.gt.query.100k.top100.bin
+dimension: 100  number:10000  size_per_element:4
+load data ..\files\DEEP100K.base.100k.fbin
+dimension: 96  number:100000  size_per_element:4
+==== rep=2 mode=ivf_grouped 2000 16 8 ====
+gpu_ivf_grouped_batch_gemm_topk, device="NVIDIA GeForce RTX 4060 Laptop GPU", query_n=2000, base_n=100000, dim=96, nlist=16, nprobe=8
+average recall: 0.99345
+average latency (us): 230.54871
+wall latency including setup (us): 492.43780
+base/index copy or build (ms): 259.12619
+query copy (ms): 44.87434
+score/probe compute (ms): 149.00818
+topk/search compute (ms): 94.62272
+result copy (ms): 127.79524
+load data ..\files\DEEP100K.query.fbin
+dimension: 96  number:10000  size_per_element:4
+load data ..\files\DEEP100K.gt.query.100k.top100.bin
+dimension: 100  number:10000  size_per_element:4
+load data ..\files\DEEP100K.base.100k.fbin
+dimension: 96  number:100000  size_per_element:4
+==== rep=3 mode=gemm 2000 ====
+gpu_gemm_batch_topk, device="NVIDIA GeForce RTX 4060 Laptop GPU", query_n=2000, base_n=100000, dim=96
+average recall: 0.99990
+average latency (us): 263.00751
+wall latency including setup (us): 350.34440
+base/index copy or build (ms): 6.14470
+query copy (ms): 2.79440
+score/probe compute (ms): 266.08926
+topk/search compute (ms): 246.61504
+result copy (ms): 10.51632
+load data ..\files\DEEP100K.query.fbin
+dimension: 96  number:10000  size_per_element:4
+load data ..\files\DEEP100K.gt.query.100k.top100.bin
+dimension: 100  number:10000  size_per_element:4
+load data ..\files\DEEP100K.base.100k.fbin
+dimension: 96  number:100000  size_per_element:4
+==== rep=3 mode=gemm_tree 2000 ====
+gpu_gemm_batch_tree_topk, device="NVIDIA GeForce RTX 4060 Laptop GPU", query_n=2000, base_n=100000, dim=96
+average recall: 0.99995
+average latency (us): 156.45576
+wall latency including setup (us): 224.18500
+base/index copy or build (ms): 3.75645
+query copy (ms): 0.78685
+score/probe compute (ms): 218.39359
+topk/search compute (ms): 90.89947
+result copy (ms): 2.83162
+load data ..\files\DEEP100K.query.fbin
+dimension: 96  number:10000  size_per_element:4
+load data ..\files\DEEP100K.gt.query.100k.top100.bin
+dimension: 100  number:10000  size_per_element:4
+load data ..\files\DEEP100K.base.100k.fbin
+dimension: 96  number:100000  size_per_element:4
+==== rep=3 mode=cublas 2000 ====
+gpu_cublas_batch_topk, device="NVIDIA GeForce RTX 4060 Laptop GPU", query_n=2000, base_n=100000, dim=96
+average recall: 0.99990
+average latency (us): 144.44766
+wall latency including setup (us): 224.23530
+base/index copy or build (ms): 4.82182
+query copy (ms): 1.59696
+score/probe compute (ms): 68.91146
+topk/search compute (ms): 214.09279
+result copy (ms): 4.29408
+load data ..\files\DEEP100K.query.fbin
+dimension: 96  number:10000  size_per_element:4
+load data ..\files\DEEP100K.gt.query.100k.top100.bin
+dimension: 100  number:10000  size_per_element:4
+load data ..\files\DEEP100K.base.100k.fbin
+dimension: 96  number:100000  size_per_element:4
+==== rep=3 mode=cublas_tree 2000 ====
+gpu_cublas_batch_tree_topk, device="NVIDIA GeForce RTX 4060 Laptop GPU", query_n=2000, base_n=100000, dim=96
+average recall: 0.99995
+average latency (us): 81.96220
+wall latency including setup (us): 155.84350
+base/index copy or build (ms): 3.76090
+query copy (ms): 0.74195
+score/probe compute (ms): 68.64784
+topk/search compute (ms): 89.80582
+result copy (ms): 4.72877
+load data ..\files\DEEP100K.query.fbin
+dimension: 96  number:10000  size_per_element:4
+load data ..\files\DEEP100K.gt.query.100k.top100.bin
+dimension: 100  number:10000  size_per_element:4
+load data ..\files\DEEP100K.base.100k.fbin
+dimension: 96  number:100000  size_per_element:4
+==== rep=3 mode=ivf 2000 16 2 ====
+gpu_ivf_batch_topk, device="NVIDIA GeForce RTX 4060 Laptop GPU", query_n=2000, base_n=100000, dim=96, nlist=16, nprobe=2
+average recall: 0.87335
+average latency (us): 287.83838
+wall latency including setup (us): 487.87205
+base/index copy or build (ms): 239.17265
+query copy (ms): 2.32448
+score/probe compute (ms): 7.59878
+topk/search compute (ms): 559.25549
+result copy (ms): 6.49792
+load data ..\files\DEEP100K.query.fbin
+dimension: 96  number:10000  size_per_element:4
+load data ..\files\DEEP100K.gt.query.100k.top100.bin
+dimension: 100  number:10000  size_per_element:4
+load data ..\files\DEEP100K.base.100k.fbin
+dimension: 96  number:100000  size_per_element:4
+==== rep=3 mode=ivf_grouped 2000 16 2 ====
+gpu_ivf_grouped_batch_gemm_topk, device="NVIDIA GeForce RTX 4060 Laptop GPU", query_n=2000, base_n=100000, dim=96, nlist=16, nprobe=2
+average recall: 0.87340
+average latency (us): 101.29380
+wall latency including setup (us): 285.00240
+base/index copy or build (ms): 237.23575
+query copy (ms): 20.59768
+score/probe compute (ms): 57.46701
+topk/search compute (ms): 55.19462
+result copy (ms): 56.32520
+load data ..\files\DEEP100K.query.fbin
+dimension: 96  number:10000  size_per_element:4
+load data ..\files\DEEP100K.gt.query.100k.top100.bin
+dimension: 100  number:10000  size_per_element:4
+load data ..\files\DEEP100K.base.100k.fbin
+dimension: 96  number:100000  size_per_element:4
+==== rep=3 mode=ivf 2000 16 4 ====
+gpu_ivf_batch_topk, device="NVIDIA GeForce RTX 4060 Laptop GPU", query_n=2000, base_n=100000, dim=96, nlist=16, nprobe=4
+average recall: 0.96275
+average latency (us): 450.31647
+wall latency including setup (us): 703.36810
+base/index copy or build (ms): 316.07709
+query copy (ms): 1.85040
+score/probe compute (ms): 3.54906
+topk/search compute (ms): 886.83221
+result copy (ms): 8.40147
+load data ..\files\DEEP100K.query.fbin
+dimension: 96  number:10000  size_per_element:4
+load data ..\files\DEEP100K.gt.query.100k.top100.bin
+dimension: 100  number:10000  size_per_element:4
+load data ..\files\DEEP100K.base.100k.fbin
+dimension: 96  number:100000  size_per_element:4
+==== rep=3 mode=ivf_grouped 2000 16 4 ====
+gpu_ivf_grouped_batch_gemm_topk, device="NVIDIA GeForce RTX 4060 Laptop GPU", query_n=2000, base_n=100000, dim=96, nlist=16, nprobe=4
+average recall: 0.96280
+average latency (us): 110.61490
+wall latency including setup (us): 310.35070
+base/index copy or build (ms): 242.51271
+query copy (ms): 17.71279
+score/probe compute (ms): 83.78331
+topk/search compute (ms): 59.53027
+result copy (ms): 48.66823
+load data ..\files\DEEP100K.query.fbin
+dimension: 96  number:10000  size_per_element:4
+load data ..\files\DEEP100K.gt.query.100k.top100.bin
+dimension: 100  number:10000  size_per_element:4
+load data ..\files\DEEP100K.base.100k.fbin
+dimension: 96  number:100000  size_per_element:4
+==== rep=3 mode=ivf 2000 16 8 ====
+gpu_ivf_batch_topk, device="NVIDIA GeForce RTX 4060 Laptop GPU", query_n=2000, base_n=100000, dim=96, nlist=16, nprobe=8
+average recall: 0.99340
+average latency (us): 767.10059
+wall latency including setup (us): 960.76630
+base/index copy or build (ms): 242.57574
+query copy (ms): 1.46406
+score/probe compute (ms): 6.42509
+topk/search compute (ms): 1520.07788
+result copy (ms): 6.23411
+load data ..\files\DEEP100K.query.fbin
+dimension: 96  number:10000  size_per_element:4
+load data ..\files\DEEP100K.gt.query.100k.top100.bin
+dimension: 100  number:10000  size_per_element:4
+load data ..\files\DEEP100K.base.100k.fbin
+dimension: 96  number:100000  size_per_element:4
+==== rep=3 mode=ivf_grouped 2000 16 8 ====
+gpu_ivf_grouped_batch_gemm_topk, device="NVIDIA GeForce RTX 4060 Laptop GPU", query_n=2000, base_n=100000, dim=96, nlist=16, nprobe=8
+average recall: 0.99345
+average latency (us): 178.87614
+wall latency including setup (us): 364.29635
+base/index copy or build (ms): 243.35356
+query copy (ms): 26.98678
+score/probe compute (ms): 142.87996
+topk/search compute (ms): 87.94524
+result copy (ms): 79.23546
+load data ..\files\DEEP100K.query.fbin
+dimension: 96  number:10000  size_per_element:4
+load data ..\files\DEEP100K.gt.query.100k.top100.bin
+dimension: 100  number:10000  size_per_element:4
+load data ..\files\DEEP100K.base.100k.fbin
+dimension: 96  number:100000  size_per_element:4
