@@ -3,7 +3,8 @@
 % ===========================================================================
 \documentclass[a4paper,11pt,UTF8]{ctexart}
 
-\usepackage[a4paper,left=2.15cm,right=2.15cm,top=2.15cm,bottom=2.15cm]{geometry}
+\usepackage{fontspec}
+\usepackage[a4paper,left=2.28cm,right=2.28cm,top=2.38cm,bottom=2.38cm]{geometry}
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{booktabs}
@@ -11,28 +12,37 @@
 \usepackage{enumitem}
 \usepackage{float}
 \usepackage{graphicx}
-\usepackage[hidelinks]{hyperref}
+\usepackage[pdfpagelabels=false,pageanchor=false]{hyperref}
 \usepackage{listings}
 \usepackage{xcolor}
 \usepackage{array}
 \usepackage{tabularx}
 \usepackage{fancyhdr}
 \usepackage{tikz}
-\usetikzlibrary{arrows.meta,calc,positioning,shapes.geometric}
+\usepackage{pgfplots}
+\usepackage{url}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric}
+\pgfplotsset{compat=1.18}
 
 \graphicspath{{./}{fig/}}
+\hypersetup{colorlinks=true,linkcolor=black,urlcolor=black,citecolor=black}
+\linespread{1.10}
+\renewcommand{\contentsname}{目录}
+\renewcommand{\figurename}{图}
+\renewcommand{\tablename}{表}
+\setcounter{tocdepth}{1}
 \setlength{\parindent}{2em}
 \setlength{\parskip}{2pt}
-\setlength{\textfloatsep}{8pt plus 2pt minus 2pt}
-\setlength{\intextsep}{6pt plus 2pt minus 2pt}
-\setlength{\abovecaptionskip}{4pt}
-\setlength{\belowcaptionskip}{2pt}
-\setlist{leftmargin=1.8em,itemsep=1.5pt,topsep=2pt}
+\setlength{\emergencystretch}{2.5em}
+\setlength{\textfloatsep}{11pt plus 2pt minus 2pt}
+\setlength{\intextsep}{8pt plus 2pt minus 2pt}
+\setlength{\abovecaptionskip}{5pt}
+\setlength{\belowcaptionskip}{3pt}
+\setlist{leftmargin=1.8em,itemsep=2pt,topsep=3pt}
 \captionsetup{font=small,labelsep=quad}
-\renewcommand{\arraystretch}{1.16}
+\renewcommand{\arraystretch}{1.12}
 \newcommand{\code}[1]{\texttt{\detokenize{#1}}}
 \newcolumntype{Y}{>{\raggedright\arraybackslash}X}
-\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
 
 \lstset{
   basicstyle=\ttfamily\footnotesize,
@@ -44,17 +54,27 @@
   breaklines=true,
   showstringspaces=false,
   columns=fullflexible,
-  aboveskip=4pt,
-  belowskip=4pt
+  aboveskip=3pt,
+  belowskip=3pt
 }
+\renewcommand{\lstlistingname}{算法}
+\renewcommand{\lstlistlistingname}{算法清单}
 
 \pagestyle{fancy}
 \fancyhf{}
 \lhead{\kaishu ANN 综合并行化实验}
-\rhead{\kaishu SIMD / 多核 / MPI / GPU}
+\rhead{\kaishu AVX2 / 多核 / MPI / CUDA}
 \cfoot{\thepage}
 \setlength{\headheight}{14pt}
 \renewcommand{\headrulewidth}{0.1pt}
+
+\newcommand{\maybeincludegraphics}[2][]{%
+  \IfFileExists{#2}{\includegraphics[#1]{#2}}{%
+    \IfFileExists{fig/#2}{\includegraphics[#1]{fig/#2}}{%
+      \fbox{\parbox{0.82\linewidth}{\centering 缺少图像文件：\code{#2}}}%
+    }%
+  }%
+}
 
 \begin{document}
 
@@ -66,741 +86,957 @@
     {\huge\kaishu 并行程序设计期末综合实验报告\par}
     \vspace{1.45cm}
     {\Huge\kaishu ANN 近似最近邻搜索\par}
-    \vspace{0.45cm}
-    {\LARGE\kaishu SIMD、多核、MPI 与 GPU 架构上的综合并行化实验\par}
-    \vspace{1.0cm}
-    {\Large\kaishu 进阶选题：Approximate Nearest Neighbor Search\par}
-    \vspace{0.18cm}
-    {\Large\kaishu 新增内容：自适应 IVF-PQ 查询预算、难度分层、grouped-order 迁移验证与跨架构瓶颈归因\par}
+    \vspace{1.25cm}
     \vfill
     {\LARGE\kaishu 姓名：柯云超\par}
     \vspace{0.35cm}
     {\LARGE\kaishu 学号：2413575\par}
     \vspace{0.35cm}
     {\LARGE\kaishu 专业：计算机科学与技术\par}
-    \vspace{0.35cm}
-    {\Large\kaishu GitHub 仓库：\href{https://github.com/kyc001/parallel}{\texttt{https://github.com/kyc001/parallel}}\par}
     \vfill
-    {\Large 2026 年 6 月 30 日\par}
+    {\Large 2026 年 7 月\par}
   \end{center}
 \end{titlepage}
 
 \tableofcontents
 \clearpage
 
-% ===========================================================================
 \section*{摘要}
 \addcontentsline{toc}{section}{摘要}
-% ===========================================================================
 
-选这个进阶选题是因为 ANN 问题的结构特别适合把这学期学到的东西串起来——不只是"各种架构都能加速"，而是每种架构解决的是同一个搜索问题里不同位置的瓶颈。做完所有实验之后，让我印象最深的一条结论是：\textbf{ANN 优化的本质是一条瓶颈迁移链}。当你用 SIMD 把距离计算压下去，带宽墙就显现；当你加了量化减少访存，查表和候选维护就变得可见；当你上了多核并行，图搜索里的锁和尾部任务就开始拖后腿；当你上了 GPU，Top-$k$ 合并突然就变成了和矩阵乘同量级的瓶颈。这条迁移链贯穿本文的全部分析。
+近似最近邻搜索（ANNS）旨在高维向量集合中以较低查询延迟返回足够接近精确最近邻的结果，通常使用 latency 与 recall@k 同时评价。本文以 DEEP100K\cite{babenko2016deep}（$N=100000,d=96$）为数据集，围绕同一查询流水线组织实验：先抽象出距离计算降本与访问点数削减两类优化，再分析 AVX2、Pthread/OpenMP、MS-MPI 与 CUDA/cuBLAS\cite{nvidia-cublas} 在这两类优化上的适配关系，最后用 Latency-Recall 曲线、Roofline\cite{williams2009roofline} 与 profile 证据解释性能差异。
 
-具体实验覆盖了 SIMD 侧的 Flat/SQ/PQ/FastScan（分别在 i9-13900H AVX2 和鲲鹏 AArch64 NEON 上），多核侧的 Pthread/OpenMP、inter/intra 粒度、IVF/IVF-PQ/HNSW、调度和虚假共享，MPI 侧的 IVF-PQ、block-HNSW、IVF+HNSW、HNSW-on-HNSW 以及阻塞/非阻塞通信，GPU 侧的 batch GEMM、cuBLAS、设备端树形 Top-$k$ 和 grouped-IVF。期末新增实验实现了一个查询难度感知的自适应 IVF-PQ 驱动（\code{adaptive_ivfpq.cc}），验证了固定参数之间存在可利用的 query 难度差异，同时把 GPU grouped-IVF 的分组思想迁移回 CPU，发现单独分组反而变慢，只有与自适应预算结合才能降低延迟——这个"不能直接照搬"的结论本身就是一个跨架构融合实验应当有的认知。
+实验内容包括 Flat-AVX2、SQ/PQ/FastScan、IVF/IVF-PQ、HNSW、MPI 候选协议、GPU GEMM/设备端 Top-$k$，并进一步考察预算自适应 IVF-PQ、OPQ/IVF-OPQ、Roofline/profile 瓶颈分析和 GPU 粗排-CPU AVX2 精排实验。代表性结果显示，Flat-AVX2 将串行 Flat 从 4571.62 us/query 降至 1756.11 us/query，多核 IVF-PQ 在 Recall@10=0.95945 时达到 57.61 us/query，GPU cublas\_tree 在 Recall@10=0.99995 时达到 78.68 us/query。预算自适应 IVF-PQ 在同一实现内将固定 $(nprobe,p)=(4,1000)$ 的 Recall@10 从 0.95945 提升到 0.96520，并将 latency 从 229.06 us 降至 186.54 us；OPQ 在 $M=8,p=1500$ 下将 PQ 的 Recall@100 从 0.95939 提升到 0.97316；异构实验则表明，若完整得分矩阵回传主机，CPU 精排收益会被 D2H 与候选选择开销抵消，跨设备协同必须先在设备端压缩候选。
 
-代表性数字：SQ-AVX2（$p=100$）在 Recall@10 = 0.99995 时达到 427.01 us/query，相对串行 Flat 加速 10.71 倍；IVF-PQ Pthread 线程池 16 线程达到 57.61 us/query，Recall@10 = 0.95945；MPI block-HNSW 8 ranks 在 Windows 上达到 188.03 us/query 且 Recall@10 = 1.00000；GPU cublas\_tree 全量批量扫描达到 83.24 us/query，Recall@10 = 0.99995；期末新增 conservative+grouped 配置在 8 线程下达到 186.54 us/query，Recall@10 = 0.96520。
+\noindent\textbf{关键词：} ANN；SIMD；Pthread/OpenMP；MPI；CUDA；PQ；OPQ；HNSW；Roofline；异构协同
 
-% ===========================================================================
-\section{选题动机与工作边界}
-% ===========================================================================
+\section{引言}
 
-\subsection{为什么选 ANN 进阶选题}
+\subsection{问题背景与评价目标}
 
-做前四次实验的时候，SIMD、多核、MPI 和 GPU 各自有一套评价框架，看起来是独立的问题。选 ANN 进阶选题的原因，就是想逼自己把这些架构放在同一个问题里看——到底是哪个环节决定了端到端性能，换一种并行方式能解决前一种方式遗留的瓶颈，还是会引入新的问题？
+最近邻搜索（NNS）的目标是在高维空间中识别与查询向量最接近的向量。图像、文本、音频等非结构化数据通常可以被深度学习模型转换为高维向量，并在向量距离上保留一定语义相似性，因此向量检索广泛出现在推荐系统、搜索引擎和大模型相关应用中。随着底库规模和向量维度增加，精确扫描的计算复杂度过高，近似最近邻搜索（ANNS）转而在保持较高准确率的同时降低查询时间。
 
-当然，进阶选题要求也明确说了"不是做的内容越多越好，每个内容浅尝辄止不会得到高分"。我理解这个意思是：应该对同一个问题有足够深度的探索，而不是把四次作业的结论剪贴到一起。因此本文的组织原则是：以 ANN 系统的在线查询流水线为主线，把不同架构的优化映射到同一组代价项上，分析它们分别在压低哪一项、引入了哪些新问题，再把期末新增实验放在"前序工作自然延伸"的位置，而不是单独一章硬凑"新内容"。
+给定 $d$ 维底库 $X=\{x_i\}_{i=1}^{N}\subset\mathbb{R}^{d}$、查询向量 $q\in\mathbb{R}^{d}$ 和距离函数 $\delta(x,y)$，精确 kNNS 需要返回集合 $S$，满足 $|S|=k,S\subseteq X$，且任意 $x\in S,y\notin S$ 都有 $\delta(x,q)<\delta(y,q)$。ANNS 不要求返回集合完全等于精确 top-$k$，而是用召回率衡量近似结果与精确结果的重合程度。DEEP100K\cite{babenko2016deep} 的向量维度为 96，实验框架采用内积距离
+\[
+  \delta(x,q)=1-\sum_{j=1}^{96}x_j q_j .
+\]
+精确 Flat 搜索需要扫描全部 $N$ 个向量，计算量与访存量均随 $N d$ 线性增长。本文统一使用 Recall@10/Recall@100、单查询 latency、QPS 与相对串行 Flat 的 speedup 作为指标；比较加速比时，优先在相近 recall 水平下比较 latency。
 
-\subsection{平时作业与新增内容声明}
+ANNS 的优化可以分为两个方面：一是加快 $\delta(x,y)$ 的计算速度，二是减少每个 query 需要访问的底库点数。SIMD 主要降低单次距离计算的常数；多核和 MPI 通过查询、簇或底库分片扩大并行粒度；GPU 将大批量查询转化为矩阵乘以提高吞吐；IVF\cite{sivic2003ivf}、HNSW\cite{malkov2018hnsw} 与 PQ\cite{jegou2011pq} 则从算法层面减少候选数量或压缩候选表示。只有将这些手段放入同一个代价模型，才能解释为何某些优化在一个架构上有效、在另一个架构上收益有限。
 
-按作业要求，新增内容需要超过 20\% 并明确标注。表 \ref{tab:old_new_work} 列出了工作来源。
+\subsection{实验设计}
+
+实验分为两组。第一组包括 Flat、SQ、PQ/FastScan\cite{andre2017fastscan}、IVF/IVF-PQ、HNSW、MPI 候选协议以及 GPU GEMM/IVF grouped\cite{johnson2021faiss} 等基础路径，用来比较指令级、线程级、进程级和设备级并行的不同作用；第二组围绕预算自适应 IVF-PQ、OPQ/IVF-OPQ\cite{ge2013opq}、GPU 粗排-CPU AVX2 精排和 Roofline/profile 分析展开，用来观察 query 难度、量化误差、候选压缩位置与跨设备数据边界对系统性能的影响。两组实验共同服务于同一问题：在固定数据集和评价指标下，判断不同并行后端分别压低哪一类代价，又把新的瓶颈推向何处。
+
+性能评测以同一台 i9-13900H + NVIDIA GPU 为主要平台。同平台测量点进入横向比较；非同平台或跨 ISA 结果仅作为旁证，不承担主结论。提交口径仍保持原始框架的输出约定，以 average recall 与 average latency 作为可核查指标。
+
+\subsection{查询流水线上的实验分组}
+
+围绕 ANN 查询流水线，本文把实验分成四类。第一类是\textbf{距离计算内核}，包括 Flat-AVX2、SQ、PQ 与 FastScan，用于回答“同一距离函数如何降低单点计算常数”。第二类是\textbf{访问点削减与调度}，包括 IVF、IVF-PQ、HNSW 及其分布式变体，用于回答“候选空间减少后，线程、进程和 rank 如何分工”。第三类是\textbf{批量矩阵化}，包括 GEMM、cuBLAS、设备端 Top-$k$ 与 grouped-IVF，用于回答“GPU 何时能把 ANN 查询转化为高吞吐矩阵计算”。第四类是\textbf{进一步实验}，包括预算自适应 IVF-PQ、OPQ/IVF-OPQ 与 GPU-CPU 异构协同，用于检验 query 难度差异、量化误差和设备边界这几个更接近系统层面的因素。
+
+因此，报告的组织顺序不是 SIMD、多核、MPI、GPU 的简单排列，而是先给出查询流水线和代价模型，再分别讨论距离计算、候选削减、GPU/异构路径，最后用横向评测和 Roofline 解释不同架构的主导代价变化。这样的结构使各类测量点都能落在同一系统模型中，而不是彼此独立的实验片段。
+
+\subsection{平台与测量协议}
+
+表 \ref{tab:env} 给出实验环境与计时口径。CPU 侧使用 13th Gen Intel Core i9-13900H，物理核心数 14、逻辑线程数 20，编译选项固定为 \code{-O3 -mavx2 -mfma -fopenmp}；GPU 侧使用 NVIDIA GeForce RTX 4060 Laptop GPU，显存 8188 MiB，驱动版本 572.83，CUDA 编译器版本为 12.4。横向比较只采用与当前数据集、距离函数和计时定义一致的代表测量点。
+
+数据读取与输出口径沿用实验框架。底库文件为 \code{DEEP100K.base.100k.fbin}，查询文件为 \code{DEEP100K.query.fbin}，ground truth 文件为 \code{DEEP100K.gt.query.100k.top100.bin}；\code{base} 与 \code{test_query} 均为连续 float 数组，每 96 个 float 表示一个向量。搜索函数只使用 base 与 query，ground truth 仅用于评估 recall，不参与候选生成。代表性提交实现保持替换 \code{flat_search} 调用的接口习惯，返回值格式与原框架一致；辅助文件保持 header-only 形式，输出仍以 average recall 与 average latency 为主。
 
 \begin{table}[H]
   \centering\footnotesize
-  \begin{tabularx}{\textwidth}{p{2.6cm}Y Y}
+  \begin{tabularx}{\textwidth}{p{3.0cm}Y}
     \toprule
-    模块 & 平时作业工作 & 期末新增内容 \\
+    项目 & 配置与口径 \\
     \midrule
-    问题建模 & 各次实验分别使用 DEEP100K、Recall@10、平均延迟，但没有把四类架构放到统一代价模型下比较。 & 统一在线查询代价分解 $T=T_{\mathrm{score}}+T_{\mathrm{candidate}}+T_{\mathrm{topk}}+T_{\mathrm{sync}}+T_{\mathrm{transfer}}$，图 \ref{fig:ann_pipeline} 的系统流水线，以及各架构分别"主要压哪一项"的系统性分析。 \\
-    SIMD & Flat/SQ/PQ/FastScan 实现与对比，AVX2 与 NEON 两平台 VTune 证据，汇编分析。 & 将 SIMD 重新定位到"距离计算与量化压缩"环节，解释从 DRAM-bound 到 compute/LUT-bound 的瓶颈迁移，与后续架构的候选规模和调度策略打通。 \\
-    Pthread/OpenMP & inter/intra 粒度、多种调度策略、IVF/IVF-PQ/HNSW、虚假共享和 P/E-core 亲和性实验。 & 抽象出"查询级并行优先"的多核设计原则，并与期末自适应预算的 8 线程驱动实验衔接。 \\
-    MPI & IVF-PQ、block-HNSW 等多算法分布式搜索，参数扫描，阻塞/非阻塞通信，跨平台结果。 & 系统解释固定长度候选协议的正确性证明，通信占比归因，以及"当前主瓶颈是 rank-local 搜索而非通信"的量化说明。 \\
-    GPU & batch GEMM、cuBLAS、树形 Top-$k$、grouped-IVF、CUDA event 分段、cuobjdump/PTX/SASS 静态分析。 & 将 GPU 结果放回"batch + 规则矩阵 + 设备端合并"的统一模型，并以 grouped-IVF 思想迁移 CPU 实验作为期末新增研究的动机。 \\
-    期末新增 & 无前序对应。 & \code{adaptive_ivfpq.cc}：固定/自适应预算$\times$分组/原始顺序$\times$动态/静态调度的 12 配置完整对照；hard/medium/easy 难度分层统计；跨架构迁移结论。 \\
-    综合分析 & 各次作业单独给结论。 & 跨架构代表性结果表，profiling 证据到优化决策的映射，以及"瓶颈迁移链"的统一解释。 \\
+    数据集 & DEEP100K，base 数 $100000$，query 取前 $2000$ 条，维度 $d=96$，ground truth 为 top100。\\
+    CPU 平台 & 13th Gen Intel Core i9-13900H，14 cores / 20 threads，AVX2/FMA。\\
+    GPU 平台 & NVIDIA GeForce RTX 4060 Laptop GPU，8188 MiB，driver 572.83，CUDA 12.4。\\
+    编译工具 & MSYS2 g++ 14.2.0；CUDA 12.4 与 cuBLAS。\\
+    框架口径 & base/query 为连续 float 数组，每 96 个 float 表示一个向量；ground truth 只用于 recall 评估。\\
+    输出口径 & 搜索函数替换 \code{flat_search} 调用，返回 top-$k$ id；输出 average recall 与 average latency。\\
+    计时口径 & OPQ 表中 latency 采用 warmup 后 3 次重复的 scan+rerank 中位数；train/build/rotation 单独列出，不并入在线搜索延迟。GPU 异构实验输出 H2D、GEMM、D2H、候选选择与 CPU rerank 分项。\\
+    测量范围 & 横向比较采用与 DEEP100K、IP 距离和在线 latency 定义一致的代表测量点；OPQ/IVF-OPQ、GPU-CPU 异构与瓶颈分析保留分项结果。\\
     \bottomrule
   \end{tabularx}
-  \caption{平时作业工作与期末新增内容划分}
-  \label{tab:old_new_work}
+  \caption{实验平台与测量口径}
+  \label{tab:env}
 \end{table}
 
-新增内容不只是字数意义上的"20\%"。从研究贡献角度看，期末新增实验补充了一类前序作业没有回答的问题：\textit{在固定架构（Pthread IVF-PQ）之内，用 query 难度感知的方式重新分配搜索预算，是否能同时改善 recall 和延迟？当 GPU 的分组组织思想被搬回 CPU 时，哪些条件让它有效、哪些条件让它失效？} 这两个问题的答案不能从前序实验直接推导，需要新的 benchmark。
+进一步实验采用固定参数组和分项计时口径。预算自适应 IVF-PQ 固定 $nlist=16$，以 query 到最近两个 coarse centroid 的 margin 划分 easy/medium/hard 三类 query，并在 $(nprobe,p)$ 上分配不同预算；OPQ 主实验扫描 $M=8$、$nprobe\in\{2,4,8\}$ 与 $p\in\{500,1000,1500\}$，随后补充 $M\in\{12,16\}$ 的窄扫参，用于验证旋转量化在不同子空间粒度下的趋势。异构实验扫描 $query\_n\in\{1,128,512,2000\}$ 与 $p\in\{100,300,500,1000\}$。早期单次测试结果不进入正文结论。
 
-% ===========================================================================
-\section{ANN 问题：高维搜索的核心困难}
-% ===========================================================================
+\section{ANNS 查询流水线与代价模型}
 
-\subsection{问题定义与评价指标}
+\subsection{离线建索引、在线查询与评估}
 
-给定 $N$ 个 $d$ 维 base 向量
+ANN 系统可分为三个阶段。离线阶段完成数据预处理与索引构建，包括 SQ/PQ 码本训练、IVF 聚类、HNSW 图构建以及 GPU 侧必要的数据重排。在线阶段对每个 query 进行候选生成、距离估计、候选维护和可选精排。评估阶段将返回结果与 ground truth 比较，计算 Recall@K 并统计延迟。
+
+离线阶段的成本不进入单查询 latency，但需要在报告中保留，因为它决定算法是否适合在线更新场景。Flat 与 SQ 的离线成本很低，主要是数据布局转换；PQ、OPQ 和 IVF-PQ 需要 KMeans 或旋转矩阵训练，适合底库相对稳定的批量检索；HNSW 图构建更重，但在线访问点数较少；GPU 版本还需要在设备侧形成连续 base 矩阵或 IVF list 布局。在线阶段只统计完成一次查询或一个 query batch 的搜索代价，GPU 结果同时保留 CUDA event 的 online time 和包含主机端准备的 wall time。
+
+召回率采用 ground truth 文件计算。返回集合为 $R_i$，ground truth 的前 $K$ 个 id 为 $G_i^K$，则
 \[
-X=\{x_1,x_2,\ldots,x_N\}\subset \mathbb{R}^{d},
+  \mathrm{Recall@}K=\frac{1}{Q}\sum_{i=1}^{Q}\frac{|R_i^K\cap G_i^K|}{K}.
 \]
-以及查询向量 $q\in\mathbb{R}^{d}$，精确 $k$NN 的目标是找出 $X$ 中距离 $q$ 最近的 $k$ 个向量。实验使用 DEEP100K 数据集：$N=100000$，$d=96$，查询数 $Q=2000$，$k=10$。评价指标统一为
-\[
-\mathrm{Recall@10}=\frac{|KNN(q)\cap KANN(q)|}{10}
-\]
-和每查询平均延迟（us/query）。GPU 实验额外区分 online 延迟和 wall 延迟（含显存拷贝和索引构建）。
-
-这里有一个值得先讲清楚的事：Recall@10 和延迟之间永远存在折中，但它的\textbf{形状}取决于你用的是哪类算法。Flat 精确扫描在 Recall@10 = 1.0 的同时代价最高；IVF 类算法通过控制 $nprobe$ 可以在低召回和高召回之间移动，代价曲线更陡；HNSW 的曲线形状不同，在中等 \code{efSearch} 下很容易达到高 recall，再往上提升则代价急剧攀升。整个学期的实验都在探索这条 recall-latency 曲线：能不能在同样的 recall 下用更快的实现，或者在同样的延迟下获得更高的 recall。
-
-\subsection{一次查询的代价分解}
-
-为了能把四类架构放在同一个框架里讨论，我把一次在线查询的耗时分解成：
-\[
-T(q)=T_{\mathrm{score}}(q)+T_{\mathrm{candidate}}(q)+T_{\mathrm{topk}}(q)+T_{\mathrm{sync}}(q)+T_{\mathrm{transfer}}(q).
-\]
-$T_{\mathrm{score}}$ 是计算向量距离或得分的成本；$T_{\mathrm{candidate}}$ 是通过索引（IVF probe、PQ ADC、HNSW 图扩展）生成候选集的成本；$T_{\mathrm{topk}}$ 是从候选集中维护和提取最终 Top-$k$ 的成本；$T_{\mathrm{sync}}$ 是线程同步、MPI gather/merge 和负载尾部等同步代价；$T_{\mathrm{transfer}}$ 仅在 GPU 或 MPI 路径存在显式数据移动时计入。
-
-这个分解的价值不在于公式本身，而在于用它问具体问题：SIMD 向量化主要压低了哪一项？多核 inter-query 并行摊薄的是哪一项的固定成本？MPI 通信到底占 $T(q)$ 的多少比例？GPU Top-$k$ 没有优化时，压低 $T_{\mathrm{score}}$ 会怎样？后文的每一组分析都会回到这个分解。
-
-\subsection{四类加速杠杆与系统流水线}
-
-整学期实验可以归纳出四类加速杠杆：
-\begin{enumerate}
-  \item \textbf{更快的距离计算}：压低 $T_{\mathrm{score}}$ 的常数，包括 Flat-SIMD、SQ/PQ/FastScan 以及 CUDA GEMM。
-  \item \textbf{更少的候选访问}：通过 IVF、HNSW 等索引改变 $T_{\mathrm{candidate}}$ 的规模，从 $O(N)$ 降到更小的 $O(nprobe \cdot N/nlist)$ 或图扩展量。
-  \item \textbf{更多查询同时处理}：摊薄 $T_{\mathrm{sync}}$ 和调度固定成本，包括 inter-query 多核、GPU batch 和 MPI rank-local 并行。
-  \item \textbf{更高效的合并调度}：降低 $T_{\mathrm{topk}}+T_{\mathrm{sync}}$，包括线程私有堆、MPI 固定长度候选协议和 GPU 设备端树形 Top-$k$。
-\end{enumerate}
-
-图 \ref{fig:ann_pipeline} 展示了这些杠杆在 ANN 系统流水线中的位置。不同架构在同一条流水线上的切入点不同——这也是为什么它们能互相补充而不是互相替代。
+本文保留 Recall@10 与 Recall@100 两个口径。Recall@10 与原始输出格式一致，便于统一校验；Recall@100 更适合观察 PQ/OPQ 粗排加 rerank 的候选覆盖能力。OPQ 与异构实验均在最终 rerank 阶段使用原始 float 向量计算内积距离，因此召回变化主要反映候选生成质量，而不是最终距离函数改变。
 
 \begin{figure}[H]
   \centering
-\resizebox{\textwidth}{!}{%
+  \resizebox{\textwidth}{!}{%
   \begin{tikzpicture}[
     node distance=0.75cm,
-    box/.style={draw=black!55, rounded corners=2pt, align=center, minimum height=0.82cm, font=\small, fill=blue!5},
+    box/.style={draw=black!55, rounded corners=2pt, align=center, minimum height=0.78cm, font=\small, fill=blue!5},
     opt/.style={draw=black!45, rounded corners=2pt, align=center, font=\scriptsize, fill=orange!10},
     arr/.style={-{Latex[length=2.2mm]}, thick, draw=black!65}
   ]
-    \node[box, minimum width=2.3cm] (data) {Base 向量\\DEEP100K};
-    \node[box, right=of data, minimum width=2.45cm] (offline) {离线索引\\SQ/PQ/IVF/HNSW};
-    \node[box, right=of offline, minimum width=2.35cm] (query) {在线查询\\batch / stream};
-    \node[box, right=of query, minimum width=2.65cm] (score) {距离或得分\\SIMD / GEMM};
-    \node[box, right=of score, minimum width=2.5cm] (cand) {候选集\\probe / graph};
-    \node[box, right=of cand, minimum width=2.2cm] (topk) {Top-$k$\\merge};
-    \node[box, right=of topk, minimum width=2.2cm] (eval) {Recall@10\\latency};
+    \node[box, minimum width=2.1cm] (data) {Base 向量\\DEEP100K};
+    \node[box, right=of data, minimum width=2.35cm] (offline) {离线索引\\PQ / IVF / HNSW};
+    \node[box, right=of offline, minimum width=2.1cm] (query) {Query\\batch / single};
+    \node[box, right=of query, minimum width=2.55cm] (score) {距离计算\\AVX2 / GEMM};
+    \node[box, right=of score, minimum width=2.4cm] (cand) {候选生成\\probe / graph};
+    \node[box, right=of cand, minimum width=2.0cm] (topk) {Top-$k$\\merge};
+    \node[box, right=of topk, minimum width=2.1cm] (eval) {Recall\\Latency};
     \draw[arr] (data) -- (offline);
     \draw[arr] (offline) -- (query);
     \draw[arr] (query) -- (score);
     \draw[arr] (score) -- (cand);
     \draw[arr] (cand) -- (topk);
     \draw[arr] (topk) -- (eval);
-    \node[opt, below=0.6cm of score, xshift=-1.0cm] (simd) {SIMD\\向量化距离};
-    \node[opt, below=0.6cm of cand] (mc) {Pthread/OpenMP\\query 或候选并行};
-    \node[opt, below=0.6cm of topk] (mpi) {MPI\\局部分区 + 全局合并};
-    \node[opt, below=0.6cm of query, xshift=1.0cm] (gpu) {GPU\\batch GEMM + device Top-$k$};
+    \node[opt, below=0.58cm of score] (simd) {AVX2 / SQ / PQ\\降低距离成本};
+    \node[opt, below=0.58cm of cand] (idx) {IVF / HNSW\\减少访问点};
+    \node[opt, below=0.58cm of topk] (mpi) {MPI / GPU Top-$k$\\合并与同步};
     \draw[arr, dashed] (simd) -- (score);
-    \draw[arr, dashed] (mc) -- (cand);
+    \draw[arr, dashed] (idx) -- (cand);
     \draw[arr, dashed] (mpi) -- (topk);
-    \draw[arr, dashed] (gpu) -- (score);
-  \end{tikzpicture}
-}
-  \caption{ANN 综合并行化流水线与不同架构的主要切入点}
-  \label{fig:ann_pipeline}
+  \end{tikzpicture}}
+  \caption{ANN 查询流水线与不同优化手段的作用位置}
+  \label{fig:pipeline}
 \end{figure}
 
-有一个容易犯的错误需要在这里提前说明：不同架构的优化并不都是独立叠加的。如果 $T_{\mathrm{score}}$ 已经被 SIMD 压到很低，继续加 SIMD 指令的回报递减；如果 $T_{\mathrm{topk}}$ 成为主瓶颈，优化 $T_{\mathrm{score}}$ 几乎没有帮助。所以判断"下一步该优化哪里"必须靠实际 profiling，而不是凭直觉。这也是本文把 profiling 结果单独作为一个分析层次的原因。
+\subsection{端到端代价模型}
 
-% ===========================================================================
-\section{SIMD 实验：第一次碰到内存墙}
-% ===========================================================================
+为进行瓶颈归因，一次在线查询的端到端延迟可近似分解为
+\[
+T_{\mathrm{online}}(q)\approx
+T_{\mathrm{score}}(q)+T_{\mathrm{candidate}}(q)+T_{\mathrm{topk}}(q)+
+T_{\mathrm{sync}}(q)+T_{\mathrm{transfer}}(q) .
+\]
+$T_{\mathrm{score}}$ 对应向量内积或查表累加；$T_{\mathrm{candidate}}$ 对应 IVF probe、HNSW 图扩展或 PQ 粗排；$T_{\mathrm{topk}}$ 对应候选维护与最终合并；$T_{\mathrm{sync}}$ 对应线程、rank 或设备端同步；$T_{\mathrm{transfer}}$ 对应 MPI 消息或 CPU-GPU 数据搬运。该式不是严格的运行时恒等式：在单机 CPU 实现中 $T_{\mathrm{transfer}}$ 可近似为 0，在 GPU stream 或流水线实现中不同阶段可能重叠；本文只用它标记主要代价来源与临界路径上的瓶颈。四类架构的区别并非是否“并行”，而是主要压低哪一项、又放大哪一项。
 
-\subsection{从 Flat-AVX2 开始：向量化加速了什么}
+该模型也解释了为什么代表测量点可以放到同一坐标系中比较。只要数据集、距离函数和 latency 定义保持一致，不同实现下的单点结果可以视作同一代价函数的观测值。另一方面，不能只比较 speedup：如果一个算法通过降低 Recall 换取低延迟，其系统意义必须放在 Latency-Recall 曲线上判断；如果 GPU 方案在线延迟很低但 wall time 很高，则需要拆分 $T_{\mathrm{transfer}}$ 和一次性 setup，而不能只报一个平均数。
 
-做 SIMD 实验之前，我以为把 Flat 的内积循环从标量改成 AVX2 就能得到接近理论峰值的加速——毕竟一条 \code{_mm256_dp_ps} 一次能处理 8 个 float，理论上应该有 8 倍提速。实际结果是 Flat-AVX2 在 i9-13900H 上相对串行 Flat 只有 2.60x 加速（4571.62 → 1756.11 us/query）。
+该模型还给出了报告组织顺序的理由。SIMD、SQ/PQ 和 GPU GEMM 主要作用于 $T_{\mathrm{score}}$；IVF、HNSW、OPQ 和 rerank 候选预算主要改变 $T_{\mathrm{candidate}}$；多核局部堆、MPI root merge 和 GPU 设备端归并主要进入 $T_{\mathrm{topk}}$；Pthread/OpenMP schedule、rank 等待和 kernel 内同步对应 $T_{\mathrm{sync}}$；MPI 消息、H2D/D2H 和 score 矩阵回传对应 $T_{\mathrm{transfer}}$。一项优化若只压低其中一项，但显著放大另一项，端到端效果就可能不理想。GPU-CPU 异构实验正是这种情况：GEMM 使 $T_{\mathrm{score}}$ 很低，但完整 score D2H 与主机端候选选择使 $T_{\mathrm{transfer}}$ 和 $T_{\mathrm{topk}}$ 急剧上升。
 
-用 VTune Top-Down 分析 Flat-AVX2 的 P-core 热循环，Back-End Bound 达到 71.4\%，其中 Memory Bound 占 47.7\%。这说明循环里的向量化乘加指令并不慢，真正的瓶颈是把 $N=100000$ 个 96 维 float32 向量从内存读进来——无论 AVX2 多快，数据总线的吞吐上限决定了最终速度。Flat 精确扫描在计算上是"容易的"，在访存上却是固定代价的，这个认知贯穿了后续所有量化实验。
-
-\subsection{量化的意义：换数据表示，不只是换指令}
-
-为了真正压下延迟，我实现了标量量化（SQ）和乘积量化（PQ）两类两阶段方案：
-
-\textbf{SQ 两阶段}：把每维 float32 量化为 uint8，粗排阶段在压缩表示上算近似距离，筛出 top-$p$ 后回到原始 float32 精排。粗排数据体积降至 1/4，但关键是访问的字节数也降至 1/4，这才是带宽压力下降的原因。VTune 显示 SQ 的 Memory Bound 从 47.7\% 降到了约 8.7\%，同时 Retiring 占比上升——说明计算通路开始变成主限制。
-
-\textbf{PQ 两阶段}：把 96 维向量分成 $M$ 个子空间，每个子空间在线为当前 query 构建 LUT，通过 ADC（Asymmetric Distance Computation）累加近似距离。PQ 进一步压缩了粗排的数据体积，但引入了查表开销。
-
-核心参数是精排预算 $p$：$p$ 越小，延迟越低但可能漏掉真实近邻；$p$ 越大，召回率趋近于 Flat，但精排代价回升。从表 \ref{tab:simd_results} 可以看出，SQ-AVX2 在 $p=100$ 时以 Recall@10 = 0.99995 达到 427.01 us/query，加速比从纯向量化的 2.60x 一跃到 10.71x。这 10x+ 的提升中，"用 AVX2 算得更快"只贡献了其中一部分，更大的贡献来自"用压缩表示读的字节数更少"。
+在该模型下，Recall 不是额外附属指标，而是候选生成项的质量约束。IVF 减少访问点时可能漏掉真实近邻，PQ 压缩距离时可能改变候选排序，HNSW 的图扩展预算也会影响覆盖率。因此，各个低延迟点都必须同时报告 Recall；仅当 Recall 接近时，比较 latency 或 speedup 才具有工程意义。这也是本报告把主图设置为 Latency-Recall trade-off，而不是只给四架构加速比柱状图的原因。
 
 \begin{table}[H]
   \centering\footnotesize
-  \begin{tabular}{llrrr}
+  \begin{tabularx}{\textwidth}{p{2.7cm}p{3.7cm}Y}
     \toprule
-    平台 & 方法 & Recall@10 & Latency (us) & 相对 baseline \\
+    代价项 & 主要影响方法 & 典型主导代价变化 \\
     \midrule
-    i9 AVX2 & 串行 Flat & 0.99995 & 4571.62 & 1.00x \\
-    i9 AVX2 & Flat-AVX2 & 0.99995 & 1756.11 & 2.60x \\
-    i9 AVX2 & SQ-AVX2, $p=100$ & 0.99995 & 427.01 & 10.71x \\
-    i9 AVX2 & PQ-AVX2, $p=1000$ & 0.98330 & 761.99 & 6.00x \\
-    Kunpeng NEON & 串行 Flat & 0.99995 & 16120.74 & 1.00x \\
-    Kunpeng NEON & Flat-SIMD & 0.99995 & 5821.16 & 2.77x \\
-    Kunpeng NEON & SQ-SIMD, $p=100$ & 0.99995 & 2422.68 & 6.65x \\
-    Kunpeng NEON & PQ-SIMD, $p=1000$ & 0.98355 & 1984.35 & 8.12x \\
-    \bottomrule
-  \end{tabular}
-  \caption{SIMD 核心结果（i9-13900H AVX2 与鲲鹏 NEON）}
-  \label{tab:simd_results}
-\end{table}
-
-鲲鹏 NEON 的趋势与 i9 AVX2 高度一致：Flat-SIMD 只有 2.77x，SQ/PQ 后提升到 6--8x。鲲鹏的绝对延迟更高，部分原因是 NEON 宽度为 128-bit 而 AVX2 为 256-bit，另一部分原因是内存总线吞吐不同。但两平台都能说明同一个事实：SIMD 向量化的作用不能脱离"被处理数据的表示"单独评估。
-
-\subsection{FastScan：把查表搬进寄存器}
-
-FastScan 是 PQ 路线的进一步优化。标准 PQ ADC 的内层循环对每个子空间做 LUT 查表，查表结果写到内存再累加；FastScan 使用 4-bit code（$K_s=16$），把 16 个距离值压进一个小整数 LUT，利用 AVX2 的 \code{_mm256_shuffle_epi8} 在寄存器内完成查表，同时批量处理 32 个候选向量。核心思想是：把从 L1/L2 cache 读 LUT 的操作变成"LUT 住在 256-bit 寄存器里"。
-
-图 \ref{fig:simd_fastscan_tradeoff} 展示了 FastScan 相对标准 PQ 在不同精排预算下的 recall-latency 折中。可以看到当 $p$ 较小（粗排主导时），FastScan 的优势更明显；随着 $p$ 增大，精排的 float32 计算开始主导，FastScan 在 ADC 阶段的节省比例就相对变小了。这说明 FastScan 的价值不只是"换更快的指令"，而是"在候选规模较小、粗排占比较大时，把查表代价真正压到底"。
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.74\textwidth]{simd_fastscan_tradeoff.png}
-  \caption{FastScan 与标准 PQ 在不同精排预算下的 recall-latency 折中（i9-13900H AVX2 平台）}
-  \label{fig:simd_fastscan_tradeoff}
-\end{figure}
-
-\subsection{SIMD 实验对期末报告的意义}
-
-做完 SIMD 实验，我理解了一件后来在多核、MPI 和 GPU 实验中反复验证的事：\textbf{$p$（精排预算）是 ANN 召回-延迟折中里最通用的旋钮}。无论之后用哪种并行架构，只要基于两阶段检索，都绕不开"粗排筛多少、精排算多少"这个决策。期末新增实验的"自适应预算"正是把这个旋钮从全局固定值变成了 per-query 的动态分配——后文会展开这部分。
-
-SIMD 实验对架构融合的另一个贡献是：理清了"底层计算核"的角色。无论上层是 Pthread/OpenMP、MPI 还是 GPU，真正执行距离计算的仍然是这些 SIMD 内核。多核实验的 inter-query 路径每个线程都在调用同一套 SIMD 计算函数；MPI 每个 rank 内的 local search 也继承了 SIMD 数据布局；GPU 则把这个层换成了 cuBLAS/CUDA kernel。因此本节不是与后文并列的"第几章"，而是整个 ANN 计算栈的基础层。
-
-% ===========================================================================
-\section{多核实验：inter-query 为什么比 intra-query 更稳}
-% ===========================================================================
-
-\subsection{两种并行粒度的设计选择}
-
-进入多核实验时，我面对的第一个设计问题是：任务应该在哪个层次上划分？两种选择都有直觉上的道理：
-
-\textbf{intra-query 并行}：把一条 query 的搜索工作拆给多线程。每个线程处理 base 向量的一段、或若干 IVF list、或 HNSW 的若干入口点，最后合并局部 Top-$k$。优点是单条 query 延迟更低，适合低延迟服务场景；缺点是候选集要合并，需要线程间同步，且 query 内部的候选数量（如 IVF 的 $nprobe$ 个 list）不一定能均匀填满所有线程。
-
-\textbf{inter-query 并行}：不同线程各处理不同 query，每条 query 的内部流程完全独立。批量 $Q$ 个 query 均匀分给 $T$ 个线程，每线程完成 $Q/T$ 条 query 后写到结果数组中预先分配好的槽位。优点是线程间完全无锁（结果槽按 query 预分配）、任务粒度均匀；缺点是对单条 query 的延迟没有帮助，只提高了吞吐。
-
-本次实验以批量 $Q=2000$ 评测，吞吐比单条 query 延迟更重要。事实证明 inter-query 是正确选择，但我在做实验之前并不确定，于是系统地测了 intra-query。
-
-\subsection{intra-query 的实际问题}
-
-以 IVF-PQ（$nlist=16$，$nprobe=4$）为例，整个搜索过程分为"选 $nprobe$ 个最近 centroid、扫描这些 list、对候选精排、维护 Top-$k$"四步。如果用 intra-query 并行，可以把 4 个 list 分给最多 4 个线程；但如果线程数是 16，其中 12 个线程会直接空转。即使 $nprobe$ 增大，候选列表的不均匀性（不同 list 里的向量数可能差很大）也会产生负载尾部，让某个线程严重拖延整体。
-
-从代价模型看，intra-query 的总时间近似为：
-\[
-T_{\mathrm{intra}} \approx \frac{C_{\mathrm{scan}}}{T} + C_{\mathrm{local\ heap}} + C_{\mathrm{merge}} + C_{\mathrm{sync}}.
-\]
-当 $T > nprobe$ 时，$C_{\mathrm{scan}}/T$ 没有继续降低，而 $C_{\mathrm{merge}}$ 和 $C_{\mathrm{sync}}$ 仍然存在，实际延迟反而可能上升。
-
-HNSW 的 intra-query 更加棘手。图搜索有路径依赖——下一步要访问哪个节点，取决于当前最佳候选——这是天然的串行结构。多入口点并行（不同线程从不同入口出发）确实能改善召回率，但它更接近"用更多计算换更高 recall"，而不是"用更多线程提速"。VTune hotspot 也显示 \code{searchBaseLayer} 和 \code{pthread_mutex_lock} 同时出现在热路径上，说明优先队列的锁争用在 intra-query HNSW 场景中不可忽略。
-
-\subsection{inter-query 的稳定性}
-
-相比之下，inter-query 的代价模型要干净得多：
-\[
-T_{\mathrm{inter}} \approx \frac{Q}{T} \cdot C_{\mathrm{search}} + C_{\mathrm{schedule}},
-\]
-其中 $C_{\mathrm{schedule}}$ 是任务调度的额外开销（Pthread dynamic 是原子 \code{fetch\_add}，线程池是条件变量唤醒，OpenMP 是 schedule chunk 管理）。当 $Q=2000$ 时，$Q/T$ 对于 $T=16$ 来说是 125，任务粒度足够大，调度开销完全可以摊薄。
-
-表 \ref{tab:multicore_best} 列出了各算法在本地 i9 平台上的 Pthread/OpenMP 最优结果。所有高召回最优点均来自 inter-query 路径。
-
-\begin{table}[H]
-  \centering\footnotesize
-  \begin{tabular}{llrrr}
-    \toprule
-    算法 & 最优变体 & 线程数 & Recall@10 & Latency (us) \\
-    \midrule
-    Flat & Pthread dynamic inter & 16 & 0.99995 & 298.95 \\
-    SQ & Pthread dynamic inter & 16 & 0.99995 & 86.53 \\
-    PQ & OpenMP inter & 16 & 0.98335 & 131.97 \\
-    FastScan & Pthread dynamic inter & 16 & 0.97525 & 125.81 \\
-    IVF & Pthread pool inter & 16 & 0.96225 & 104.67 \\
-    IVF-PQ & Pthread pool inter & 16 & 0.95945 & 57.61 \\
-    HNSW & baseline 单线程 & 1 & 0.96865 & 65.48 \\
-    \bottomrule
-  \end{tabular}
-  \caption{Windows i9 平台 Pthread/OpenMP 最优结果（inter-query 路径）}
-  \label{tab:multicore_best}
-\end{table}
-
-IVF-PQ Pthread pool inter 在 16 线程时达到 57.61 us/query，是所有多核配置中最快的。HNSW 单线程 65.48 us/query 已经很快，但它的并行化空间有限：增大 \code{efSearch} 可以提升 recall，但代价会线性增长；多入口点并行是 recall-latency 折中，不是加速路径。
-
-\subsection{调度细节：schedule 不是小事}
-
-我做了一组 OpenMP schedule 参数扫描，结果出乎我预料。在 16 线程 Flat 搜索中，\code{guided,8} 达到 287.87 us/query，而 \code{static,256} 是 428.74 us/query，差距约 1.5x。这个差距的来源是：每条 query 在不同算法下的计算时间并不完全均匀（特别是 HNSW 和 IVF，候选数量随 query 而变），\code{static} 切块太大时某些线程会先完成然后空等，\code{guided} 和 \code{dynamic} 能把小块任务及时分给空闲线程。反过来，块太小时调度开销本身会上升，所以最优 chunk size 需要实测而不能硬猜。
-
-虚假共享（false sharing）实验则说明了另一个容易被忽略的问题：多个线程在写结果时，如果结果槽紧邻且跨越同一 cache line，即使逻辑上没有争用，CPU 也会因 cache coherence protocol 引发不必要的写冲突。按 query 预分配结果数组并对齐到 cache line，是 inter-query 路径能稳定扩展到 16 线程的前提之一。
-
-图 \ref{fig:multicore_tradeoff_curves} 汇总了多核实验中主要算法的 recall-latency 曲线，直观地展示了 HNSW、IVF-PQ、SQ 等各自覆盖的质量区间。
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.76\textwidth]{multicore_tradeoff_curves.pdf}
-  \caption{Pthread/OpenMP 实验中代表性算法的 recall-latency 曲线（Windows i9-13900H，16 线程）}
-  \label{fig:multicore_tradeoff_curves}
-\end{figure}
-
-\subsection{多核实验对期末报告的意义}
-
-多核实验最终让我理解了"并行粒度必须匹配任务结构"。批量 $Q=2000$ 的查询是天然可并行的，每条 query 独立，没有数据依赖——inter-query 完美利用了这个结构。而 intra-query 试图在单条 query 内部并行，反而打破了 IVF 和 HNSW 各自的局部局部性。
-
-这个教训在期末新增实验中有直接体现：自适应预算驱动仍然用 8 线程 inter-query 作为基础并行架构，新增的是 per-query 的预算分配逻辑。跨架构迁移的 grouped-order 实验也以 inter-query 为前提，只是在调度上让相同 centroid 分组的 query 连续处理，以改善 cache 局部性。
-
-% ===========================================================================
-\section{MPI 实验：通信根本不是瓶颈}
-% ===========================================================================
-
-\subsection{分布式 ANN 的设计直觉}
-
-做 MPI 实验之前，我以为分布式 ANN 的主要挑战是通信：$Q=2000$ 条 query 每条都要广播给所有 rank，每个 rank 完成本地搜索后再把结果汇总到 root，中间的数据传输应该是性能瓶颈。
-
-实验做完之后，这个预判几乎完全错了。
-
-\subsection{固定长度候选协议：通信为什么可以很小}
-
-MPI 路径的设计遵循"owner computes"原则：base shard 分给哪个 rank，就由该 rank 构建局部索引，完成局部搜索，并返回本地的固定长度候选。整个 MPI 层只处理四件事：\code{Scatterv} 分发 base 分片、\code{Bcast} 广播所有 query、每个 rank 回传本地 top-$k$ 候选、root 合并全局 Top-$k$。
-
-候选协议的正确性有一个简单的证明：若某向量 $v$ 属于全局 top-$k$，则它必然属于其所在 rank 的局部 top-$k$。原因是：如果它不是本 rank 的局部 top-$k$，则同一 rank 内至少已有 $k$ 个向量比它更近，这些向量同样进入了全局候选空间，矛盾。因此每个 rank 只需回传每条 query 的 $k=10$ 个 \code{(distance, global\_id)} 对，总通信量为：
-\begin{itemize}
-  \item query 广播：$Q \cdot d \cdot 4 = 2000 \times 96 \times 4 \approx 750$ KiB
-  \item 每 rank 结果回传：$Q \cdot k \cdot (4+8) = 2000 \times 10 \times 12 \approx 234$ KiB
-\end{itemize}
-
-与 rank 内部的 IVF-PQ 扫描或 HNSW 图遍历相比，这个量级几乎可以忽略不计。
-
-\subsection{实验结果与归因}
-
-表 \ref{tab:mpi_cross} 列出了主要 MPI 实验的结果。可以看到，在 8 ranks $\times$ 2 OpenMP threads 的配置下，通信与合并延迟（Comm 列）多数在 2--4 us/query，而本地搜索延迟（Max local 列）在百 us 量级。通信占总延迟的比例不超过 2\%。
-
-\begin{table}[H]
-  \centering\scriptsize
-  \begin{tabularx}{\textwidth}{p{2.9cm}p{2.4cm}C{1.35cm}C{1.45cm}C{1.45cm}C{1.15cm}Y}
-    \toprule
-    平台路径 & 算法 & Recall@10 & Latency & Max local & Comm & 解释 \\
-    \midrule
-    Windows MS-MPI & IVF-PQ & 0.96515 & 297.56 & 295.04 & 2.52 & 倒排量化适合中等召回。 \\
-    Windows MS-MPI & block-HNSW & 1.00000 & 188.03 & 185.86 & 2.17 & 本地图质量高，合并代价小。 \\
-    Windows MS-MPI & IVF+HNSW & 0.96450 & 245.05 & 241.75 & 3.29 & 两级索引有额外筛选开销。 \\
-    Windows MS-MPI & HNSW-on-HNSW & 0.99995 & 764.21 & 761.49 & 2.71 & 高覆盖但全 block 探测代价大。 \\
-    Kunpeng PBS & IVF-PQ & 0.96515 & 498.41 & 494.64 & 3.77 & ARM 环境下 recall 一致，时间受平台影响。 \\
-    Kunpeng PBS & block-HNSW & 1.00000 & 803.68 & 800.99 & 2.69 & 图遍历在 ARM 更慢，通信仍不是主因。 \\
+    $T_{\mathrm{score}}$ & Flat-AVX2、SQ、PQ、FastScan、GPU GEMM & 从标量算术迁移到内存带宽、LUT/cache 或矩阵乘吞吐。 \\
+    $T_{\mathrm{candidate}}$ & IVF、HNSW、OPQ、$nprobe$、$efSearch$、rerank $p$ & 从全库扫描迁移到候选覆盖率和索引访问不均。 \\
+    $T_{\mathrm{topk}}$ & 局部 heap、MPI merge、GPU tree merge & 得分计算变快后，候选合并成为串行尾部。 \\
+    $T_{\mathrm{sync}}$ & Pthread/OpenMP schedule、rank 等待、GPU block 同步 & 并行粒度过细时，调度与等待抵消计算收益。 \\
+    $T_{\mathrm{transfer}}$ & MPI 消息、H2D/D2H、score 回传 & 边界处若传递完整中间结果，系统重新被搬运主导。 \\
     \bottomrule
   \end{tabularx}
-  \caption{MPI 跨平台代表结果，8 ranks $\times$ 2 OpenMP threads，延迟单位 us/query}
-  \label{tab:mpi_cross}
+  \caption{端到端代价模型与主要优化项的对应关系}
+  \label{tab:cost-model-map}
 \end{table}
 
-图 \ref{fig:mpi_comm_balance} 展示了 MPI 实验中通信与 rank 本地搜索的负载分布，直观体现了本地搜索时间几乎完全主导端到端延迟的事实。
+
+\section{四架构并行化：从指令级到设备级}
+
+ANN 查询的并行边界可以从指令级逐层外移到线程级、进程级和设备级。SIMD 改变单个距离内核的执行方式；Pthread/OpenMP 改变单机多核上的任务划分；MPI 改变底库和候选集合的所有权；GPU 改变得分计算的表达形式。若只分别报告加速比，难以看出这些优化之间的关系；若把它们放入同一查询流水线，则可以看到瓶颈如何从算术、访存、调度、通信逐步迁移到候选维护和设备边界。
+
+本章按架构递进梳理关键实验点。重点不在代码清单，而在每种后端回答了什么问题、留下了什么边界条件，以及这些结论如何进入后续 OPQ、异构协同和跨架构建模。
+
+\subsection{SIMD/AVX2：距离内核与量化}
+
+SIMD 实验首先确认了 ANN 距离计算的基本瓶颈。串行 Flat 搜索逐个扫描底库向量，对每个 base 执行 96 维内积；在 DEEP100K 上，单 query 需要完成约 $9.6\times10^6$ 次乘加并读取连续 float32 数据。手写 AVX2/FMA 版本把 8 个 float 作为一个向量 lane 同时处理，并在内循环中使用向量乘加和水平规约。该路径将串行 Flat 的 4571.62 us/query 降至 1756.11 us/query，说明数据级并行能够直接压低 $T_{\mathrm{score}}$。
+
+然而，Flat-AVX2 的加速并未接近理论向量宽度上限。原因在于该内核的算术强度较低：每个候选只做有限乘加，却必须读取完整 96 维向量。VTune 与汇编检查显示，内循环已经使用 AVX2/FMA 指令，继续扩大展开或调整 FMA 排列的边际收益有限。该结论在期末报告中非常关键，因为它说明“加快距离计算”并不等价于“堆更多指令”；当连续访存成为主导后，数据表示和访问点数量反而比单条 FMA 更重要。
+
+SQ 与 PQ 是 SIMD 路径的第二层推进。SQ 将 float32 压缩为 uint8，使单个向量的访存量显著下降；代表点在 Recall@10 接近精确结果时达到约 427.01 us/query。PQ 则把向量拆成 $M$ 个子空间，每个子空间用码字表示，查询时先构建 LUT，再对 code 做查表累加。其收益来自把 $O(Nd)$ 的 full-vector 计算变为 $O(NM)$ 的 code scan，但召回率依赖候选预算 $p$ 和子空间划分质量。FastScan 进一步将 4-bit PQ code 与小 LUT 组织成寄存器友好的查表路径，结果显示相对普通 PQ 约有 1.41--1.48 倍提升。
+
+SIMD 实验最终沉淀出三条结论。第一，Flat 向量化是必要基线，但不是最终答案，因为它仍然全量扫描完整向量。第二，量化能够同时降低访存和距离估计成本，但必须在 Recall-Latency 曲线上评价，而不能只看延迟。第三，查表内核的性能很大程度由数据布局、code 打包和 cache/LUT 局部性决定。这三条结论直接支撑后文的 OPQ 实验：OPQ 的价值并不是重新写一个更快的 AVX2 点积，而是在普通 PQ 的子空间切分之前降低量化误差，使 PQ/IVF-PQ 内核在同码长下得到更好的候选覆盖。
+
+\begin{table}[H]
+  \centering\footnotesize
+  \begin{tabularx}{\textwidth}{p{3.0cm}r r Y}
+    \toprule
+    SIMD 路径 & Recall@10 & 延迟(us) & 系统含义 \\
+    \midrule
+    Flat-serial & 1.00000 & 4571.62 & 作为所有 speedup 的统一分母，定义精确扫描成本。 \\
+    Flat-AVX2 & 1.00000 & 1756.11 & 证明距离内核可被向量化，但仍受访存限制。 \\
+    SQ-AVX2 & 0.99995 & 427.01 & 证明压缩表示可比单纯 FMA 优化带来更大收益。 \\
+    PQ / FastScan & 随 $p$ 变化 & -- & 提供量化查表与 recall-latency trade-off 的基础。 \\
+    \bottomrule
+  \end{tabularx}
+  \caption{SIMD 与量化路径的核心测量点}
+  \label{tab:review-simd}
+\end{table}
+
+
+\subsubsection{AVX2 Flat、SQ 与量化扫描补充}
+
+Flat 搜索的精确性最高，但每个 query 需要访问 $100000\times96$ 个 float。AVX2/FMA 将内积规约展开为 8-lane 向量计算，代表性延迟由串行 Flat 的 4571.62 us/query 降至 1756.11 us/query。该结果说明距离内核具有明确的指令级并行空间，但 2.60 倍加速也表明其很快受到内存带宽与 cache 行利用率限制。
+
+SQ 将 float32 压缩为 uint8，单向量访存量显著下降。已有实验中 SQ-AVX2 在 Recall@10=0.99995 时达到约 427.01 us/query，相对串行 Flat 加速 10.71 倍。该收益并非来自更多浮点计算，而是来自数据表示改变后访存压力下降。
+
+从实现角度看，Flat-AVX2 和 SQ-AVX2 的差异主要在数据路径而非控制流。Flat 内核对 96 维 float 做连续加载和 FMA 规约；SQ 内核先用量化参数把数据映射到较窄表示，再在查询时恢复近似内积。由于 DEEP100K 的维度只有 96，单个向量的计算量并不高，访存字节数、对齐和 cache 行利用率对延迟影响更大。该现象也解释了为什么单纯增加 FMA 展开深度不能无限提高 Flat 性能：当内核已经能较好填满向量执行单元后，下一步收益主要来自减少读取的数据量。
+
+这部分实验还澄清了自动向量化和手写 SIMD 的边界。编译器可以识别规则的点积循环，但 ANN 框架中的 top-$k$ 维护、候选窗口和量化重排会使循环结构变复杂；手写 AVX2 的价值不只在于使用 \code{vfmadd}，还在于控制加载、规约、尾部处理和数据布局。对于 Flat 这样的规则内核，自动向量化可能已经接近可用；对于 PQ/FastScan 这样的查表内核，代码布局、打包方式和寄存器内查表更依赖人工设计。
+
+SQ 的结果也说明，精度损失不一定随着压缩而显著出现。DEEP100K 的向量经过标量量化后，在较小 rerank 窗口内仍能保持 Recall@10 接近 1，这意味着底库中高分候选与普通候选之间存在足够间隔，量化误差没有严重扰乱 top-10 排序。相反，PQ 在小候选预算下更容易掉召回，因为子空间量化误差会累积到粗排阶段。后续 OPQ 的目标正是降低这种子空间误差，使同样的 rerank $p$ 覆盖更多真实近邻。
+
+\begin{table}[H]
+  \centering\footnotesize
+  \begin{tabularx}{\textwidth}{p{2.8cm}p{3.2cm}Y}
+    \toprule
+    实现路径 & 主要收益 & 局限与后续影响 \\
+    \midrule
+    Flat-AVX2 & 用 FMA 和 256-bit lane 降低点积常数。 & 全量 float 访存不变，后续需要量化或剪枝。 \\
+    SQ-AVX2 & 压缩表示降低内存流量，保持高 Recall@10。 & 仍需扫描全库，适合作为高召回 CPU 基线。 \\
+    PQ-ADC & 用 LUT 累加替代 full-vector 点积。 & 召回受子空间量化误差影响，引出 OPQ。 \\
+    FastScan & 用打包 code 和小 LUT 优化查表常数。 & 更依赖码本设置和高 recall 区间的候选预算。 \\
+    \bottomrule
+  \end{tabularx}
+  \caption{距离计算加速路径的收益与局限}
+  \label{tab:distance-paths}
+\end{table}
+
+\subsection{多核 Pthread/OpenMP：IVF/IVF-PQ/HNSW 与调度}
+
+多核实验建立在 SIMD 内核之上，但它回答的问题不同。SIMD 只改变单个 worker 如何计算距离，多核实验则决定多个 worker 如何共享 query、候选列表和索引结构。若把每个 query 看成一个独立任务，inter-query 并行最自然：不同线程处理不同 query，线程之间几乎没有共享状态，最后只需汇总各自的输出。该策略在 batch 足够大时稳定，适合前 2000 条 query 的批量评测。
+
+Intra-query 并行则尝试把同一个 query 内的 base、倒排表或候选块拆给多个线程。它可以降低单 query 的响应时间，但会引入局部 Top-$k$ 合并、共享队列、候选去重和同步等待。对 Flat 或 SQ 这类规则扫描而言，intra-query 分块比较直接；对 IVF 和 HNSW 而言，倒排表长度不均、图搜索路径依赖和候选队列维护会迅速放大同步成本。因此，多核路径的核心不是“线程越多越快”，而是识别什么任务粒度足够大、足够独立，能够覆盖调度开销。
+
+Pthread 与 OpenMP 的对照也提供了工程层面的启发。Pthread static 划分开销小，但对 query 难度和 list 长度不均敏感；dynamic 使用原子计数器分发任务，能缓解尾部等待，但每个任务都要付出原子操作成本；thread pool 避免反复创建线程，但队列同步在细粒度任务中可能成为新瓶颈。OpenMP 的 \code{parallel for} 和 schedule 策略简洁，但 runtime 开销较难被单独剥离。实验结果显示，在 IVF-PQ 这样的中等粒度任务上，线程池或 dynamic schedule 更稳；在 PQ 等 query 耗时较均匀的场景中，静态划分的低常数项可能更有优势。
+
+多核实验还把 HNSW 放入横向比较。HNSW 的图搜索能够显著减少访问点，但其搜索过程具有强数据依赖：候选优先队列和 visited 集合决定下一步扩展位置。多入口点和边划分可以提高 recall，但往往以额外搜索工作换取更完整的候选覆盖，而不是线性降低延迟。这一点在期末报告中被保留下来，用于解释为什么图索引在 trade-off 图中不应只按“快或慢”评价，而应看其在高召回区域的位置。
+
+\begin{table}[H]
+  \centering\footnotesize
+  \begin{tabularx}{\textwidth}{p{3.1cm}p{3.2cm}Y}
+    \toprule
+    多核问题 & 代表现象 & 系统解释 \\
+    \midrule
+    inter-query vs intra-query & inter-query 在批量评测中最稳定；intra-query 可降单 query latency 但合并开销高。 & 并行粒度必须与 $T_{\mathrm{topk}}$ 和 $T_{\mathrm{sync}}$ 一起评价。 \\
+    static / dynamic / pool & 规则任务偏向 static，不均匀 list 或 query 需要 dynamic/pool。 & 调度策略本质上是在低开销和负载均衡之间取舍。 \\
+    IVF-PQ 多核路径 & 代表点达到 57.61 us/query，Recall@10 约 0.95945。 & 候选削减与多核调度结合后形成低延迟 CPU 方案。 \\
+    HNSW 并行化 & 多入口或边划分可提高 recall，但图路径依赖强。 & 图索引主要优化访问点数量，而非天然适合细粒度并行。 \\
+    \bottomrule
+  \end{tabularx}
+  \caption{Pthread/OpenMP 任务调度经验}
+  \label{tab:review-thread}
+\end{table}
+
+
+\subsubsection{IVF 与 IVF-PQ}
+
+IVF 通过 KMeans 将底库划分为 $nlist$ 个簇，查询时只访问最近的 $nprobe$ 个倒排表。其精度-延迟旋钮清晰：增大 $nprobe$ 会提升召回，但扫描候选数近似线性增加。IVF-PQ 在倒排表内部使用 PQ 粗排与原始向量 rerank，进一步降低候选扫描成本。已有 Pthread/OpenMP 实验中，表 \ref{tab:env} 平台上的 IVF-PQ 代表点达到 57.61 us/query，Recall@10 约 0.95945，是多核路径中最具性价比的结果之一。
+
+多核实现中，IVF 的主要挑战不是距离内核本身，而是倒排表长度不均。若按 query 静态划分线程，某些线程可能遇到更长 list 或更难 query，导致尾部等待；若按候选块动态划分，调度开销和局部 Top-$k$ 合并次数会上升。Pthread/OpenMP 对比显示，线程池和 dynamic schedule 在中等粒度任务上更稳定，static schedule 在 query 难度差异较大时容易出现尾部空转。图 \ref{fig:multicore} 展示 IVF-PQ、HNSW 等索引在 recall 和 latency 之间的不同位置。
+
+若图中区分 global 与 local 码本，global 表示所有倒排簇共享同一套 PQ 码本，local 表示每个簇训练独立 PQ 码本。后者可以降低簇内量化误差，但训练、存储和 cache 压力更高，因此不能只按单点延迟判断优劣。
+
+IVF-PQ 的低延迟来自两层压缩。第一层是 IVF 的 list 裁剪，它把全库访问点从 $N$ 降到若干倒排表之和；第二层是 PQ 的 code scan，它把 list 内候选的 full-vector 距离估计改为 LUT 累加。多核并行再把 query 或 list 级任务分摊到多个 worker。三者叠加后，单点距离内核已不再是唯一瓶颈，候选数量、list 分布和 rerank 窗口共同决定端到端时间。这个现象与 SIMD 实验中的 Flat-AVX2 形成对照：当访问点不变时，内核优化很快撞到访存墙；当访问点被 IVF 减少后，调度和候选维护的重要性上升。
+
+多核实验也说明了参数旋钮的系统含义。增大 $nprobe$ 会提高召回，但会让更多 list 进入扫描；增大 rerank $p$ 会提高最终候选覆盖，但会增加原始 float 精排；增加线程数可以提高吞吐，但在 list 数量小于线程数或任务粒度过细时会带来空转。OPQ/IVF-OPQ 继承了这些旋钮，因此对比时必须保持 $M$、$nprobe$ 和 $p$ 一致。否则，OPQ 的召回提升可能被更大的候选预算混淆，无法说明旋转本身的作用。
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.76\textwidth]{mpi_comm_balance.pdf}
-  \caption{MPI 通信与 rank-local 搜索延迟对比（8 ranks，各算法配置）}
-  \label{fig:mpi_comm_balance}
+  \maybeincludegraphics[width=0.72\textwidth]{multicore_tradeoff_curves.pdf}
+  \caption{多核索引路径的 Latency-Recall 曲线}
+  \label{fig:multicore}
 \end{figure}
 
-从跨平台结果还可以检验正确性：相同算法参数在 Windows MS-MPI 与鲲鹏 PBS 上 Recall@10 完全一致（IVF-PQ 均为 0.96515，block-HNSW 均为 1.00000），说明 global id 映射和 root merge 没有破坏 Top-$k$ 语义。两平台的延迟差异来自硬件、编译器和队列负载，不能被解读为"MPI 算法在某平台更好"。
 
-\subsection{$nprobe$ 参数扫描：更说明 local search 是主角}
+\subsubsection{HNSW 变体}
 
-表 \ref{tab:nprobe_sweep} 展示了随着 $nprobe$ 增大，主要增加的是本地搜索时间，通信时间几乎保持不变。
+HNSW 利用多层小世界图减少访问点，但搜索路径存在强数据依赖，因此并行化难度高于 IVF。实验覆盖了多核 HNSW 三策略，以及 MPI 侧 Block-HNSW、IVF+HNSW 与 HNSW-on-HNSW。它们在结构上体现了同一思想：用图索引减少访问点，再用线程或 rank 扩大候选扩展吞吐。与 IVF 不同，HNSW 的瓶颈通常不是单个距离内核，而是候选队列维护、访问路径依赖与局部负载不均。
 
-\begin{table}[H]
-  \centering\footnotesize
-  \begin{tabular}{rrrrr}
-    \toprule
-    $nprobe$ & Recall@10 & Latency (us) & Max local (us) & Comm+merge (us) \\
-    \midrule
-    1 & 0.74535 & 190.79 & 187.30 & 3.49 \\
-    2 & 0.89125 & 280.69 & 277.33 & 3.36 \\
-    4 & 0.96515 & 334.60 & 331.11 & 3.49 \\
-    8 & 0.99330 & 428.70 & 424.33 & 4.37 \\
-    16 & 0.99995 & 561.90 & 558.31 & 3.59 \\
-    \bottomrule
-  \end{tabular}
-  \caption{MPI IVF-PQ $nprobe$ 参数扫描（Windows MS-MPI，8 ranks $\times$ 2 threads）}
-  \label{tab:nprobe_sweep}
-\end{table}
+HNSW 的并行粒度选择比 IVF 更敏感。若对单个 query 的图扩展做细粒度并行，线程需要频繁竞争候选队列和 visited 标记；若只做 query 间并行，则单 query latency 不会下降。Block-HNSW 与 IVF+HNSW 的思路是在算法层面增加可并行的块或簇，使每个 rank/线程处理相对独立的局部候选，再做全局 merge。其优点是同步边界清晰，缺点是局部图搜索可能错过跨块近邻，需要通过更大的候选预算弥补召回。
 
-这组数据有一个直接的设计含义：如果在当前 MPI 路径上想继续优化，应该先优化 rank 内的局部搜索（例如改进 IVF-PQ 数据布局、引入更高效的 SIMD 量化内核），而不是继续调优通信 API 或改非阻塞模式。阻塞/非阻塞对比实验也验证了这一点：当前单 batch 设计下，\code{MPI\_Ibcast}/$\code{MPI\_Waitall}$ 相比 \code{MPI\_Bcast} 的收益极为有限，只有引入多 batch pipeline（让下一批 broadcast 与当前批搜索重叠）才能让非阻塞通信真正发挥价值。
+HNSW 提供了与 IVF/PQ 不同的索引范式。IVF 是聚类划分，候选集合由 centroid 距离决定；HNSW 是图遍历，候选集合由贪心扩展路径决定。二者都减少访问点，但误差来源不同：IVF 可能因 probe list 不足漏掉边界点，HNSW 可能因搜索路径未扩展到正确邻域而漏掉近邻。多核和 MPI 在这两类索引上面对的负载不均也不同：IVF 的不均来自 list 长度，HNSW 的不均来自路径长度和候选队列状态。
 
-\subsection{MPI 实验对期末报告的意义}
+这也是为什么 HNSW 不应被简单地视为“另一个更快的算法”。在某些代表点上，HNSW baseline 的延迟接近多核 IVF-PQ，但 Recall@10 略低；Block-HNSW 或多入口策略可以把 recall 推高，但需要额外搜索和合并。它在期末报告中的价值，是展示访问点削减并不只有聚类倒排表一种方式，同时也提醒并行化需要尊重算法内部的数据依赖。
 
-MPI 实验最清晰地证明了一件事：\textbf{通信量受候选协议设计控制，而不是问题规模本身决定的}。同样是 $Q=2000$ 条 query、8 个 rank，如果把每个 rank 的完整候选池（可能几千个向量）回传 root，通信量会急剧增大；固定长度候选协议把回传量固定为 $Q \cdot P \cdot k$，与 $nprobe$、候选池大小无关。这个设计和期末新增的自适应预算有一个共通之处：都是在"全局合并"和"局部搜索"之间找接口协议，让两侧可以独立优化。
+\subsection{MPI：owner-computes 候选协议}
 
-% ===========================================================================
-\section{GPU 实验：Top-k 才是真正的意外瓶颈}
-% ===========================================================================
+MPI 路径把 ANN 问题从共享内存扩展到多 rank 环境。与多线程不同，rank 之间不能共享索引对象和候选队列；每个 rank 只能稳定访问自己的底库分片。因此，MPI 设计首先要回答正确性问题：多个局部 top-$k$ 如何合并成全局 top-$k$，以及返回结果如何保持全局 id 与 ground truth 对齐。实验采用 owner-computes 策略，每个 rank 独立构建本地 IVF-PQ 或 HNSW 变体索引，在线阶段只返回固定长度的本地候选，root 端执行全局 merge。
 
-\subsection{用矩阵乘法重新理解 Flat 扫描}
+该协议的优点是通信量与候选数相关，而不是与底库大小相关。每个 rank 对每个 query 返回 $k$ 个 \code{(distance,id)} 候选，消息规模近似 $O(QPk)$，不会把原始向量或大规模 score 矩阵传回 root。已有单机多 rank 结果显示，通信与 merge 占比约为 1\% 量级，说明在 DEEP100K 和定长候选协议下，MPI 层没有吞掉本地搜索的收益。该结果也提示后续优化方向：继续压缩通信格式的价值有限，更应关注 rank-local 搜索时间最大值、底库分片是否均衡，以及不同 rank 上图搜索路径是否存在尾部。
 
-做 GPU 实验之前，我对 GPU 的预期是：矩阵乘法是 GPU 的强项，用 cuBLAS 把所有 query 与所有 base 向量的内积写成一次 SGEMM，应该能取得很大加速。这个预期在 score 阶段是正确的，但实验很快说明了：score 只是第一步，Top-$k$ 同样重要，而且更容易被低估。
+MPI 实验中的 Block-HNSW、IVF+HNSW 与 HNSW-on-HNSW 进一步展示了“候选生成器”和“分布式外壳”的解耦。MPI 层不需要理解局部索引内部细节，只要求每个索引返回可合并的候选数组。这样一来，IVF-PQ 可以作为低延迟局部扫描器，Block-HNSW 可以作为高召回图索引，IVF+HNSW 可以先用簇裁剪再做局部图扩展。不同局部生成器对应不同 Recall-Latency 位置，但它们共享同一套候选协议。
 
-GPU Flat 的计算形式为：
-\[
-S = B Q^\top, \quad B \in \mathbb{R}^{N \times D}, \quad Q^\top \in \mathbb{R}^{D \times M},
-\]
-其中 $M$ 是 batch 大小，$S_{ij}$ 是第 $i$ 个 base 向量与第 $j$ 个 query 的内积。这个形式同时利用了 base 维度和 query 维度上的并行，适合 tiled GEMM。但如果把完整 $N \times M$ 的 score 矩阵传回 CPU 排序，$N=100000$，$M=2000$ 时矩阵大小约 762 MiB，PCIe 传输加上主机侧排序会成为新的主瓶颈。因此实验采用的策略是：按 query chunk 计算 score tile，然后立即在设备端完成 Top-$k$，只回传每条 query 的 10 个 id 和距离。
-
-\subsection{score 与 Top-k 的双瓶颈}
-
-表 \ref{tab:gpu_results} 列出了各种 GPU 配置的分段计时结果，这是本节最核心的证据。
-
-\begin{table}[H]
-  \centering\scriptsize
-  \begin{tabular}{lrrrrrr}
-    \toprule
-    模式 & Recall@10 & Online us & Wall us & Score ms & Topk ms & Result ms \\
-    \midrule
-    gemm 2000 & 0.99990 & 237.63 & 331.43 & 240.08 & 226.56 & 6.68 \\
-    gemm\_tree 2000 & 0.99995 & 165.05 & 256.43 & 229.94 & 91.92 & 6.75 \\
-    cublas 2000 & 0.99990 & 145.27 & 233.59 & 69.47 & 214.49 & 5.02 \\
-    cublas\_tree 2000 & 0.99995 & 83.24 & 162.95 & 70.71 & 89.44 & 5.18 \\
-    ivf 16/4 & 0.96275 & 468.19 & 688.25 & 3.34 & 922.68 & 8.22 \\
-    ivf\_grouped 16/4 & 0.96280 & 145.32 & 375.75 & 87.72 & 64.04 & 84.73 \\
-    ivf\_grouped 16/8 & 0.99345 & 189.90 & 419.52 & 143.18 & 89.95 & 89.16 \\
-    \bottomrule
-  \end{tabular}
-  \caption{GPU batch ANN 实验分段计时均值（RTX 4060 Laptop，CUDA，batch=2000）}
-  \label{tab:gpu_results}
-\end{table}
-
-从这张表可以看出几条关键链条：
-
-\textbf{链条 1：手写 GEMM → cuBLAS 只优化了 score}。\code{gemm} 到 \code{cublas} 的在线延迟从 237.63 降到 145.27 us，主要原因是 score 从 240.08 ms 降到 69.47 ms（约 3.5x）。但 Top-$k$ 仍为 214.49 ms，几乎和 score 等量。两项加在一起，cuBLAS 只带来了有限的端到端收益。
-
-\textbf{链条 2：优化 Top-k 才解锁了 cuBLAS 的真正收益}。\code{cublas\_tree} 同时用 cuBLAS 做 score 和设备端树形归并做 Top-$k$，score 70.71 ms、Top-$k$ 89.44 ms，端到端 83.24 us/query，相比 \code{cublas} 提升接近 1.75x。如果只优化 GEMM 而不管 Top-$k$，整体只能达到 145.27 us；只有两者同步优化，才真正释放了 batch GEMM 的价值。
-
-这个双瓶颈现象事先并不显而易见，但事后解释并不难：GPU 上的 Top-$k$ 合并需要排序或堆操作，这是不规则的内存访问和分支密集型计算，远不如 GEMM 适合 GPU 的流式处理架构。基础版的 Top-$k$ 每个 block 处理一条 query，最后由线程 0 顺序合并各线程的局部候选，这个顺序合并步骤是严重的串行尾部。改成树形归并后，每轮减半参与线程数，共享内存利用率提高，才真正把合并代价压了下来。
-
-\subsection{grouped-IVF：组织候选，不只是选择候选}
-
-GPU IVF 实验揭示了另一个有趣的现象。表 \ref{tab:gpu_ivf_compare} 对比了 per-query IVF 和 grouped-IVF 在相同 $nprobe$ 下的结果：
+MPI 路径的价值不只是一组加速比，而是提出了一个跨架构通用原则：并行边界处不应传递过大的中间状态，而应传递足够恢复最终结果的压缩候选。这个原则也适用于 GPU-CPU 异构实验。异构路径的慢点并不在 GPU 得分，而在完整 score 矩阵回传 CPU 后重新做候选选择，违反了“边界处只传候选”的原则。MPI 候选协议与异构实验的慢点归因形成了直接对照。
 
 \begin{table}[H]
   \centering\footnotesize
-  \begin{tabular}{lrrr}
+  \begin{tabularx}{\textwidth}{p{3.0cm}r r Y}
     \toprule
-    模式 & $nprobe$ & Recall@10 & Online latency (us) \\
+    MPI 代表点 & Recall@10 & 延迟(us) & 解释 \\
     \midrule
-    grouped-IVF & 2 & 0.87340 & 94.01 \\
-    grouped-IVF & 4 & 0.96280 & 145.32 \\
-    grouped-IVF & 8 & 0.99345 & 189.90 \\
-    per-query IVF & 4 & 0.96275 & 468.19 \\
-    per-query IVF & 8 & 0.99345 & 789.29 \\
-    \bottomrule
-  \end{tabular}
-  \caption{GPU IVF 组织方式对比（$nprobe=4$ 时 recall 几乎相同，延迟相差 3.2x）}
-  \label{tab:gpu_ivf_compare}
-\end{table}
-
-$nprobe=4$ 时，两者 Recall@10 几乎相同（0.96280 vs 0.96275），但延迟差距达到 3.2x（145.32 vs 468.19 us）。这个差距来自哪里？
-
-per-query IVF 让每个 query 按自己的 $nprobe$ 个 list 顺序扫描，不同 query 访问不同 list，GPU warp 内的线程执行不同的内存访问路径，出现严重的 warp divergence 和不规则的全局内存访问。grouped-IVF 先把 batch 内 query 按它们的最近 centroid 分桶，把访问同一 list 的 query 聚到一起，再对每个 list 内的 query 和候选向量做小批矩阵运算。这样，原本不规则的逐 query list 扫描，变成了更接近矩阵计算的规则内存访问。代价是多了分桶、重排和结果重组的额外开销（Result ms 从 5 ms 上升到 84 ms），但候选扫描阶段的效率大幅提升。
-
-这个"组织候选比选择候选更重要"的思想，成为期末新增实验的核心动机之一。
-
-\subsection{PTX/SASS 静态分析}
-
-除运行时分段计时外，实验还通过 \code{cuobjdump} 导出了 PTX 和 SASS，查看寄存器使用量和 shared memory 分配情况。结果显示 tree Top-$k$ kernel 的寄存器压力较大（每线程约 40+ 寄存器），这会在 occupancy 和 ILP 之间产生折中——寄存器用得多，每个 SM 能同时驻留的 warp 数变少，但每个 warp 内的 ILP 更高。当前 batch 尺寸下这个折中是有利的，但如果 batch 减小或 query 数减少，occupancy 不足可能会变成新的限制。
-
-\subsection{GPU 实验对期末报告的意义}
-
-GPU 实验最重要的教训是：\textbf{GPU 加速不是把 CPU 循环直接搬到 device 上}，而是需要同时考虑 batching（有足够的并行度）、数据组织（让候选扫描尽量规则）和设备端合并（Top-$k$ 不能让主机做）。grouped-IVF 的思想——"把访问同一 list 的 query 聚到一起"——能不能也用在 CPU 侧的 Pthread 调度中？这个问题推动了期末新增实验的设计。
-
-% ===========================================================================
-\section{期末新增实验：查询难度感知与跨架构迁移验证}
-% ===========================================================================
-
-\subsection{出发点：固定预算是否浪费了资源}
-
-做完前四次实验后，我注意到一个一直被忽略的问题：无论是 SIMD 实验还是多核实验，IVF-PQ 的 $nprobe$ 和精排预算 $p$ 始终是对所有 query 固定的。但直觉上，不同 query 的"搜索难度"差异很大——有些 query 距离最近的 centroid 非常近，落在某个簇内部，较小的 $nprobe$ 就能找到真实近邻；有些 query 处在多个簇的边界附近，可能需要探测更多 list 才能不漏掉近邻。
-
-用固定预算对待所有 query，很可能是在"简单 query"上浪费资源，在"困难 query"上又分配不足。这个想法催生了期末新增实验的核心问题：\textbf{能否用一个无监督的、可解释的难度指标来重新分配搜索预算，在不改变总体计算量的前提下提升整体召回率？}
-
-\subsection{centroid margin 作为难度指标}
-
-我用最近和次近 centroid 的距离差来衡量 query 难度：
-\[
-m(q) = d(q, c_2) - d(q, c_1),
-\]
-其中 $c_1, c_2$ 分别是最近和次近 centroid。$m(q)$ 大意味着 $q$ 明确落在某个簇内，它对 $c_1$ 的 list 的依赖很强，搜索一两个 list 基本足够；$m(q)$ 小意味着 $q$ 处于两个簇的交界处，漏掉 $c_2$ 的 list 很可能漏召回真实近邻。
-
-这个指标不需要 ground truth 标签，也不需要任何机器学习训练——只需要查询向量与 centroid 的距离，这在 IVF 搜索的第一步就已经算好了，几乎没有额外开销。
-
-实验用前 256 个 query 的 margin 估计 $1/3$ 和 $2/3$ 分位阈值，得到 $\tau_1 = 0.03368$，$\tau_2 = 0.08289$。全体 2000 个 query 按阈值分为 hard/medium/easy 三类，数量分别为 623/569/808。三种自适应策略如表 \ref{tab:adaptive_policy} 所示。
-
-\begin{table}[H]
-  \centering\scriptsize
-  \begin{tabularx}{\textwidth}{p{2.6cm}C{2.2cm}C{2.2cm}C{2.2cm}Y}
-    \toprule
-    策略 & hard ($nprobe, p$) & medium ($nprobe, p$) & easy ($nprobe, p$) & 设计意图 \\
-    \midrule
-    conservative & $(5,1000)$ & $(4,1000)$ & $(3,800)$ & 固定中档附近微调，降低 easy 成本，给 hard 适度加预算。 \\
-    aggressive & $(8,1500)$ & $(4,1000)$ & $(2,500)$ & 把预算更激进地从 easy 转移到 hard。 \\
-    recall-oriented & $(8,1500)$ & $(5,1000)$ & $(4,1000)$ & 追求更高召回，保留较高 easy/medium 预算。 \\
+    IVF-PQ 4 ranks $\times$ 2 threads & 0.96560 & 232.45 & 低通信候选协议下的分片扫描代表点。 \\
+    Block-HNSW 8 ranks $\times$ 2 threads & 1.00000 & 195.11 & 用多 rank 图索引合并换取高召回。 \\
+    comm+merge 占比 & -- & $\sim$1\% & 当前规模下主要瓶颈仍是 rank-local 搜索。 \\
     \bottomrule
   \end{tabularx}
-  \caption{期末新增自适应策略定义，单元格为 $(nprobe, p)$}
-  \label{tab:adaptive_policy}
+  \caption{MPI 分布式候选协议结果}
+  \label{tab:review-mpi}
 \end{table}
 
-核心控制流如清单 \ref{lst:adaptive_ivfpq} 所示，代码位于 \code{ann-final/experiments/adaptive_ivfpq.cc}，复用前序 IVF-PQ 的索引、PQ 扫描和精排函数。
 
-\begin{lstlisting}[language=C++,caption=自适应 IVF-PQ 预算控制流程（简化）,label={lst:adaptive_ivfpq}]
+\subsubsection{MPI 候选协议}
+
+MPI 路径采用 owner-computes 的底库分片策略，各 rank 只搜索 rank-local 分片并返回定长候选，root 端做全局 merge。已有 MS-MPI 多 rank 结果显示，IVF-PQ 4 ranks $\times$ 2 threads 的代表点为 232.45 us/query，Recall@10=0.96560，相对串行 Flat 可达到 19.67 倍加速；MPI Block-HNSW 8 ranks $\times$ 2 threads 达到 195.11 us/query，Recall@10=1.00000。两者的 comm+merge 占比约 1\%，说明在 DEEP100K 规模下，通信不是主瓶颈；rank-local 搜索和负载均衡仍决定端到端延迟。单节点 MS-MPI 点并不以击败共享内存 OpenMP 为目标，其价值在于验证底库分片、定长候选协议和全局 merge 的正确性；若扩展到跨机器或更大底库，该协议才体现容量扩展意义。
+
+\begin{figure}[H]
+  \centering
+  \maybeincludegraphics[width=0.64\textwidth]{mpi_comm_balance.pdf}
+  \caption{MS-MPI 候选协议中的搜索、通信与合并占比（跨平台诊断只作为机制旁证）}
+  \label{fig:mpi}
+\end{figure}
+
+通信占比低并不意味着 MPI 没有代价，而是说明当前数据规模和候选协议把通信量控制在较小范围。每个 rank 只返回定长候选，消息规模约为 $O(k\cdot r)$ 而非 $O(N)$；root 端 merge 的复杂度也与候选数相关。因此，继续压缩通信格式只能带来有限收益，更应关注各 rank 的候选扫描时间是否均衡。若扩展到跨机器集群，网络延迟和数据分片放置会重新变得重要；本报告主结论限定在单机多 rank 实验。
+
+MPI 实验还提供了一个重要的正确性约束。每个 rank 返回的候选必须携带全局 id，root 端合并后才能与 ground truth 对齐；如果局部 id 没有转换，Recall 会被系统性低估或高估。这个细节在共享内存实验中不明显，因为所有线程天然访问同一个全局数组；到了 MPI 或异构设备边界，id 映射就成为算法正确性的一部分。期末报告保留这一点，是因为 GPU-CPU 异构精排同样需要在 GPU 粗排候选、CPU 原始向量和最终 ground truth 之间保持 id 一致。
+
+\begin{table}[H]
+  \centering\footnotesize
+  \begin{tabularx}{\textwidth}{p{2.8cm}p{3.8cm}Y}
+    \toprule
+    访问点削减方法 & 主要误差来源 & 并行化难点 \\
+    \midrule
+    IVF & probe list 不足导致跨簇近邻遗漏。 & 倒排表长度不均，$nprobe$ 小时 list 级任务数不足。 \\
+    IVF-PQ & IVF 漏候选叠加 PQ 粗排误差。 & code scan、rerank 和 list 调度需要同时平衡。 \\
+    HNSW & 图搜索路径未覆盖真实邻域。 & 候选队列和 visited 集合依赖强，细粒度共享困难。 \\
+    MPI 分片索引 & 局部候选必须足以恢复全局 top-$k$。 & 全局 id、定长候选协议和最慢 rank 尾部。 \\
+    \bottomrule
+  \end{tabularx}
+  \caption{减少访问点类算法的误差来源与并行化难点}
+  \label{tab:index-difficulty}
+\end{table}
+
+\subsection{GPU/CUDA：批量矩阵化与设备端 Top-$k$}
+
+GPU 路径回答了另一个问题：ANN 的全库扫描是否一定要被视为一批独立点积。对于单个 query，GPU kernel 启动、H2D/D2H 和 Top-$k$ 后处理的固定开销很高，未必比 CPU 有优势；但当 query 形成 batch 后，base 矩阵与 query 矩阵的内积可以改写为矩阵乘法 $S=BQ^\top$。这使得 query 间并行和 query 内并行同时暴露给 GPU，计算被映射到高吞吐 GEMM 路径。
+
+GPU 实验逐步比较了手写 tiled GEMM、cuBLAS、线程 0 Top-$k$ 合并和共享内存树形 Top-$k$ 合并。结果显示，cuBLAS 能显著压低 score 计算时间，但如果 Top-$k$ 仍由单线程顺序合并，整体收益会被串行尾部吃掉；树形合并降低了设备端后处理开销，使 cublas\_tree 成为最具代表性的 GPU Flat 路径。该路径在高召回下达到 78.68 us/query，说明 GPU 对规则、密集、批量的得分计算非常适合。
+
+GPU IVF grouped 则尝试把候选削减与矩阵化结合起来。普通 IVF 的每个 query 访问不同 probe list，导致 batch 内候选集合不规则；grouped-IVF 先按 probe 簇把 query 分组，使访问同一 list 的 query 形成小矩阵乘。该方法说明 GPU 上的索引加速并非不能做，而是需要先把不规则访问重新整理成规则批处理。它也暴露了 GPU 路径的核心矛盾：减少访问点会削弱矩阵乘规模和规则性；保持全库 GEMM 则计算规则但访问点最多。
+
+GPU 路径给出两条重要经验。第一，GPU 的优势依赖 batch 和规则矩阵化，batch=1 的低延迟场景并不天然适合 GPU。第二，GEMM 不是完整 ANN 系统的终点，Top-$k$、score 矩阵存储、结果回传和索引分桶都会在 score 阶段加速后成为显性成本。异构实验正是在这两条经验上继续推进：既然 GPU score 很快，是否可以让 CPU 做更灵活的精排；实验结果则证明，如果候选压缩没有在设备端完成，完整 score 回传会直接抹掉 GEMM 的收益。
+
+\begin{table}[H]
+  \centering\footnotesize
+  \begin{tabularx}{\textwidth}{p{3.0cm}r r Y}
+    \toprule
+    GPU 路径 & Recall@10 & 延迟(us) & 系统含义 \\
+    \midrule
+    cublas\_tree & 0.99995 & 78.68 & 高召回批量吞吐代表点，说明矩阵化得分有效。 \\
+    IVF grouped $nprobe=4$ & 0.96280 & 145.32 & 体现候选裁剪与矩阵化规则性之间的折中。 \\
+    IVF grouped $nprobe=8$ & 0.99345 & 189.90 & 提高召回需要访问更多 list，延迟随之上升。 \\
+    \bottomrule
+  \end{tabularx}
+  \caption{GPU 批量检索路径的代表性结论}
+  \label{tab:review-gpu}
+\end{table}
+
+
+\subsubsection{GPU GEMM 与设备端 Top-$k$}
+
+GPU 路径将 query batch 与 base 矩阵做乘法，得分矩阵由手写 tiled GEMM 或 cuBLAS 产生。统一口径采用 GPU-only cublas\_tree 在线基线：在 $query\_n=2000$ 时达到 78.68 us/query，Recall@10=0.99995，相对串行 Flat 加速 58.10 倍。该结果说明 GPU 对规则、批量、矩阵化的得分计算非常适合；同时 CUDA event 分段也显示，当 GEMM 被加速后，设备端 Top-$k$ 与结果拷贝会变成显性开销。
+
+GPU 侧比较了手写 $16\times16$ tiled GEMM、cuBLAS、线程 0 合并 Top-$k$ 与共享内存树形合并 Top-$k$。在 $query\_n=2000$ 时，手写 GEMM 的 score 阶段约 240.08 ms，cuBLAS 降至约 69.47 ms；线程 0 合并 Top-$k$ 约 226.56 ms，树形合并降至约 91.92 ms。两项优化叠加后形成 cublas\_tree 代表点。该对照说明 GPU 优化不能只盯矩阵乘法：得分矩阵越快产生，Top-$k$ 合并、结果回传和 query chunk 管理越容易成为主导项。
+
+GPU IVF grouped 路径则尝试减少访问点。per-query IVF 让每个 query block 扫描自己的 probe list，控制简单但 batch 内候选集合不一致；grouped-IVF 先按 probe 簇重排 query，把访问同一 list 的 query 组成小 batch，再用局部 GEMM 扫描候选。该方法把不规则 probe 访问部分重新转化为矩阵化计算，但需要额外的分桶和重排。已有结果中 grouped-IVF 在 $nlist=16,nprobe=4$ 时 Recall@10 约 0.9628，在线延迟约 145.32 us/query；$nprobe=8$ 时 Recall@10 约 0.99345，延迟约 189.90 us/query，体现了候选裁剪和矩阵化吞吐之间的折中。
+
+GPU 实验与 CPU 多核实验的差异在于，GPU 更难容忍不规则控制流。CPU 上每个线程处理不同长度 list，只要调度策略合理，负载不均仍可被动态分配部分吸收；GPU 上同一个 warp 或 block 内若候选长度差异过大，就会造成分支发散、访存不合并或线程空转。因此，GPU IVF 的核心不是简单把 list 扫描搬到 device，而是先把访问模式整理成适合 GEMM 或至少适合 coalesced load 的形态。grouped-IVF 的意义就在于用分桶换取规则性。
+
+这一点也解释了为什么 GPU Flat 虽然访问点最多，却可能在高召回批量场景中很强。全库 GEMM 不做候选裁剪，但矩阵形态高度规则，cuBLAS 可以充分利用 Tensor Core 或 CUDA core 的吞吐；IVF 减少了候选数量，却破坏了规则性，需要额外分组才能恢复吞吐。换言之，GPU 上“少算”不一定自动更快，只有当少算带来的访问点减少超过分桶、同步和小矩阵低利用率成本时，IVF 才能超过全量 GEMM。
+
+
+\subsection{相通之处与差异}
+
+\subsubsection{两条优化主线}
+
+第一条主线是加快距离计算。Flat-AVX2 直接对 96 维内积做向量化；SQ 将 float32 压缩为 uint8，减少访存量；PQ 将 $d$ 维向量拆成 $M$ 个子空间，距离计算变成 $M$ 次查表累加；FastScan 将部分 LUT 压入寄存器友好的布局；GPU 则把 query 和 base 之间的得分计算改写为矩阵乘。
+
+第二条主线是减少访问点数量。IVF 通过聚类只访问最近的若干倒排表，HNSW 通过图搜索减少全局扫描，IVF-PQ 与 HNSW 变体进一步组合了候选剪枝与压缩表示。并行化的难点随算法改变：IVF 的主要问题是倒排表长度不均，HNSW 的主要问题是搜索路径数据依赖，GPU IVF 的主要问题是 batch 内 probe 集合不一致导致规则矩阵化困难。
+
+两条主线并非互斥。典型高性能 ANN 路径通常先减少访问点，再降低单点距离代价，最后用并行硬件摊薄候选扫描。例如 IVF-PQ 先用 coarse centroid 裁剪 list，再用 PQ LUT 给 list 内候选粗排，最后对有限的 top-$p$ 候选用原始 float 向量 rerank。GPU Flat 则走另一条路径：不减少访问点，而是用大 batch GEMM 把全库扫描推到高吞吐矩阵乘单元，随后用设备端 Top-$k$ 避免完整 score 矩阵回传。二者都可达到较高吞吐，但瓶颈位置完全不同。
+
+多核和 MPI 的作用更偏向并行调度层。inter-query 并行把不同 query 分配给不同线程，结构简单但依赖 batch 大小；intra-query 并行把同一 query 的候选或倒排表分给多个线程，可以降低单 query latency，但需要合并局部 Top-$k$。MPI owner-computes 则把底库按 rank 分片，每个 rank 返回定长候选，root 端全局归并。上述三种方案的共同约束是尾部负载：query 难度、倒排表长度和图搜索路径都会造成某些线程或 rank 更晚结束。
+
+从算法设计角度看，ANN 并行化不是单一层面的优化，而是“候选规模”和“候选处理方式”的联合设计。候选规模越大，SIMD/GPU 的规则扫描空间越充分，但 Top-$k$ 和数据搬运压力越高；候选规模越小，在线计算量下降，但召回更依赖索引结构和粗排质量。PQ、IVF、HNSW、OPQ、GPU grouped-IVF 都是在这一张候选规模图上选择不同位置。OPQ 选择在不改变在线候选预算的前提下提高候选质量；异构实验则选择把 GPU 粗排产生的高质量候选交给 CPU 精排，但结果证明候选压缩位置必须足够靠近 GPU 端。
+
+四种架构的差异还体现在“规则性”的要求上。AVX2 可以处理较规则的连续扫描，也能承受一定程度的 LUT 查表；Pthread/OpenMP 可以处理更不规则的 query/list 粒度，但需要避免过细任务；MPI 要求跨 rank 边界的信息足够小且格式固定；GPU 对规则矩阵化最敏感，不规则 list 或图遍历需要先分桶、重排或转化为 batch。由此可见，同一种算法在不同架构上并不是简单移植，而是要重新选择并行粒度和数据布局。
+
+\subsubsection{并行粒度映射}
+
+\begin{table}[H]
+  \centering\footnotesize
+  \begin{tabularx}{\textwidth}{p{2.0cm}YYYY}
+    \toprule
+    关注点 & AVX2 SIMD & Pthread/OpenMP & MPI & CUDA GPU \\
+    \midrule
+    并行粒度 & SIMD lane 与展开循环 & query、簇、候选分块 & rank-local 底库分片 & thread block / warp / batch \\
+    主要收益 & 降低距离内核常数 & 利用多核吞吐 & 扩展候选扫描容量 & 大批量矩阵化得分 \\
+    主要代价 & 对齐、尾部、查表布局 & 调度、false sharing、尾部任务 & gather/merge、负载均衡 & H2D/D2H、Top-$k$、occupancy \\
+    适配算法 & Flat、SQ、PQ、FastScan & IVF、IVF-PQ、HNSW & IVF-PQ、Block-HNSW & GEMM Flat、grouped IVF \\
+    主导代价变化 & DRAM 到 LUT/cache & 计算到调度与不均衡 & 通信到 rank-local 搜索 & GEMM 到 Top-$k$/transfer \\
+    \bottomrule
+  \end{tabularx}
+  \caption{四类架构在 ANN 查询流水线中的并行粒度与瓶颈}
+  \label{tab:arch-map}
+\end{table}
+
+表 \ref{tab:arch-map} 也可以反向理解为一张设计检查表。若某个方案声称在 GPU 上加速 HNSW，需要说明图遍历的不规则性如何被处理；若某个方案声称 MPI 可扩展，需要说明候选协议是否避免传递大规模中间结果；若某个方案声称多线程加速 IVF，需要说明倒排表长度不均如何被调度吸收；若某个方案声称 SIMD 优化 PQ，需要说明 LUT 和 code stream 是否适合向量加载或寄存器查表。本文后续各节均按这个标准解释结果，而不是只报告“某方法更快”。
+
+\subsubsection{算法与后端对应关系}
+
+表 \ref{tab:algo-backends} 按算法族给出各后端的实现位置。Flat 适合作为距离内核基线；IVF/IVF-PQ 适合观察候选裁剪与调度；PQ/FastScan 体现量化扫描；HNSW 体现图索引访问点削减；OPQ/IVF-OPQ 位于量化前处理位置。不同算法并不都天然适合所有架构，因此表中只保留能够说明机制的代表实现，不强行把每个空格都补成一个低质量实现。
+
+\begin{table}[H]
+  \centering\footnotesize
+  \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{2.3cm}YYYY}
+    \toprule
+    算法族 & SIMD/AVX2 & Pthread/OpenMP & MPI & CUDA GPU \\
+    \midrule
+    Flat & Flat-AVX2 & query 并行基线 & 分片扫描基线 & GEMM + 设备端 Top-$k$ \\
+    \shortstack[l]{SQ/PQ/\\FastScan} & 量化扫描核心 & query/list 并行 & 局部候选生成器 & 候选压缩方向 \\
+    IVF/IVF-PQ & 粗排与精排内核 & 动态调度与线程池 & owner-computes 分片 & grouped-IVF GEMM \\
+    HNSW 变体 & 距离内核 & 多入口/边划分 & Block-HNSW 等局部图索引 & 图遍历不规则，未作为 GPU 主路径 \\
+    OPQ/IVF-OPQ & 旋转量化 & CPU 检索路径 & -- & 异构候选前处理方向 \\
+    \bottomrule
+  \end{tabularx}
+  \caption{算法族与后端实现位置}
+  \label{tab:algo-backends}
+\end{table}
+
+
+\section{扩展实验：预算自适应、OPQ 与异构协同}
+
+\subsection{预算自适应 IVF-PQ}
+
+固定 $nprobe$ 和 rerank 预算 $p$ 的 IVF-PQ 对所有 query 使用同一工作量，但 DEEP100K 中 query 难度并不均匀。若某个 query 到最近 coarse centroid 与次近 coarse centroid 的得分差距很大，真实近邻通常集中在少量倒排表内；若二者差距很小，query 位于多个簇边界附近，较小 $nprobe$ 更容易漏掉真实近邻。预算自适应 IVF-PQ 利用这一现象，在不改变 IVF-PQ 索引结构和最终 rerank 距离函数的前提下，为不同 query 分配不同的 $(nprobe,p)$。
+
+具体做法是先用少量校准 query 统计 margin 分位数，得到阈值 $\tau_{\mathrm{low}}$ 与 $\tau_{\mathrm{high}}$。在线查询时，设 $s_1,s_2$ 为 query 与最近、次近 coarse centroid 的内积分数，margin 定义为 $s_1-s_2$。当 margin 小于 $\tau_{\mathrm{low}}$ 时，将 query 视为 hard query，使用较高 probe 预算；当 margin 大于 $\tau_{\mathrm{high}}$ 时，将 query 视为 easy query，使用较低预算；其余 query 使用中等预算。分组执行版本进一步把同类 query 合并处理，减少频繁切换预算造成的调度开销。该策略只改变候选预算，不改变 PQ code、IVF list 或最终 float rerank，因此可以直接与固定预算 IVF-PQ 比较。
+
+\begin{table}[H]
+  \centering\footnotesize
+  \begin{tabular}{lrrrrr}
+    \toprule
+    配置 & Recall@10 & 延迟(us) & 平均 $nprobe$ & 平均 $p$ & 说明 \\
+    \midrule
+    固定 2/500 & 0.86940 & 148.43 & 2.00 & 500.00 & 低预算固定点。 \\
+    固定 4/1000 & 0.95945 & 229.06 & 4.00 & 1000.00 & 中等预算固定点。 \\
+    固定 8/1500 & 0.99265 & 340.32 & 8.00 & 1500.00 & 高预算固定点。 \\
+    保守自适应 & 0.96520 & 217.38 & 3.91 & 919.20 & easy/medium/hard 分配预算。 \\
+    激进自适应 & 0.97115 & 216.00 & 4.44 & 953.75 & hard query 使用更高预算。 \\
+    保守自适应+分组 & 0.96520 & 186.54 & 3.91 & 919.20 & 分组执行后调度开销更低。 \\
+    \bottomrule
+  \end{tabular}
+  \caption{预算自适应 IVF-PQ 与固定预算 IVF-PQ 的对照（$nlist=16$，query 数为 2000）}
+  \label{tab:adaptive-ivfpq}
+\end{table}
+
+表 \ref{tab:adaptive-ivfpq} 中最关键的对照是固定 4/1000 与保守自适应+分组。二者使用同一索引、同一距离估计和同一最终 rerank 口径；后者把 623 条 hard query 分配到较高预算，把 808 条 easy query 分配到较低预算，使平均 $nprobe$ 从 4.00 降至 3.91，平均 $p$ 从 1000 降至 919.20。结果是 Recall@10 从 0.95945 提升到 0.96520，同时 latency 从 229.06 us 降至 186.54 us。这个点没有取代多核 IVF-PQ 的最低延迟代表点；它说明在同一 IVF-PQ 扫参空间内，按 query 难度重新分配候选预算可以形成更优的 Recall-Latency 操作点。
+
+\begin{figure}[H]
+  \centering
+  \resizebox{0.78\textwidth}{!}{\input{fig/adaptive_recall_latency.tex}}
+  \caption{预算自适应 IVF-PQ 的 Recall@10-Latency 对比}
+  \label{fig:adaptive-ivfpq}
+\end{figure}
+
+图 \ref{fig:adaptive-ivfpq} 还显示，自适应策略并不是简单增加平均预算。Recall-oriented 配置可以继续提高召回，但 latency 接近高预算固定点；aggressive 配置在 recall 与 latency 之间更均衡；conservative grouped 则更适合低延迟场景。由此可见，IVF-PQ 的有效优化不只来自更快的扫描内核，也来自候选预算在 query 集合内部的分配方式。该结果为后文的横向汇总提供了一个新的 Pareto 点：它仍位于 CPU/IVF-PQ 路径，但已经不只是固定参数扫描。
+
+\subsection{OPQ/IVF-OPQ 旋转量化}
+
+PQ\cite{jegou2011pq} 将 96 维向量划分为 $M$ 个子空间并分别量化。查询时先构造 $M\times256$ 的 LUT，再对每个 base code 做 $M$ 次查表累加，复杂度从 $O(Nd)$ 变为 $O(NM)$。FastScan\cite{andre2017fastscan} 进一步优化 code 与 LUT 的布局，将查表路径压入 SIMD 更友好的寄存器/packed-code 形式，已有实验显示其相对普通 PQ 约有 1.41-1.48 倍提升。
+
+OPQ/IVF-OPQ\cite{ge2013opq} 属于量化前处理方向。其动机是普通 PQ 固定按原始维度切分子空间，如果高方差或强相关维度集中在同一子空间，量化误差会变大。实验先学习一个正交旋转矩阵，将 base 与 query 变换到旋转空间，再执行 PQ/IVF-PQ 训练与搜索；最终 rerank 仍使用原始 float 向量，以保证召回指标与原始任务一致。当前实现采用 PCA 正交旋转与子空间方差均衡排列，属于无外部依赖的 OPQ-style 工程近似；完整交替式 Procrustes OPQ 可作为后续替换，但本文评测只讨论该工程近似在当前框架中的效果。
+
+实现包含四个关键步骤。第一，基于 base 向量计算 $96\times96$ 协方差矩阵，并用 Jacobi 对称特征分解得到正交基。第二，将特征值从大到小排序，并采用贪心方式把高方差主成分分散到 $M$ 个子空间中，避免某个 PQ 子空间承担过高方差。第三，对 base 和 query 同时应用该正交旋转，保证内积排序在旋转空间中仍与原空间具有一致的几何解释。第四，在 PQ 或 IVF-PQ 粗排得到 top-$p$ 候选后，用原始 float 向量执行 rerank。该设计把变量集中在旋转与训练阶段，距离估计仍采用同一套 AVX2/PQ 搜索路径，便于进行同码长对比。算法流程如算法 \ref{alg:opq} 所示。
+
+\begin{lstlisting}[caption={OPQ-style rotation + PQ/IVF-PQ search},label={alg:opq},basicstyle=\ttfamily\scriptsize]
+Input: base X, query Q, subspaces M, candidate budget p
+C = covariance(X)
+U, lambda = JacobiEigen(C)
+perm = GreedyBalance(lambda, M)
+R = PermuteColumns(U, perm)
+Xr = X * R; Qr = Q * R
+Train PQ or IVF-PQ on Xr
 for each query q:
-    centroid_dists = distance(q, all_centroids)
-    c1, c2 = two_nearest_centroids(centroid_dists)
-    margin = dist(q, c2) - dist(q, c1)
-    if margin <= tau_low:
-        budget = high_budget      // hard query：边界附近
-    else if margin <= tau_high:
-        budget = mid_budget
-    else:
-        budget = low_budget       // easy query：落在簇内部
-    probes = nearest_centroids(q, budget.nprobe)
-    coarse = scan_ivfpq_lists(probes, budget.rerank_p)
-    result = exact_rerank(coarse, k=10)
+    coarse = ADC_or_IVF_ADC(q * R, p)
+    result = RerankWithRawFloatVectors(q, coarse)
 \end{lstlisting}
 
-\subsection{实验结果：预算感知确实有效}
+OPQ 实验在表 \ref{tab:env} 的 CPU 平台上执行，固定 $M=8,ksub=256$，查询数为 2000。每个配置先执行 128 条 query warmup，再重复 3 次，表中 latency 为 scan+rerank 的中位数；PQ/IVF 训练、base/query 旋转和索引构建均作为离线成本单独记录，不并入在线 latency。3 次重复足以排除把训练、旋转或 build 误并入在线查询的口径错误，但不足以支持 OPQ 与 PQ 之间百微秒级差异的速度排序。因此，表 \ref{tab:opq-results} 中的延迟只用于确认二者处于同一量级；OPQ 的主要收益不是把 PQ 变成更快的扫描器，而是在相同码长和候选预算下提高粗排覆盖率：当 $p=1500$ 时，PQ 的 Recall@100 为 0.95939，OPQ 提升到 0.97316；IVF-PQ 在 $nprobe=8,p=1500$ 时为 0.95228，IVF-OPQ 提升到 0.96568。旋转矩阵只有 $96\times96$ 个 float，约 36 KiB，相对 PQ code 和 IVF 索引几乎不改变在线内存阶数。
 
-表 \ref{tab:adaptive_ivfpq} 列出了本地 Windows i9、8 个 Pthread、$nlist=16$、DEEP100K 前 2000 个 query 的完整对照矩阵（来自 \code{adaptive\_ivfpq\_20260630.csv}）。
-
-\begin{table}[H]
-  \centering\scriptsize
-  \begin{tabularx}{\textwidth}{p{3.05cm}C{1.05cm}C{1.28cm}C{1.05cm}C{1.15cm}C{1.35cm}Y}
-    \toprule
-    策略 & Rec. & Latency & 平均 $nprobe$ & 平均 $p$ & 平均扫描 & 说明 \\
-    \midrule
-    固定低档 $2/500$ & 0.86940 & 148.43 & 2.00 & 500.00 & 15984 & easy 尚可，hard 召回明显不足。 \\
-    固定中档 $4/1000$ & 0.95945 & 229.06 & 4.00 & 1000.00 & 28710 & 同驱动固定参数基线。 \\
-    固定近邻档 $5/1000$ & 0.97300 & 324.82 & 5.00 & 1000.00 & 34697 & 增加 probe 后召回提升，延迟显著上升。 \\
-    固定高档 $8/1500$ & 0.99265 & 340.32 & 8.00 & 1500.00 & 52971 & 高召回上限，扫描量最大。 \\
-    adaptive conservative & 0.96520 & 217.38 & 3.91 & 919.20 & 28107 & 比固定中档召回提升 0.00575，延迟降约 5.1\%。 \\
-    adaptive aggressive & 0.97115 & 216.00 & 4.44 & 953.75 & 31102 & hard 获得高预算，整体召回继续提升。 \\
-    adaptive recall-oriented & 0.98420 & 301.43 & 5.53 & 1155.75 & 37910 & 介于固定近邻档和固定高档之间。 \\
-    conservative + grouped & 0.96520 & 186.54 & 3.91 & 919.20 & 28107 & 自适应预算叠加 grouped-order 后延迟最低。 \\
-    \bottomrule
-  \end{tabularx}
-  \caption{期末新增 IVF-PQ 预算实验（Windows i9，8 Pthread，$nlist=16$，延迟单位 us/query）}
-  \label{tab:adaptive_ivfpq}
-\end{table}
-
-conservative 策略相对固定中档，Recall@10 从 0.95945 提升到 0.96520，同时延迟从 229.06 us 降到 217.38 us——两项指标都改善了。这个结果说明固定中档在 easy query 上存在"过度投资"，把节省下来的预算转移给 hard query 后，整体 recall 提升而总计算量几乎持平。aggressive 策略在相近延迟下进一步把 recall 推到 0.97115。
-
-图 \ref{fig:adaptive_recall_latency} 直观地展示了这些配置在 recall-latency 平面上的分布。
-
-\begin{figure}[H]
-  \centering
-  \resizebox{0.92\textwidth}{!}{\input{fig/adaptive_recall_latency.tex}}
-  \caption{期末新增 IVF-PQ 实验的 recall-latency 分布（各配置来自同一驱动的 CSV 输出）}
-  \label{fig:adaptive_recall_latency}
-\end{figure}
-
-\subsection{难度分层统计：margin 的解释力}
-
-表 \ref{tab:difficulty_bins} 列出了各策略在 hard/medium/easy 三类 query 上的分层统计。
-
-\begin{table}[H]
-  \centering\scriptsize
-  \begin{tabularx}{\textwidth}{p{3.1cm}C{1.1cm}C{1.1cm}C{1.1cm}C{1.45cm}C{1.45cm}Y}
-    \toprule
-    策略 & hard Rec. & mid Rec. & easy Rec. & hard 扫描 & easy 扫描 & 解释 \\
-    \midrule
-    固定中档 & 0.91830 & 0.96116 & 0.98998 & 27360 & 30225 & 同一预算对 hard 不够，对 easy 偏多。 \\
-    固定高档 & 0.98427 & 0.99490 & 0.99752 & 51436 & 54411 & 召回最高，但所有 query 承担高扫描量。 \\
-    adaptive conservative & 0.94398 & 0.96116 & 0.98441 & 33333 & 24129 & 少量预算从 easy 转移给 hard。 \\
-    adaptive aggressive & 0.98427 & 0.96116 & 0.96807 & 51436 & 17583 & hard 提升最大，但 easy 损失更明显。 \\
-    adaptive recall-oriented & 0.98427 & 0.97592 & 0.98998 & 51436 & 30225 & 保留 easy 质量，成本介于中高档之间。 \\
-    \bottomrule
-  \end{tabularx}
-  \caption{查询难度分层统计（hard/medium/easy 数量分别为 623/569/808）}
-  \label{tab:difficulty_bins}
-\end{table}
-
-最值得关注的是：固定中档在 easy query 上已达到 Recall@10 = 0.98998，在 hard query 上只有 0.91830，两者差距超过 0.07。aggressive 策略把 hard recall 推到了 0.98427，但 easy recall 降到了 0.96807。这说明 centroid margin 不是一个随机指标，它确实在区分"需要更多预算"和"可以节省预算"的 query 上有实质性的解释力。
-
-\subsection{CPU 侧 grouped-order 实验：直接照搬为什么不行}
-
-把 GPU grouped-IVF 的思想迁移到 CPU，最直接的做法是：把 2000 个 query 按最近 centroid 排序，让访问同一 list 的 query 连续处理，以期改善 Pthread 调度中的 cache 局部性（相邻 query 访问相同 list，list 数据在 cache 中更可能驻留）。
-
-但实验结果给了我一个意外：表 \ref{tab:group_schedule} 显示，单独把固定中档 query 按 centroid 分组，延迟反而从 229.06 us 上升到 250.72 us（动态调度）或 305.99 us（静态调度）。原因是固定中档下所有 query 的预算相同，分组后 hard query 和 easy query 的工作量完全一样，分组只带来了额外的 query 重排开销，却没有改善负载均衡。静态调度下更差的原因是，按 centroid 分组后查询的执行时间分布变得更不均匀（相邻 query 都访问同一批 list，竞争同一批 cache），静态切块放大了这种不均衡。
+该 OPQ 系列结果还需要与表 \ref{tab:summary-results} 中的多核代表点区分口径。表 \ref{tab:opq-results} 的 IVF-PQ/IVF-OPQ 是单线程、大候选预算 $p=1500$、以 Recall@100 观察候选覆盖的实验；表 \ref{tab:summary-results} 中 57.61 us/query 的 IVF-PQ 是 Pthread/OpenMP 多核代表点，候选预算和统计口径不同，不能直接解释为同一实现相差 27 倍。
 
 \begin{table}[H]
   \centering\footnotesize
-  \begin{tabularx}{\textwidth}{p{3.4cm}C{1.4cm}C{1.4cm}C{1.2cm}C{1.45cm}Y}
+  \begin{tabular}{lrrrrrrr}
     \toprule
-    配置 & 调度 & query 顺序 & Rec. & Latency & 观察 \\
+    方法 & 码长(B/vec) & 旋转矩阵 & $nprobe$ & $p$ & Recall@10 & Recall@100 & 延迟(us, 约) \\
     \midrule
-    固定中档 & dynamic & original & 0.95945 & 229.06 & 同驱动基线。 \\
-    固定中档 & dynamic & grouped & 0.95945 & 250.72 & 只做分组反而变慢。 \\
-    固定中档 & static & original & 0.95945 & 268.16 & 静态调度放大尾部不均衡。 \\
-    固定中档 & static & grouped & 0.95945 & 305.99 & 分组+静态调度最差。 \\
-    conservative & dynamic & original & 0.96520 & 217.38 & 自适应预算优于固定中档。 \\
-    conservative & dynamic & grouped & 0.96520 & 186.54 & 分组+自适应预算，延迟最低。 \\
-    conservative & static & original & 0.96520 & 220.64 & 静态接近但略慢于动态调度。 \\
+    PQ & 8 & -- & -- & 1000 & 0.98070 & 0.92202 & 1854 \\
+    OPQ & 8 & 36 KiB & -- & 1000 & 0.98975 & 0.94653 & 1700 \\
+    PQ & 8 & -- & -- & 1500 & 0.99180 & 0.95939 & 2298 \\
+    OPQ & 8 & 36 KiB & -- & 1500 & 0.99545 & 0.97316 & 2179 \\
+    IVF-PQ & 8 & -- & 8 & 1500 & 0.98660 & 0.95228 & 1590 \\
+    IVF-OPQ & 8 & 36 KiB & 8 & 1500 & 0.99005 & 0.96568 & 1078 \\
     \bottomrule
-  \end{tabularx}
-  \caption{CPU 侧 grouped-order 与调度策略对照实验}
-  \label{tab:group_schedule}
+  \end{tabular}
+  \caption{OPQ/IVF-OPQ 在同码长下的召回增益（$M=8$，latency 为在线 scan+rerank 中位数；小幅延迟差异不作速度排序）}
+  \label{tab:opq-results}
 \end{table}
 
-然而当 grouped-order 与 conservative 自适应预算结合时，延迟从 217.38 us 降到了 186.54 us。原因是：conservative 策略让 easy query 的预算更小、hard query 的预算更大，而分组后相邻 query 恰好也有相似的 centroid，局部性改善使 hard query 在访问多个 list 时能从 cache 复用更多数据。两种优化的叠加效果超过了各自的单独效果。
+\begin{figure}[H]
+  \centering
+  \maybeincludegraphics[width=0.72\textwidth]{opq_tradeoff.pdf}
+  \caption{OPQ 与 PQ 在同压缩率下的 Recall@100-Latency 对比（在线 scan+rerank 口径）}
+  \label{fig:opq}
+\end{figure}
 
-这组实验让我相信：\textbf{跨架构迁移不是复制设计的表面形式，而是要理解背后的驱动机制}。GPU grouped-IVF 的目标是减少 warp divergence 和不规则内存访问；CPU grouped-order 的目标则是改善 Pthread 调度的 cache 局部性和负载均衡。两者的驱动机制不同，因此单独使用分组在 CPU 上失效，但与预算感知结合后才产生协同效果。
-
-% ===========================================================================
-\section{跨架构融合分析}
-% ===========================================================================
-
-\subsection{从分散实验到统一框架：同一个环节的四种实现}
-
-做完所有实验之后，最让我有收获感的一步是把各次作业的优化"对齐"到 ANN 系统的同一个环节上。表 \ref{tab:same_stage_compare} 把四类架构放回 ANN 流水线的五个环节中对比，揭示了各架构在同一问题上选择不同切入点的原因。
+补充扫参进一步固定 $p=1500$，比较 $M=8,12,16$。结果见表 \ref{tab:opq-m-sweep} 与图 \ref{fig:opq-m-sweep}。当 $M$ 从 8 增至 16 时，PQ 的压缩码长增加、每个子空间维度下降，Recall@100 从 0.95939 提升到 0.99839；OPQ 从 0.97316 提升到 0.99891。IVF 路径也呈现类似趋势，$nprobe=8,p=1500$ 下 IVF-PQ 从 0.95228 提升到 0.98829，IVF-OPQ 从 0.96568 提升到 0.98889。高 $M$ 区间中 OPQ 的边际收益变小，因为普通 PQ 已经有足够细的子空间划分；低 $M$ 区间中旋转更有价值，因为每个子空间承载更多维度，方差分布不均会直接放大量化误差。表中 latency 对 $M$ 不严格单调，主要因为 $p=1500$ 下最终 float rerank 占比较高，code scan 的 $M$ 差异被精排和运行抖动部分掩盖。
 
 \begin{table}[H]
-  \centering\scriptsize
-  \begin{tabularx}{\textwidth}{p{2.3cm}p{2.7cm}p{2.7cm}p{2.7cm}Y}
+  \centering\footnotesize
+  \begin{tabular}{lrrrrr}
     \toprule
-    ANN 环节 & SIMD/单核 & Pthread/OpenMP & MPI & GPU \\
+    方法 & $M$ & 码长(B/vec) & $nprobe$ & Recall@100 & 延迟(us, 约) \\
     \midrule
-    距离/得分计算 & AVX2/NEON FMA、整数 SQ、PQ ADC LUT。 & 每线程独立调用相同 SIMD kernel；向量化在线程层之下。 & 每 rank 本地调用相同 SIMD/OpenMP kernel；跨 rank 无共享。 & batch GEMM/cuBLAS，把 query 和 base 组成矩阵乘法，充分利用 tensor core。 \\
-    候选集缩减 & SQ/PQ/FastScan 通过压缩表示减少精排候选数量。 & IVF/IVF-PQ/HNSW 在单机多线程内控制候选规模；inter-query 不改变每条 query 的候选数。 & 每 rank 只搜索自己的 shard，总候选数按 rank 数减少；局部 Top-$k$ 通过协议恢复全局正确性。 & IVF grouped 按 probe list 组织 batch，使候选扫描更规则，核心是组织方式而非候选数量。 \\
-    Top-$k$ 合并 & 单线程堆或按插入维护，结果直接写回。 & 每 query 私有结果槽；intra-query 需合并线程局部堆。 & rank 0 合并 $P \times k$ 固定长度候选；$O(QPk)$ 排序。 & 设备端树形归并，只回传 $k$ 个结果；主机侧合并几乎可忽略。 \\
-    调度/负载均衡 & cache blocking 和精排预算 $p$。 & static/dynamic/pool、schedule、cache line 隔离。 & rank 负载尾部决定关键路径；固定长度协议保证 root 合并均匀。 & query chunk、probe 分桶、kernel launch 粒度和 shared memory 复用。 \\
-    期末新增关联 & centroid margin 最终调用 SIMD/IVF-PQ 距离核。 & 自适应预算在 8 线程 Pthread 驱动中验证；grouped-order 需与动态调度配合。 & 可把 margin 作为每 rank 的预算控制策略继续扩展。 & grouped-IVF 思想迁移到 CPU 需要重新匹配调度与预算分配。 \\
+    PQ & 8 & 8 & -- & 0.95939 & 2298 \\
+    OPQ & 8 & 8 & -- & 0.97316 & 2179 \\
+    PQ & 12 & 12 & -- & 0.99007 & 1839 \\
+    OPQ & 12 & 12 & -- & 0.99376 & 1872 \\
+    PQ & 16 & 16 & -- & 0.99839 & 2139 \\
+    OPQ & 16 & 16 & -- & 0.99891 & 2141 \\
+    IVF-PQ & 16 & 16 & 8 & 0.98829 & 1444 \\
+    IVF-OPQ & 16 & 16 & 8 & 0.98889 & 1526 \\
     \bottomrule
-  \end{tabularx}
-  \caption{同一 ANN 流水线环节在四类架构上的实现对照}
-  \label{tab:same_stage_compare}
+  \end{tabular}
+  \caption{不同 PQ 子空间数下的 OPQ/PQ 补充扫参（$p=1500$，latency 为在线 scan+rerank 中位数）}
+  \label{tab:opq-m-sweep}
 \end{table}
 
-这张表的价值不在于"把四列填满"，而在于它揭示了一个核心规律：\textbf{不同架构在同一环节选择的优化维度不同，因此它们是互补的，而不是替代关系}。SIMD 改变了数据表示（量化）；多核改变了调度粒度（inter-query）；MPI 改变了数据分区（rank shard）；GPU 改变了 batch 组织方式（tiled GEMM + 设备端 Top-$k$）。在理想情况下，这四类优化可以叠加——例如 MPI 的每个 rank 内部使用 SIMD 量化 kernel，再在 rank 内用 OpenMP inter-query 并行，最后汇总到 root。
+\begin{figure}[H]
+  \centering
+  \maybeincludegraphics[width=0.72\textwidth]{opq_m_sweep.pdf}
+  \caption{$M$ 从 8 到 16 时 OPQ 与 PQ 的 Recall@100 变化}
+  \label{fig:opq-m-sweep}
+\end{figure}
 
-\subsection{跨架构代表性结果对照}
+该扫参同时暴露了工程代价。$M$ 增大后，LUT 累加次数增加，码本和 code 体积也上升；OPQ 还需要额外的 96 维稠密 query 旋转。在线 latency 已排除训练、base 旋转和索引构建，因此不会把离线成本误并入单查询延迟。报告中仍不把 OPQ 描述为无条件加速技术，而将其定位为在固定压缩率或低 $M$ 配置下改善候选覆盖的量化前处理。
 
-表 \ref{tab:representative_results} 把各架构的代表性结果放在一起，不作跨平台硬件排名，而是展示每条技术路线在 recall-latency 平面上的位置。
+OPQ 的结果需要与 PQ/FastScan 放在一起理解。FastScan 优化的是“给定 code 和 LUT 后如何更快扫描”，OPQ 优化的是“给定码长和候选预算时 code 是否更能保留近邻结构”。二者不互相替代，而是位于 PQ 流水线的不同位置。若工程时间允许，OPQ 旋转后的 code 仍可继续采用 FastScan 风格布局；本文没有把这两者叠加，是为了避免实现分支过度扩散。当前结论已经足够说明：在 $M=8$ 这种压缩较强的场景中，旋转前处理能明显提高 Recall@100；当 $M=16$ 时普通 PQ 已接近饱和，OPQ 的边际收益自然下降。
 
 \begin{table}[H]
-  \centering\scriptsize
-  \begin{tabularx}{\textwidth}{p{1.35cm}p{2.55cm}p{2.75cm}C{1.15cm}C{1.35cm}Y}
+  \centering\footnotesize
+  \begin{tabular}{lrrrr}
     \toprule
-    架构 & 平台 & 代表方法 & Rec. & Latency & 主要说明 \\
+    方法 & 训练/构建(s, 约) & 旋转(s, 约) & 索引内存(MiB) & 在线阶段是否计入 \\
     \midrule
-    SIMD & i9-13900H AVX2 & SQ-AVX2, $p=100$ & 0.99995 & 427.01 & 相对串行 Flat 10.71x，高召回低延迟最优点。 \\
-    SIMD & Kunpeng NEON & PQ-SIMD, $p=1000$ & 0.98355 & 1984.35 & 趋势与 AVX2 一致，绝对延迟更高。 \\
-    多核 & Windows i9 & IVF-PQ Pthread pool inter, 16T & 0.95945 & 57.61 & inter-query 最稳定，线程池减少调度开销。 \\
-    多核 & Windows i9 & HNSW baseline, 1T & 0.96865 & 65.48 & 图索引单线程已快，并行空间有限。 \\
-    期末新增 & Windows i9 & adaptive conservative + grouped, 8T & 0.96520 & 186.54 & 预算感知与分组协同，同驱动最优点。 \\
-    MPI & Windows MS-MPI & block-HNSW, 8 ranks $\times$ 2T & 1.00000 & 188.03 & 局部图后全局合并，通信约 2.17 us。 \\
-    MPI & Kunpeng PBS & IVF-PQ, 8 ranks $\times$ 2T & 0.96515 & 512.10 & 跨平台 recall 一致，延迟受 ARM 平台影响。 \\
-    GPU & RTX 4060 Laptop & cublas\_tree & 0.99995 & 83.24 & 全量批量扫描，双瓶颈同时优化后最快。 \\
-    GPU & RTX 4060 Laptop & grouped-IVF, $nprobe=4$ & 0.96280 & 145.32 & 组织方式决定 GPU IVF 效率。 \\
+    PQ $M=8$ & 4.3 & 0.5 & 0.95 & 否 \\
+    OPQ $M=8$ & 4.2 & 0.9 & 0.95 + 0.04 & 否 \\
+    IVF-PQ $M=8$ & 4.6 & 0.5 & 37.96 & 否 \\
+    IVF-OPQ $M=8$ & 5.1 & 0.9 & 37.96 + 0.04 & 否 \\
     \bottomrule
-  \end{tabularx}
-  \caption{跨架构代表性结果（延迟单位 us/query，不同平台不作硬件排名）}
-  \label{tab:representative_results}
+  \end{tabular}
+  \caption{OPQ 代表配置的离线成本与内存开销（离线时间为代表性量级，不用于百毫秒级排序）}
+  \label{tab:opq-offline}
 \end{table}
 
-\subsection{瓶颈迁移链：每次优化都会暴露新的瓶颈}
 
-回顾整学期实验，最清晰的一条规律是：\textbf{每当一个瓶颈被压下去，下一个瓶颈就会暴露出来}。这条"瓶颈迁移链"是本报告最希望说清楚的核心叙事：
+\subsection{CPU-GPU 异构协同}
 
-\begin{enumerate}
-  \item \textbf{Flat 串行} $\Rightarrow$ 计算是瓶颈（$O(Nd)$ 乘加太慢）
-  \item \textbf{Flat-SIMD} $\Rightarrow$ 内存带宽是瓶颈（VTune Back-End Bound 71.4\%，Memory Bound 47.7\%）
-  \item \textbf{SQ/PQ 量化} $\Rightarrow$ 量化误差与精排预算 $p$ 成为新的折中旋钮；LUT 查表和算术开始显著
-  \item \textbf{IVF/HNSW 索引} $\Rightarrow$ 候选数量不再是 $O(N)$，但图搜索的不规则访存和锁争用变为新问题
-  \item \textbf{inter-query 多核} $\Rightarrow$ 线程扩展良好，但 IVF-PQ 在 16 线程后扩展开始减缓（任务粒度上限）
-  \item \textbf{MPI 分布式} $\Rightarrow$ 通信很小，rank-local 搜索质量和负载均衡成为关键路径
-  \item \textbf{GPU batch GEMM} $\Rightarrow$ score 被 cuBLAS 压低后，Top-$k$ 变成同量级瓶颈
-  \item \textbf{GPU cublas\_tree} $\Rightarrow$ 全量扫描路径几乎没有进一步"低垂的果子"，需要引入索引（grouped-IVF）
-  \item \textbf{期末自适应预算} $\Rightarrow$ 固定参数下 hard/easy query 资源分配不均的问题开始暴露
-\end{enumerate}
+异构实验使用 GPU/cuBLAS 计算 query--base 得分矩阵，将得分拷回 host 后选取 top-$p$ 候选，再由 CPU AVX2 对候选的原始 float 向量精排。候选规模取 $p=100,300,500,1000$，query batch 取 $1,128,512,2000$。计时记录保留 H2D、GEMM、score D2H、候选选择与 CPU rerank 等分项，因此可以区分“GPU 计算快”与“端到端是否划算”这两个问题。
 
-理解这条链，比记住某个具体的加速比数字更有意义。下一步该优化哪里，取决于当前的主瓶颈在哪里；而主瓶颈不是静态的，它随着已完成的优化而移动。
-
-\subsection{profiling 证据到优化决策的映射}
-
-表 \ref{tab:profile_to_decision} 把实验中用到的各类 profiling 证据整理成"信号 → 说明的问题 → 采取的动作"三列，展示了 profiling 如何转化为设计决策，而不只是贴工具截图。
+实验显示，异构方案的主要价值不是击败 GPU-only，而是暴露 CPU-GPU 分工的真实代价。query 数为 2000 时，GPU-only cublas\_tree 的在线延迟为 78.68 us/query；异构 rerank 在 $p=100$ 时达到 Recall@100=0.99999，但在线延迟为 924.10 us/query。分项时间显示，score D2H 拷贝为 389.43 ms，CPU 端候选选择为 1150.11 ms，CPU rerank 为 230.31 ms，均已超过 GEMM 本身的 49.72 ms。这里的候选选择是朴素 host 端实现：完整 $2000\times100000$ score 矩阵先回传 CPU，再逐 query 选择 top-$p$。若改为设备端 top-$p$ 或至少用主机端 \code{nth\_element}/partial sort 降低选择开销，绝对时间会下降，但仍无法改变“完整 score 回传过大”的架构结论。因此，若 GPU 已经能在设备端完成 Top-$k$，把完整得分矩阵搬回 CPU 做精排并不划算；异构协同更适合候选集本来很小、或 GPU 端无法完成精排规则的场景。
 
 \begin{table}[H]
-  \centering\scriptsize
-  \begin{tabularx}{\textwidth}{p{3.2cm}p{3.0cm}Y Y}
+  \centering\footnotesize
+  \begin{tabular}{lrrrrrr}
     \toprule
-    观察到的信号 & 来源 & 说明的问题 & 采取或建议的动作 \\
+    方法 & $p$ & Recall@10 & Recall@100 & 延迟(us) & score D2H(ms) & CPU 后处理(ms) \\
     \midrule
-    Flat P-core Back-End Bound 71.4\%，Memory Bound 47.7\% & SIMD VTune Top-Down & 全扫描读完整 base，SIMD 已不能单独解决内存墙。 & 转向 SQ/PQ/FastScan，减少热路径字节数。 \\
-    SQ Memory Bound 降至 8.7\%，Retiring 占比上升 & SIMD VTune 摘要与汇编 & 量化后访存压力下降，查表和算术开始显著。 & 优化 LUT 布局和 FastScan 寄存器查表。 \\
-    \code{pthread_mutex_lock}、\code{searchBaseLayer} 进入热点 & 多核 VTune hotspot & 图搜索共享队列和路径依赖使 intra-query 不稳定。 & 优先 inter-query；HNSW 内并行定位为 recall 折中。 \\
-    MPI Comm+merge 多为 2--4 us/query & MPI summary 日志 & 通信协议不是当前主瓶颈，local search 更重要。 & 保持固定长度协议，优化 rank-local 索引。 \\
-    cuBLAS score 70.71 ms，tree Top-$k$ 89.44 ms & GPU event 计时 CSV & score 与 Top-$k$ 都在关键路径上。 & 同时用 cuBLAS 和设备端树形 Top-$k$。 \\
-    hard/easy 扫描量与 recall 差异显著 & 期末新增 CSV 分层统计 & 固定预算对不同 query 分配不均。 & centroid margin 控制层 + grouped-order 协同验证。 \\
+    GPU-only & 10 & 0.99995 & -- & 78.68 & 17.38 & 0.00 \\
+    GPU+CPU & 100 & 0.99995 & 0.99999 & 924.10 & 389.43 & 1380.42 \\
+    GPU+CPU & 300 & 0.99995 & 0.99999 & 1109.27 & 319.27 & 1820.08 \\
+    GPU+CPU & 500 & 0.99995 & 0.99999 & 1769.27 & 501.12 & 2934.02 \\
+    GPU+CPU & 1000 & 0.99995 & 0.99999 & 2559.56 & 563.93 & 4416.60 \\
     \bottomrule
-  \end{tabularx}
-  \caption{profiling 证据到优化决策的映射}
-  \label{tab:profile_to_decision}
+  \end{tabular}
+  \caption{GPU 粗排-CPU 精排在 query 数为 2000 时的分项结果}
+  \label{tab:gpu-hybrid-results}
 \end{table}
 
-这张表的核心立场是：profiling 的价值不在于展示工具有多丰富，而在于它能否回答"下一步优化哪里更有价值"。如果某条路径已经是带宽限制，继续加计算指令吞吐通常收益有限；如果 Top-$k$ 成为尾部，优化 score kernel 也无法解决问题。判断当前主瓶颈，是每一轮优化循环的起点。
+\begin{figure}[H]
+  \centering
+  \maybeincludegraphics[width=0.72\textwidth]{gpu_hybrid_tradeoff.pdf}
+  \caption{GPU 粗排-CPU AVX2 精排的候选规模与延迟关系}
+  \label{fig:gpu-hybrid}
+\end{figure}
 
-\subsection{局限性}
+\begin{figure}[H]
+  \centering
+  \maybeincludegraphics[width=0.72\textwidth]{gpu_hybrid_timeline.pdf}
+  \caption{GPU+CPU 异构路径在 $p=500$ 时的端到端时间分解}
+  \label{fig:gpu-hybrid-timeline}
+\end{figure}
 
-本报告有几个值得明确的限制。第一，各次实验平台不同，跨架构绝对时间比较不等价于严格硬件排名；本文通过保留平台标注、计时口径和来源文件降低误读风险，跨平台表格只用于归因而非排名。第二，GPU 实验主要在本地 RTX 4060 Laptop GPU 上完成，未在集群 GPU 上进行完整重复实验。第三，MPI 非阻塞实验尚未实现多 batch pipeline，因此只能说明当前单 batch 设计下非阻塞收益有限，不能推广到 pipeline 场景。第四，期末新增自适应 IVF-PQ 目前只在本地 CPU 单机环境验证，尚未扩展到 MPI 多 rank 或 CUDA device 端；当前结论应理解为"固定参数可被 query 难度感知策略改进，且分组顺序需要与调度和预算共同设计"，而非工业级 learned routing 的结论。
+\begin{figure}[H]
+  \centering
+  \maybeincludegraphics[width=0.72\textwidth]{gpu_hybrid_batch.pdf}
+  \caption{不同 query batch 下 GPU-only 与 GPU+CPU 异构路径的延迟变化}
+  \label{fig:gpu-hybrid-batch}
+\end{figure}
 
-% ===========================================================================
-\section{结论}
-% ===========================================================================
+图 \ref{fig:gpu-hybrid-batch} 还显示 batch 尺寸对 GPU 路径影响很大。单 query 情况下，GPU-only 因 kernel 启动、数据搬运和固定开销导致单查询延迟很高；当 batch 增至 512 或 2000 后，base 矩阵可被批量共享，GEMM 吞吐优势才充分体现。异构路径虽然在 $p=100$ 时保持很高召回，但它需要把 $query\_n\times base\_n$ 的完整 score 矩阵传回 CPU，再在主机侧做 top-$p$ 选择。若未来要让异构协同真正有竞争力，关键不是把 CPU rerank 再向量化一次，而是在 GPU 端直接输出 top-$p$ 候选 id，把 D2H 数据量从完整 score 矩阵降到 $query\_n\times p$ 个候选。
 
-做完这学期全部 ANN 实验，最大的收获不是某个具体数字，而是对"ANN 优化是一条瓶颈迁移链"的理解。
+异构实验给出了清晰的边界条件：跨 CPU-GPU 边界不应传递完整 score 矩阵，而应传递足够小的候选 id 和分数。若 GPU 端完成 top-$p$，D2H 数据量可由 $Q\times N$ 个 float 降至 $Q\times p$ 个候选；当 $Q=2000,N=100000,p=100$ 时，传输规模相差三个数量级。此时 CPU rerank 才可能作为灵活精排后端存在。当前实现保留完整 score 回传路径，用于量化朴素异构方案的代价，并给出设备端候选压缩的必要性。
 
-SIMD 让我意识到向量化不等于解决了问题——Flat-SIMD 把计算加速了 2.6x，随即暴露了内存带宽墙；量化才是真正有效的突破，因为它减少了要读取的字节数，而不只是"更快地读"。多核实验让我理解了任务结构的重要性：IVF-PQ 在 $Q=2000$、16 线程 inter-query 下能到 57.61 us/query，但 intra-query 的同步开销和候选数量上限会抵消线程收益。MPI 实验最出人意料：我以为通信会成为主瓶颈，实验证明固定长度候选协议把通信压到了 2--4 us/query，rank-local 搜索才是真正需要优化的地方。GPU 实验的关键教训是 Top-$k$ 与 score 同样重要：cuBLAS 把 score 压到约 70 ms，但保留基础 Top-$k$ 时整体只达到 145.27 us；换成树形归并后才降到 83.24 us/query。
+\begin{table}[H]
+  \centering\footnotesize
+  \begin{tabularx}{\textwidth}{p{3.0cm}p{3.7cm}Y}
+    \toprule
+    GPU/异构方案 & 主要优点 & 主要风险 \\
+    \midrule
+    GPU Flat GEMM & 规则矩阵乘，batch 大时吞吐高。 & 访问点最多，Top-$k$ 和 score 存储压力大。 \\
+    GPU grouped-IVF & 减少访问点，保留部分矩阵化。 & 分桶、小矩阵和 probe 不规则会降低利用率。 \\
+    GPU-only cublas\_tree & score 与 Top-$k$ 均在设备端完成。 & 适合固定 Top-$k$，复杂精排规则较难加入。 \\
+    GPU coarse + CPU rerank & CPU 精排灵活，可使用 AVX2 原始向量核。 & 若回传完整 score，D2H 和 host top-$p$ 会主导延迟。 \\
+    \bottomrule
+  \end{tabularx}
+  \caption{GPU 与异构方案的工程取舍}
+  \label{tab:gpu-tradeoff}
+\end{table}
 
-期末新增实验把这些认识推进了一步：用 centroid margin 作为无监督难度指标，在固定 IVF-PQ 参数之间构造更细的 recall-latency 折中。conservative 策略在几乎相同的总计算量下，比固定中档同时改善了 recall 和延迟。而 GPU grouped-IVF 的思想迁移 CPU 的实验告诉我：跨架构迁移不能只复制表面形式——单独分组在 CPU 上反而变慢，只有与自适应预算结合才产生协同效果。
 
-如果要继续深入，本文认为有三个方向最有价值：一是在 GPU 上实现更完整的 IVF-PQ 或 PQ FastScan（当前 grouped-IVF 在 result 阶段的重组开销较大，有改进空间）；二是在 MPI 层加入 multi-batch pipeline，让下一批 broadcast 与当前批搜索重叠，真正发挥非阻塞通信的潜力；三是把自适应预算扩展到 MPI/GPU 场景——margin-based routing 只需要 centroid 距离信息，这在任何架构上都容易获得，因此理论上可以作为一个通用的查询控制层。
 
-\clearpage
-\section*{参考文献}
-\addcontentsline{toc}{section}{参考文献}
+\section{结果对比与瓶颈分析}
 
-\begin{enumerate}[label={[\arabic*]}]
-  \item Hervé Jégou, Matthijs Douze, and Cordelia Schmid. Product quantization for nearest neighbor search. \emph{IEEE Transactions on Pattern Analysis and Machine Intelligence}, 33(1):117--128, 2011.
-  \item Yu. A. Malkov and D. A. Yashunin. Efficient and robust approximate nearest neighbor search using Hierarchical Navigable Small World graphs. \emph{IEEE Transactions on Pattern Analysis and Machine Intelligence}, 42(4):824--836, 2020.
-  \item Jeff Johnson, Matthijs Douze, and Hervé Jégou. Billion-scale similarity search with GPUs. \emph{IEEE Transactions on Big Data}, 7(3):535--547, 2021.
-  \item André, Fabien, Anne-Marie Kermarrec, and Nicolas Le Scouarnec. Cache locality is not enough: high-performance nearest neighbor search with product quantization fast scan. \emph{Proceedings of the VLDB Endowment}, 9(4):288--299, 2015.
-  \item Intel Corporation. \emph{Intel VTune Profiler User Guide}. \url{https://www.intel.com/content/www/us/en/developer/tools/oneapi/vtune-profiler.html}.
-  \item NVIDIA Corporation. \emph{CUDA C++ Programming Guide} and \emph{CUDA C++ Best Practices Guide}. \url{https://docs.nvidia.com/cuda/}.
-  \item 并行程序设计课程 ANN 实验要求与课程框架，2026 年春季学期。
-\end{enumerate}
+\subsection{四类后端的 Latency-Recall 对比}
+
+\subsubsection{代表性结果}
+
+\begin{table}[H]
+  \centering\footnotesize
+  \begin{tabularx}{\textwidth}{p{3.0cm}p{2.8cm}r r r Y}
+    \toprule
+    方法 & 平台/后端 & Recall@10 & 延迟(us) & 加速比 & 说明 \\
+    \midrule
+    Flat-serial & i9 AVX2 & 1.00000 & 4571.62 & 1.00 & 串行 baseline。 \\
+    Flat-AVX2 & i9 AVX2 & 1.00000 & 1756.11 & 2.60 & 手写 AVX2/FMA 内积。 \\
+    SQ-AVX2 & i9 AVX2 & 0.99995 & 427.01 & 10.71 & uint8 量化降低访存量。 \\
+    IVF-PQ Pthread & i9 AVX2 & 0.95945 & 57.61 & 79.35 & 多核 IVF-PQ 代表点。 \\
+    HNSW baseline & i9 AVX2 & 0.96865 & 65.48 & 69.82 & 单线程图索引代表点。 \\
+    Budget-IVF-PQ & i9 AVX2 & 0.96520 & 186.54 & 24.51 & query margin 调整 $nprobe$ 与 rerank $p$。 \\
+    MPI IVF-PQ 4x2 & MS-MPI & 0.96560 & 232.45 & 19.67 & owner-computes + 定长候选协议。 \\
+    MPI Block-HNSW 8x2 & MS-MPI & 1.00000 & 195.11 & 23.43 & 多 rank 图索引合并。 \\
+    GPU cublas\_tree & NVIDIA CUDA & 0.99995 & 78.68 & 58.10 & cuBLAS 得分 + 设备端树形 Top-$k$。 \\
+    GPU+CPU hybrid & RTX 4060 + i9 & 0.99995 & 924.10 & 4.95 & $p=100$，Recall@100 为 0.99999，但 D2H 与 CPU 后处理较重。 \\
+    \bottomrule
+  \end{tabularx}
+  \caption{代表性 ANN 实验结果汇总}
+  \label{tab:summary-results}
+\end{table}
+
+\begin{table}[H]
+  \centering\footnotesize
+  \begin{tabularx}{\textwidth}{p{2.3cm}p{2.0cm}rrrrY}
+    \toprule
+    算法/后端 & Recall@10 & AVX2 单线程 & Pthread/OpenMP & MPI & CUDA GPU & 口径说明 \\
+    \midrule
+    Flat & 1.00000 & 1756.11 & 298.95 & -- & 78.68 & GPU 为 batch GEMM + 设备端 Top-$k$。 \\
+    IVF & $\sim$0.963 & 849.91 & 104.67 & -- & 145.32 & GPU 为 grouped-IVF，$nlist=16,nprobe=4$。 \\
+    IVF-PQ & 0.959--0.966 & 666.25 & 57.61 & 232.45 & -- & 多核与 MPI 代表点召回不同，仅比较量级。 \\
+    HNSW/Block-HNSW & 0.969/1.000 & 65.48 & 65.48$^\dagger$ & 195.11 & -- & MPI 为 Block-HNSW 8 ranks $\times$ 2 threads。 \\
+    \bottomrule
+  \end{tabularx}
+  \caption{不同后端上的代表延迟（us/query，同数据集、同串行 Flat baseline 归一；各列代表点召回不完全相同，不用于同召回精确排序）。$^\dagger$HNSW 多线程主要依靠 query 间并行提高吞吐，单 query 图搜索路径依赖强，表中保留同一单点延迟。}
+  \label{tab:arch-algo-matrix}
+\end{table}
+
+\begin{figure}[H]
+  \centering
+  \maybeincludegraphics[width=0.72\textwidth]{unified_latency_recall.pdf}
+  \caption{代表性算法的 Latency-Recall@10 横向对比}
+  \label{fig:unified-tradeoff}
+\end{figure}
+
+\subsubsection{结果解读}
+
+表 \ref{tab:summary-results} 显示，最快点并不必然是最适合的系统点。IVF-PQ Pthread 的延迟最低，但召回低于精确 Flat 与 GPU cublas\_tree；预算自适应 IVF-PQ 在同一 IVF-PQ 扫参空间中相对固定 4/1000 点同时降低延迟并提高召回，是 CPU 索引路径上的更优操作点；HNSW baseline 与 MPI Block-HNSW 补足了图索引在 trade-off 图中的位置，前者低延迟但 Recall@10 约 0.969，后者用多 rank 合并换取满召回；GPU cublas\_tree 在高召回下保持较低延迟，但依赖 batch 与设备端 Top-$k$；SQ-AVX2 在近似精确召回下显著降低延迟，是单机 CPU 上稳定的距离内核改进。OPQ/IVF-OPQ 将高召回区间继续向上推，但收益主要体现在同压缩率下的 recall，而非作为总加速比门面；GPU+CPU 异构 rerank 则证明跨设备协同必须把传输和候选选择纳入模型。trade-off 图的意义在于把这些点放到同一条 recall-latency 曲线上，而不是孤立比较加速比。
+
+从工程推荐角度看，可以得到三个层次的选择。若目标是在 CPU 上获得稳定低延迟且允许一定召回损失，多核 IVF-PQ 更合适；若固定在 IVF-PQ 路径内部继续调优，query 难度感知的预算分配比固定 $nprobe$ 更有效；若目标是高召回批量吞吐，GPU cublas\_tree 是更直接的选择；若目标是研究压缩率固定时的召回上界，OPQ/IVF-OPQ 提供了比普通 PQ 更高的候选覆盖，但需要接受旋转和训练成本。异构 GPU+CPU rerank 的实验结果不作为最终最快方案，而作为一项约束证据：跨设备协同只有在候选压缩发生在设备端、回传数据量足够小时才可能收益明显。
+
+表 \ref{tab:arch-algo-matrix} 的作用不是给出单列最优结果，而是把同一算法族在不同后端上的量级放在一起。Flat 在 AVX2 上体现距离内核优化，在 GPU 上体现矩阵化吞吐；IVF-PQ 在多核和 MPI 上体现候选削减与任务划分；HNSW 在单机和 MPI 上体现图索引的访问点削减；PQ/OPQ 则说明量化误差会影响同一候选预算下的召回。表中单线程基线用于标定各算法族的原始量级，各列代表点的 recall 和参数并不完全相同，因此它更适合看作量级对照，而不是同召回排行榜。不同点之间不是简单竞争关系，而是共同构成一张设计空间：系统可以选择更高召回、更低延迟、更低内存或更强吞吐，但很难同时极小化所有代价。
+
+这些结果还给出一个反直觉结论：并行架构越强，越需要关注非计算项。AVX2 加速后，访存成为瓶颈；多核加速后，负载均衡成为瓶颈；MPI 分片后，rank-local 最慢路径成为瓶颈；GPU GEMM 加速后，Top-$k$ 和 transfer 成为瓶颈。因此，实验分析不能停留在“把代码搬到更多硬件上”，还必须解释每次改变执行后端之后新的主导项在哪里。
+
+
+\subsection{Roofline 与瓶颈定位}
+
+\subsubsection{Profile 证据链}
+
+Profile 采用计时、计数器与汇编互证的方法。CPU 侧以 VTune Top-Down 观察 Retiring、Memory Bound、Core Bound 与 LLC miss，并用 objdump 核对 AVX2/FMA 与查表路径；GPU 侧保留 CUDA event、cuobjdump/PTX-SASS，并在条件允许时补 Nsight occupancy、带宽利用与访存合并率。表 \ref{tab:profile} 汇总了各内核的主要瓶颈。
+
+Flat/IVF-PQ 热点循环包含 \code{vmovups ymm}、\code{vfmadd231ps}、\code{vaddps}、\code{vhaddps} 与 \code{vextractf128}，说明 x86 路径确实使用 256-bit AVX2/FMA 进行内积累加。GPU SASS 中可见 \code{LDG.E.CI} 与 \code{FFMA} 指令，说明 CUDA 路径的 score kernel 也落在全局加载加 FMA 的基本形态上。OPQ 实验额外保留 rotate、scan 与 rerank 分项，异构实验保留 H2D、GEMM、D2H、候选选择与 CPU rerank 分项，这使新实验可以直接放入同一瓶颈表，而不是只给总延迟。
+
+\begin{table}[H]
+  \centering\footnotesize
+  \begin{tabularx}{\textwidth}{p{2.4cm}p{2.8cm}Y}
+    \toprule
+    内核 & 主瓶颈 & 证据与解释 \\
+    \midrule
+    Flat-AVX2 & memory bandwidth & 每个候选需读取 96 个 float，FMA 吞吐提升后访存成为主要限制。 \\
+    SQ-AVX2 & reduced memory traffic & uint8 表示降低向量读取字节数，收益来自访存压力下降。 \\
+    PQ/ADC & LUT/cache pressure & 距离计算变为 $M$ 次查表累加，主瓶颈从连续 float 读取迁移到 code/LUT 访问。 \\
+    IVF-PQ & list imbalance + rerank & 候选数减少后，倒排表长度不均与精排候选维护更明显。 \\
+    GPU GEMM & Top-$k$/transfer after GEMM & cuBLAS 加速得分矩阵后，设备端合并和数据搬运成为显性成本。 \\
+    OPQ rotation & dense query transform & 批量 query 旋转是额外稠密变换；单 query matvec 重用较低，因此只作为额外代价估算点。 \\
+    \bottomrule
+  \end{tabularx}
+  \caption{Profile 证据中的主导瓶颈}
+  \label{tab:profile}
+\end{table}
+
+Profile 证据的作用是防止把加速比解释成单一原因。例如，Flat-AVX2 相对串行 Flat 加速，不能简单归因于“用了 AVX2 所以快”；更准确的解释是，向量指令降低了每 96 维点积的指令数，但内存带宽占比上升，说明瓶颈已经从标量算术迁移到数据供应。SQ-AVX2 的更大收益也不能解释为整数运算更快，而应解释为压缩表示显著减少了读取字节数。类似地，GPU cuBLAS 加速 score 后，如果 Top-$k$ kernel 和结果回传没有同步优化，整体延迟仍会停在后处理阶段。
+
+OPQ 和异构实验的分项计时同样服务于这个证据链。OPQ 表中在线 latency 只统计扫描与精排，训练、构建和 base rotation 作为离线成本记录，这样才能比较 PQ 与 OPQ 的稳态查询代价。异构表中拆出 H2D、GEMM、score D2H、host top-$p$ 和 CPU rerank，是为了说明慢点不在 GPU GEMM，而在完整 score 回传和主机端候选选择。没有这些分项，异构路径容易被误读为“CPU rerank 不够快”；有了分项后，瓶颈位置非常明确。
+
+
+\subsubsection{Roofline 定位}
+
+\begin{figure}[H]
+  \centering
+  \maybeincludegraphics[width=0.72\textwidth]{roofline.pdf}
+  \caption{ANN 关键内核的 Roofline 定位（含 CPU/GPU 带宽斜线与峰值水平线）}
+  \label{fig:roofline}
+\end{figure}
+
+Roofline\cite{williams2009roofline} 的主要作用是解释“为什么下一步优化应改变数据表示或候选规模，而不是只堆更多指令”。Flat 距离计算的算术强度低，属于典型 memory-bound；SQ/PQ 通过压缩表示提高有效算术强度，但会引入查表和 cache 压力；GPU GEMM 算术强度高，接近 compute-throughput 区域，但 Top-$k$ 合并与数据传输不具备同样规则性，因此成为后续瓶颈。
+
+图 \ref{fig:roofline} 的屋顶线采用 CPU 侧 STREAM 量级带宽和估算峰值 FLOPS、GPU 侧设备规格量级带宽和估算峰值 FLOPS 绘制，仅用于相对定位。Flat-AVX2 的算术强度约为 0.25 FLOP/Byte，处于 CPU 带宽斜线附近；SQ 和 PQ 通过压缩表示把有效访存量降低，但查表和 code stream 使其仍偏向 cache/访存瓶颈；OPQ rotation 点按批量 query 旋转估算，显示该稠密变换的额外计算量上界；若只看单 query 的 $96\times96$ matvec，矩阵重用不足，访存敏感性会更高。GPU GEMM 的算术强度最高，接近 GPU 计算屋顶区域；GPU Top-$k$ 和 score 回传则重新落向低算术强度区域。该图与异构实验的分项计时相互印证：一旦把完整 score 矩阵从 GPU 搬回 CPU，系统重新落入低算术强度的数据搬运瓶颈。
+
+Roofline 还可以解释为什么不同架构的优化顺序不同。CPU 侧 Flat 扫描处于低算术强度区域，优先级应是减少访存字节或减少访问点，因此 SQ、PQ、IVF 比继续打磨 FMA 更有价值。GPU 侧 full GEMM 的算术强度高，优先级则变为保持矩阵足够大、访存合并和设备端完成 Top-$k$；如果过早把候选拆得很碎，反而可能丢失 GEMM 吞吐。MPI 侧不直接落在传统单机 Roofline 上，但其候选协议可以被理解为降低跨 rank 数据搬运强度：只传 top-$k$ 候选而不是传原始向量或 score。
+
+
+\subsection{扩展性与代价模型}
+
+多核和 MPI 的扩展性可用 Amdahl 模型描述：
+\[
+S(P)=\frac{1}{(1-f)+f/P+\epsilon(P)} ,
+\]
+其中 $f$ 为可并行比例，$\epsilon(P)$ 表示调度、同步、cache 竞争或通信开销。Flat/SQ 距离扫描的 $f$ 较高，但共享内存带宽会使 $\epsilon(P)$ 随线程数增加；IVF/HNSW 的 $f$ 受候选不均和图路径依赖限制；MPI IVF-PQ 在单机多 rank 下 comm+merge 约 1\%，因此 $\epsilon(P)$ 主要来自 rank-local 搜索时间差而非通信。GPU batch GEMM 更接近 Gustafson 式扩展：增大 batch 可以提高设备占用和 base 共享程度，但当 score 矩阵、Top-$k$ 或 D2H 数据量随 batch 线性扩大时，吞吐收益会被后处理项抵消。
+
+这一模型也解释了为什么“线程数、rank 数、batch 大小”不能被混为同一种并行参数。增加线程数共享同一内存层级，容易受到带宽和调度影响；增加 rank 改变数据所有权，需要候选协议保证正确性；增加 GPU batch 则扩大矩阵乘规模，提高硬件占用，但也线性增加 score 存储和 Top-$k$ 工作量。三者都可能提高吞吐，却作用在不同代价项上。期末报告把它们放在统一表格中比较，是为了看清主导代价如何变化，而不是暗示这些并行度可以直接横向等价。
+
+
+
+\section{讨论与工程取舍}
+
+前文的横向评测给出了若干代表点，但更重要的是把这些点转化为系统设计原则。ANN 并行化通常不是一次性选择某个“最快算法”，而是在召回率、延迟、吞吐、内存、离线构建成本和硬件可用性之间做约束优化。SIMD 关注单点距离常数，多核关注共享内存调度，MPI 关注候选协议和全局合并，GPU 关注批量矩阵化和设备端后处理；四类约束共同决定系统的可用设计空间。以下进一步归纳参数旋钮、应用场景和工程边界。
+
+\subsection{参数旋钮的作用}
+
+ANN 系统中的参数通常具有两类作用：一类改变候选规模，另一类改变候选质量。IVF 的 $nprobe$、HNSW 的搜索宽度、PQ/OPQ 的 rerank 候选预算 $p$ 直接改变候选规模；PQ 的子空间数 $M$、OPQ 的旋转矩阵、FastScan 的 code 布局则更多改变候选质量或扫描常数。若把这些参数混在一起比较，很容易得到误导性结论。例如，增大 $p$ 会提高 PQ 和 OPQ 的 recall，但这不能说明某个量化方式更好；只有固定 $M$ 和 $p$ 后，OPQ 相对 PQ 的召回提升才反映旋转前处理的作用。
+
+参数旋钮之间还存在层级关系。距离内核参数位于最底层，例如 SIMD 展开、量化 scale、PQ 子空间数和 LUT 布局；索引参数位于中层，例如 $nlist$、$nprobe$、HNSW entry 数和图扩展预算；并行参数位于外层，例如线程数、rank 数、batch size 和 GPU block 配置。底层参数改变单个候选的计算代价，中层参数改变候选集合，外层参数决定候选处理如何分摊到硬件。三类参数的耦合解释了为什么某些局部最优在系统层面并不最优。
+
+以 IVF-PQ 为例，增大 $nprobe$ 会访问更多倒排表，提高召回；增大 $p$ 会让 rerank 看到更多候选，也提高召回；增大线程数则试图降低这些候选的处理时间。若 $nprobe$ 很小，list 数量不足，intra-query 并行会缺少任务；若 $p$ 很大，rerank 重新变成原始向量计算，PQ 粗排的收益被削弱；若线程数继续增加，共享内存带宽和局部 Top-$k$ 合并会成为新瓶颈。因此，参数扫描不能只看一维曲线，而应把召回、候选规模和并行粒度一起解释。
+
+GPU 路径的参数关系也类似。增大 batch size 可以提高 GEMM 利用率，但也增加 score 矩阵规模和 Top-$k$ 工作量；增大 IVF 的 $nprobe$ 可以提高 recall，却会让 grouped-IVF 的分桶和小矩阵数量上升；增大异构 rerank 的 $p$ 可以提高 CPU 精排候选覆盖，却会线性增加 D2H 候选或 score 回传压力。GPU 参数优化的核心不是单个 kernel 的最短时间，而是 score、Top-$k$、transfer 三项之间的平衡。
+
+\begin{table}[H]
+  \centering\footnotesize
+  \begin{tabularx}{\textwidth}{p{2.6cm}p{3.2cm}p{3.0cm}Y}
+    \toprule
+    参数类型 & 代表参数 & 主要收益 & 主要风险 \\
+    \midrule
+    距离内核 & SIMD 展开、SQ scale、PQ $M$、FastScan code layout & 降低单候选距离估计成本。 & 访存、LUT/cache 压力或量化误差上升。 \\
+    索引访问 & IVF $nprobe$、HNSW 搜索宽度 & 提高候选覆盖与召回。 & 扫描候选增加，负载不均更明显。 \\
+    精排预算 & rerank $p$、top-$k$ 候选窗口 & 修正粗排误差，提高 Recall@K。 & 原始向量计算和候选维护开销上升。 \\
+    并行粒度 & 线程数、rank 数、batch size & 提高吞吐或降低平均延迟。 & 调度、同步、通信和数据搬运可能主导。 \\
+    \bottomrule
+  \end{tabularx}
+  \caption{ANN 参数旋钮的作用}
+  \label{tab:param-knobs}
+\end{table}
+
+\subsection{不同应用目标下的架构选择}
+
+同一组实验结果在不同应用目标下会产生不同结论。若目标是离线批量检索，GPU cublas\_tree 的高召回和高吞吐更有吸引力，因为 batch 足够大时矩阵化收益可以覆盖固定开销。若目标是在线单 query 低延迟，GPU 的 kernel 启动和数据搬运不一定划算，多核 IVF-PQ 或 HNSW 更适合。若目标是内存受限的 CPU 检索，SQ、PQ、FastScan 和 OPQ 的压缩表示更重要；若目标是跨进程或跨节点扩展，MPI 候选协议的正确性和通信上界更重要。
+
+这也说明“最优方法”必须带有场景限定。多核 IVF-PQ 在表 \ref{tab:summary-results} 中延迟最低，但 Recall@10 不如精确 Flat 或 GPU cublas\_tree；GPU cublas\_tree 召回高且延迟低，但依赖足够 batch 和设备端 Top-$k$；OPQ/IVF-OPQ 提高同码长召回，却不是最低延迟方案；MPI Block-HNSW 可以达到满召回，但其意义更多在于分布式候选合并能力。把这些点放入同一图中，不是为了选出唯一冠军，而是为了给不同约束下的选择提供依据。
+
+对于 DEEP100K，底库规模相对较小，单机内存能够容纳完整数据，因此多核和 GPU 都有较好发挥空间；MPI 的通信占比也较低。若扩展到更大底库，结论会发生变化：GPU 全量 score 矩阵可能无法完整保留，IVF/HNSW 的访问点削减更重要；MPI 或多机分片会从功能验证变为实际容量需求；OPQ 的离线训练和 base 旋转成本也需要摊销到更长的索引生命周期中。本文没有把这些外推作为定量结论，但它们提供了理解现有结果的边界。
+
+\begin{table}[H]
+  \centering\footnotesize
+  \begin{tabularx}{\textwidth}{p{3.0cm}p{3.4cm}Y}
+    \toprule
+    应用目标 & 更合适的路径 & 设计理由 \\
+    \midrule
+    高召回批量检索 & GPU GEMM + 设备端 Top-$k$ & batch 共享 base 矩阵，规则 score 计算吞吐高。 \\
+    在线低延迟 CPU 服务 & 多核 IVF-PQ / HNSW & 避免设备搬运，候选削减直接降低在线工作量。 \\
+    内存受限检索 & SQ/PQ/FastScan/OPQ & 压缩表示降低访存和索引体积，OPQ 改善低码长召回。 \\
+    分布式容量扩展 & MPI owner-computes + 定长候选 & 数据所有权清晰，通信量与候选数而非底库规模绑定。 \\
+    复杂业务精排 & 设备端 top-$p$ + CPU rerank & 仅在候选已压缩后，CPU 灵活精排才可能有意义。 \\
+    \bottomrule
+  \end{tabularx}
+  \caption{不同应用目标下的架构选择}
+  \label{tab:scenario-choice}
+\end{table}
+
+\subsection{边界条件与慢点归因}
+
+综合实验中有两类结果同样重要：一种是成功加速，另一种是解释为什么某条路径不划算。Flat-AVX2 没有达到理论 8 倍加速，说明内存带宽限制真实存在；HNSW 多入口并行不一定更快，说明图搜索的数据依赖不能被简单线程化；MPI 通信占比低，说明定长候选协议有效，但也说明继续优化通信格式不是当前主要矛盾；GPU-CPU 异构慢于 GPU-only，说明完整 score 回传违背了候选压缩原则。
+
+这些结果限定了各条优化路径的适用边界。真实系统优化往往是在一个瓶颈被压低后暴露另一个瓶颈：SIMD 暴露访存，量化暴露 LUT/cache，IVF 暴露 list 不均，HNSW 暴露路径依赖，GPU 暴露 Top-$k$/transfer，MPI 暴露 rank-local 尾部。若只保留加速比最大的点，就无法解释这些迁移。异构协同的慢点说明，跨设备设计必须先满足候选压缩和低回传量这两个条件。
+
+慢点归因也用于限定结论边界。OPQ 体现的是同码长召回增益，而不是所有配置都更快；异构实验量化的是 CPU-GPU 边界成本，而不是给出最终异构最优实现；Roofline 提供的是相对瓶颈定位，而不是绝对硬件峰值证明。这样处理后，结论更接近工程事实：少数关键现象被解释清楚，比单纯增加方法数量更有价值。
+
+\subsection{面向后续优化的路线}
+
+在现有结果基础上，后续优化应优先围绕“候选压缩发生在哪里”展开。CPU 路径上，OPQ 可以与 FastScan 进一步结合：OPQ 改善 code 的候选质量，FastScan 降低 code scan 的常数，两者位于 PQ 流水线的不同位置，理论上可以叠加。多核路径上，可以继续研究 list 长度感知的动态调度，使 IVF-PQ 在更大 $nprobe$ 下保持较低尾部等待。MPI 路径上，可以把 rank-local 搜索时间作为主要优化目标，而不是过早优化已经很小的通信比例。
+
+GPU 路径的后续重点更明确：设备端 top-$p$ 候选压缩是异构协同的前提。只有当 GPU 输出 $Q\times p$ 个候选 id 和分数，而不是完整 $Q\times N$ score 矩阵时，CPU rerank 才有可能发挥灵活精排价值。进一步地，GPU grouped-IVF 可以与设备端 top-$p$ 结合，让每个 probe list 内先产生局部候选，再跨 list 合并。这样既保留访问点削减，也避免大规模 score 回传。
+
+这些后续路线都沿着同一条 ANN 查询流水线展开。SIMD 提供距离内核和量化扫描基础，多核提供调度经验，MPI 提供候选协议原则，GPU 提供矩阵化和设备端 Top-$k$ 基础；OPQ 与异构实验进一步把量化误差和设备边界纳入代价模型。下一步工作应继续沿着这条连接线深化。
+
+
+\subsection{局限}
+
+第一，OPQ 的额外旋转并非免费。实验中 OPQ 确实提高了 Recall@100，但它的主要价值是同码长召回增益，而不是替代并行后端成为最低延迟点；在线 latency 已按 scan+rerank 中位数报告，离线训练和 base 旋转不并入查询延迟。第二，GPU 粗排-CPU 精排并非天然优于 GPU-only；当 top-$p$ 候选较大时，score D2H、CPU 候选选择与 rerank 会吞掉 GEMM 收益。第三，MPI 在 DEEP100K 规模下通信占比很低，因此继续优化通信协议的收益有限，rank-local 搜索与负载均衡更值得关注。
+
+第四，固定 DEEP100K 与 $d=96$ 使四架构之间具有可比性，但也限制了结论外推。更高维度数据会提高单点距离计算量，使 AVX2/GPU 的计算吞吐更重要；更大底库会放大 IVF/HNSW 的候选裁剪价值，也可能使 MPI 通信重新成为显性成本；更小 batch 则会削弱 GPU 的矩阵化优势。第五，本文的 OPQ 实现采用 PCA-balanced 旋转而非完整交替 Procrustes OPQ，因此结论应解释为“正交旋转量化前处理在当前实验框架中的收益”，而非对所有 OPQ 变体的上界断言。
+
+本文仍有两个未展开方向。SDC 生产者-消费者流水线可尝试将编码下一批 query 与当前批查表累加重叠；HNSWPQ 可将 PQ 编码存入 HNSW 节点以压缩图索引体积。这两个方向均与当前主线相关，但若同时铺开会削弱 OPQ 与异构协同的深度，因此仅作为后续工作。
+
+
+
+\section{结论与实践认识}
+
+ANN 综合并行化的核心结论可以概括为瓶颈迁移。AVX2 将距离计算从标量算术迁移到内存带宽；SQ/PQ 将 full-vector 访存迁移到压缩 code 与 LUT；IVF/HNSW 将全库扫描迁移到候选选择与负载均衡；GPU 将得分计算迁移到 Top-$k$ 和数据搬运；MPI 在当前规模下将通信问题弱化为 rank 内搜索问题。OPQ/IVF-OPQ 与 GPU-CPU 异构实验正是围绕这条迁移链展开：前者试图用正交旋转降低量化误差，后者试图在 GPU 吞吐和 CPU 精排之间重新分配工作。这种系统视角更能解释不同架构的适用场景和优化边界。
+
+定量结果显示：预算自适应 IVF-PQ 在同一实现内将固定 $(nprobe,p)=(4,1000)$ 的 Recall@10 从 0.95945 提升到 0.96520，同时把 latency 从 229.06 us 降至 186.54 us，说明按 query 难度分配候选预算可以优于固定预算扫描。在 $M=8,p=1500$ 下，OPQ 将 PQ 的 Recall@100 从 0.95939 提升到 0.97316，在线 latency 与同码长 PQ 处于同一毫秒量级；IVF-OPQ 在 $nprobe=8,p=1500$ 下将 IVF-PQ 的 Recall@100 从 0.95228 提升到 0.96568。补充 $M=12,16$ 扫描显示，随着子空间数增加，普通 PQ 的召回本身接近饱和，OPQ 的边际收益随之下降。GPU-CPU 异构实验则给出一个明确的边界条件：$query\_n=2000,p=100$ 时 Recall@100 达到 0.99999，但在线延迟约为 924 us/query，明显慢于 GPU-only cublas\_tree 的 78.68 us/query，主要原因是完整 score 矩阵 D2H 和朴素 host 候选选择开销过大。这些实验共同说明，ANN 优化的关键不是把更多硬件简单串联起来，而是在候选规模、数据表示和设备边界之间选择正确的瓶颈迁移方向。
+
+从并行程序设计角度看，ANNS 选题带来的核心训练是把“局部加速”提升为“端到端系统判断”。同一个距离函数在 AVX2、OpenMP、MPI 和 CUDA 上都可以并行化，但有效并行粒度并不相同：指令级并行要求内循环规则、数据连续并能被向量 lane 填满；线程级并行要求任务粒度足以覆盖调度与局部 Top-$k$ 合并；rank 级并行要求候选协议能保持全局 id 与 recall 评估正确；设备级并行则要求计算被组织成足够大的规则矩阵，并尽量在设备端完成候选压缩。并行程序设计的难点不只是让更多执行单元工作，而是让数据布局、同步边界和算法依赖同时匹配硬件。
+
+该选题还说明，性能优化必须建立在可解释的测量之上。只给 speedup 容易掩盖召回损失，只给 latency 容易掩盖离线构建和设备搬运，只给总时间容易掩盖瓶颈位置。因而，报告采用 Recall-Latency 曲线、profile 计数器、汇编/指令证据、Roofline 打点和分项计时共同约束结论。Flat-AVX2、SQ、PQ、IVF-PQ、HNSW、MPI 候选协议和 GPU GEMM 的结果并不是彼此独立的数字，而是同一条查询流水线在不同硬件边界下的观测值。最终形成的实践认识是：ANN 并行化的深度不来自方法数量，而来自能否解释每个方法压低了哪项代价、牺牲了什么指标、又把系统瓶颈推向何处。
+
+\begin{thebibliography}{9}
+\bibitem{babenko2016deep}
+A. Babenko and V. Lempitsky. Efficient Indexing of Billion-Scale Datasets of Deep Descriptors. \emph{CVPR}, 2016.
+
+\bibitem{sivic2003ivf}
+J. Sivic and A. Zisserman. Video Google: A Text Retrieval Approach to Object Matching in Videos. \emph{ICCV}, 2003.
+
+\bibitem{jegou2011pq}
+H. J\'egou, M. Douze, and C. Schmid. Product Quantization for Nearest Neighbor Search. \emph{IEEE TPAMI}, 2011.
+
+\bibitem{ge2013opq}
+T. Ge, K. He, Q. Ke, and J. Sun. Optimized Product Quantization. \emph{IEEE TPAMI}, 2013.
+
+\bibitem{malkov2018hnsw}
+Y. A. Malkov and D. A. Yashunin. Efficient and Robust Approximate Nearest Neighbor Search Using Hierarchical Navigable Small World Graphs. \emph{IEEE TPAMI}, 2018.
+
+\bibitem{andre2017fastscan}
+F. Andre, A.-M. Kermarrec, and N. Le Scouarnec. Cache Locality is Not Enough: High-Performance Nearest Neighbor Search with Product Quantization Fast Scan. \emph{PVLDB}, 2017.
+
+\bibitem{johnson2021faiss}
+J. Johnson, M. Douze, and H. J\'egou. Billion-Scale Similarity Search with GPUs. \emph{IEEE Transactions on Big Data}, 2021.
+
+\bibitem{williams2009roofline}
+S. Williams, A. Waterman, and D. Patterson. Roofline: An Insightful Visual Performance Model for Multicore Architectures. \emph{Communications of the ACM}, 2009.
+
+\bibitem{nvidia-cublas}
+NVIDIA. cuBLAS Library User Guide, CUDA Toolkit Documentation.
+\end{thebibliography}
 
 \clearpage
 \appendix
-\section{AI 使用报告}
-\label{app:ai}
 
-本次期末报告撰写过程中使用了生成式 AI（Claude）辅助。AI 的主要作用包括：帮助梳理期末任务要求和报告结构、检查跨架构证据链完整性、辅助实现期末新增 \code{adaptive_ivfpq.cc} benchmark、压缩重复叙述和检查 LaTeX 排版。没有让 AI 编造实验数据；前序作业的数值来自仓库中实际运行生成的结果文件，期末新增实验数值来自本地编译运行 \code{adaptive_ivfpq.cc} 后生成的 \code{adaptive\_ivfpq\_20260630.csv}。
+\section{数据口径与复核条件}
 
-\begin{table}[H]
-  \centering\footnotesize
-  \begin{tabularx}{\textwidth}{p{3.0cm}Y Y}
-    \toprule
-    使用场景 & 使用目的 & 采用情况 \\
-    \midrule
-    任务需求拆解 & 明确进阶 ANN 选题、30 页限制、融合而非拼接、至少 20\% 新增内容等要求。 & 形成平时工作与新增内容声明，确定报告结构。 \\
-    报告结构重组 & 将前序实验按 ANN 系统流水线重新组织，以"瓶颈迁移链"为叙事主线。 & 新增 pipeline 图、跨架构结果表、profiling 决策映射表。 \\
-    新增实验实现 & 在前序 IVF-PQ 代码基础上实现自适应预算、难度分层和 grouped-order 对照 benchmark。 & 编译运行，生成 CSV/TXT，将结果写入正文表格和图。 \\
-    文字润色与查漏 & 检查术语、单位、计时口径和章节衔接。 & 统一使用 Recall@10、us/query、online/wall 等口径，检查引用一致性。 \\
-    \bottomrule
-  \end{tabularx}
-  \caption{生成式 AI 辅助使用记录}
-  \label{tab:ai_usage}
-\end{table}
+正文图表采用统一数据集、距离函数和在线计时定义。所有进入横向比较的点均使用 DEEP100K，base 数为 $100000$，维度为 96；正式统计取前 2000 条 query，召回率按同一 ground truth 文件计算。Latency-Recall 图中的代表点仅用于比较架构和算法族的量级，不把不同 recall、不同候选预算的点解释为同召回排行榜。
+
+预算自适应 IVF-PQ 与固定预算 IVF-PQ 的对比保持索引、PQ code、最终 rerank 距离函数和 query 集合一致，只改变每类 query 的 $nprobe$ 与 $p$。因此，表 \ref{tab:adaptive-ivfpq} 中的改进解释为候选预算分配变化，而不是索引结构或距离函数变化。OPQ 与 PQ、IVF-OPQ 与 IVF-PQ 的对比必须保持三个条件一致。第一，子空间数 $M$、$nprobe$ 和 rerank 候选预算 $p$ 相同；第二，在线 latency 只统计 scan+rerank，不把训练、base 旋转、query 旋转预处理或索引构建混入；第三，最终 rerank 均使用原始 float 向量计算内积距离。GPU-only 与 GPU-CPU 异构对比同时报告 online latency 和 H2D、GEMM、D2H、host top-$p$、CPU rerank 等分项时间，避免把计算、传输和主机端候选选择混成单一总数。
+
+程序复核时遵循统一输入输出约定：读取 DEEP100K 数据与 ground truth，执行对应搜索函数，并输出 average recall 与 average latency。附录仅限定数据、参数和计时口径，保证正文分析与复核条件一致。
+
+\section*{AI 使用报告}
+\addcontentsline{toc}{section}{AI 使用报告}
+
+生成式 AI 主要用于技术问答、口径检查、\LaTeX{} 排版修正和文字一致性复核。实验数据、图表、延迟和召回率均来自程序输出、结果 CSV、profile 记录或重新生成的图表；AI 不用于生成或替代实验数据。下面按“提问节选 $\to$ 回复要点 $\to$ 判断与复核”的形式列出代表性 case。
+
+\subsection*{A.1 OPQ 在线延迟口径}
+
+\paragraph{提问节选}
+
+> OPQ 相比 PQ 只多一次 96 维 query 旋转，为什么表格中 OPQ/IVF-OPQ 可能比同配置 PQ 慢数倍？是否把训练、base 旋转或索引构建计入了单查询延迟？
+
+\paragraph{AI 回复要点}
+
+AI 建议把 OPQ 的成本拆成离线训练、base 旋转、query 旋转、PQ/IVF-PQ scan 和最终 rerank，并用 warmup 后多次重复的 scan+rerank 中位数作为在线 latency。报告中不应把 OPQ 描述为更快的扫描器，而应强调同码长、同候选预算下的召回增益。
+
+\paragraph{判断与复核}
+
+该建议与 OPQ 的算法结构一致。结果文件已包含 train/build/rotate/scan/rerank 分项，因此正文表 \ref{tab:opq-results} 和表 \ref{tab:opq-m-sweep} 只报告在线 scan+rerank 中位数，离线成本单独列入表 \ref{tab:opq-offline}。最终表述改为“OPQ 与 PQ 在线延迟处于同一量级，收益体现在同码长召回提升”，避免用一次性成本污染单查询 latency。
+
+\subsection*{A.2 预算自适应 IVF-PQ 是否构成更优操作点}
+
+\paragraph{提问节选}
+
+> 新加入的实验看起来没有超过前面几个最快点。能否从已有 IVF-PQ sweep 中找到一个真正更好的结果，而不是只增加一个独立的小实验？
+
+\paragraph{AI 回复要点}
+
+AI 建议不要把不同 runner、不同线程策略和不同 recall 口径的点直接相互宣称“更快”，而应在同一 IVF-PQ 实现内部比较固定预算与按 query 难度分配预算的结果。如果自适应策略在同一索引、同一 query 集和同一 rerank 距离函数下同时提高 recall 并降低 latency，就可以作为新的 Pareto 点进入主图。
+
+\paragraph{判断与复核}
+
+结果文件显示 fixed 4/1000 的 Recall@10 为 0.95945、latency 为 229.06 us；adaptive conservative grouped 的 Recall@10 为 0.96520、latency 为 186.54 us，平均 $nprobe=3.91$、平均 $p=919.20$。正文据此加入表 \ref{tab:adaptive-ivfpq} 和图 \ref{fig:adaptive-ivfpq}。同时保留边界说明：多核 IVF-PQ 57.61 us 仍是横向汇总中的低延迟代表点，自适应结果的结论限定在同一 IVF-PQ 参数空间内。
+
+\subsection*{A.3 GPU 粗排-CPU 精排的慢点归因}
+
+\paragraph{提问节选}
+
+> GPU GEMM 很快，为什么把 top-$p$ 候选交给 CPU AVX2 rerank 后端到端反而变慢？是否可以把这个结果写成架构结论？
+
+\paragraph{AI 回复要点}
+
+AI 建议拆出 H2D、GEMM、score D2H、host top-$p$ 选择和 CPU rerank，而不是只报告总延迟。若完整 $Q\times N$ score 矩阵先回传 CPU，再在主机端做候选选择，则 D2H 和 host selection 会主导延迟；更合理的方向是在 GPU 端直接输出 top-$p$ 候选 id 和分数。
+
+\paragraph{判断与复核}
+
+分项结果与该分析一致：$query\_n=2000,p=100$ 时 GEMM 约 49.72 ms，但 score D2H 为 389.43 ms，朴素 host 候选选择为 1150.11 ms。正文因此没有把异构方案写成最终最快方法，而是把它作为候选压缩位置的边界实验，并在表 \ref{tab:gpu-hybrid-results} 中保留分项时间。
+
+\subsection*{A.4 代价模型公式的安全性}
+
+\paragraph{提问节选}
+
+> 报告中写 $T(q)=T_{\mathrm{score}}+T_{\mathrm{candidate}}+T_{\mathrm{topk}}+T_{\mathrm{sync}}+T_{\mathrm{transfer}}$ 是否过于绝对？GPU stream、MPI 或流水线情况下这些项可能重叠。
+
+\paragraph{AI 回复要点}
+
+AI 建议将公式改为近似分解，并明确它不是严格运行时恒等式，而是用于标记临界路径上的主要代价来源。单机 CPU 中 $T_{\mathrm{transfer}}$ 可近似为 0；GPU stream、MPI tile 或异步流水线中不同阶段可能重叠。
+
+\paragraph{判断与复核}
+
+正文采用 $T_{\mathrm{online}}(q)\approx\cdots$ 的形式，并在公式下方说明该式只用于瓶颈归因。这样既保留了分析框架，也避免把阶段重叠问题写成错误的确定等式。
+
+\subsection*{A.5 使用边界}
+
+AI 只作为技术资料索引器、一致性检查器和语言润色工具。所有数值结论均以可复核的结果文件和编译运行记录为准；涉及口径变化的建议，只有在代码逻辑、CSV 字段和图表重新生成结果相互一致时才进入正文。
 
 \end{document}
-

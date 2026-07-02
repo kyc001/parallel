@@ -1,0 +1,37 @@
+CPU AVX2/FMA evidence reused from local i9 profiling.
+
+Flat / IVF-PQ inner-product loop:
+  vmovups ymm4,YMMWORD PTR [rax]
+  vmovups ymm5,YMMWORD PTR [rax+0x20]
+  vfmadd231ps ymm0,ymm4,YMMWORD PTR [rdx-0x80]
+  vfmadd231ps ymm2,ymm5,YMMWORD PTR [rdx-0x60]
+  vmovups ymm4,YMMWORD PTR [rax-0x40]
+  vmovups ymm5,YMMWORD PTR [rax-0x20]
+  vfmadd231ps ymm1,ymm4,YMMWORD PTR [rdx-0x40]
+  vfmadd231ps ymm3,ymm5,YMMWORD PTR [rdx-0x20]
+  vaddps ymm0,ymm0,ymm2
+  vaddps ymm0,ymm0,ymm1
+  vhaddps ymm0,ymm0,ymm0
+  vhaddps ymm0,ymm0,ymm0
+  vextractf128 xmm0,ymm0,0x1
+
+PQ scan loop evidence:
+  vmovups ymm5,YMMWORD PTR [rax]
+  vfmadd231ps ymm1,ymm5,YMMWORD PTR [rdx]
+  vmovups ymm5,YMMWORD PTR [rax-0x60]
+  vfmadd231ps ymm0,ymm5,YMMWORD PTR [rdx-0x60]
+  vmovups ymm3,YMMWORD PTR [rcx+rdx*4]
+  vfmadd231ps ymm1,ymm3,YMMWORD PTR [rsi+rdx*4]
+
+GPU SASS evidence reused from local cuobjdump:
+  LDG.E.CI R25, [R2+-0x8]
+  LDG.E.CI R26, [R18+-0x8]
+  FFMA R25, R25, R26, R4
+  LDG.E.CI R4, [R2]
+  FFMA R25, R27, R28, R25
+  FFMA R4, R4, R26, R25
+
+Sources:
+  ann-pthread-omp/profiling/asm_ivfpq_avx2_snippet.txt
+  ann-pthread-omp/profiling/asm_pq_avx2_snippet.txt
+  ann-final/report/results/cuobjdump_sass.txt

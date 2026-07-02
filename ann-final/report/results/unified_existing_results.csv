@@ -1,0 +1,14 @@
+method,source,platform,recall_at_10,recall_at_100,latency_us,qps,speedup,notes
+Flat-serial,Lab2 SIMD,i9-13900H AVX2,1.00000,1.00000,4571.62,218.74,1.00,serial flat_search baseline
+Flat-AVX2,Lab2 SIMD,i9-13900H AVX2,1.00000,1.00000,1756.11,569.44,2.60,hand-written AVX2/FMA inner-product kernel
+SQ-AVX2-p100,Lab2 SIMD,i9-13900H AVX2,0.99995,,427.01,2341.87,10.71,uint8 scalar quantization with AVX2 distance
+PQ-ADC,Lab2 SIMD,i9-13900H AVX2,,,,,,representative PQ/ADC sweep reused from SIMD report
+FastScan-4bit,Lab2 SIMD,i9-13900H AVX2,,,,,1.41,relative speedup over PQ in local sweep
+IVF-PQ-Pthread-pool,Lab3 Pthread/OpenMP,i9-13900H AVX2,0.95945,,57.61,17358.10,79.35,16-thread local IVF-PQ best representative point
+IVF-PQ-MPI-4x2,Lab4 MPI,local MS-MPI multi-rank,0.96560,,232.45,4301.99,19.67,Windows MS-MPI 4 ranks x 2 threads; comm+merge about 1 percent
+HNSW-baseline,Lab3 Pthread/OpenMP,i9-13900H AVX2,0.96865,,65.48,15271.16,69.82,single-thread HNSW baseline representative graph-search point
+IVF-PQ-adaptive,Adaptive IVF-PQ,i9-13900H AVX2,0.96520,,186.54,5360.83,24.51,query-margin budgeted IVF-PQ; avg nprobe 3.91 avg rerank_p 919
+MPI-Block-HNSW-8x2,Lab4 MPI,local MS-MPI multi-rank,1.00000,,195.11,5125.32,23.43,Windows MS-MPI block HNSW 8 ranks x 2 threads
+GPU-cublas-tree,Lab5 GPU,NVIDIA CUDA,0.99995,,78.68,12709.61,58.10,cuBLAS score matrix plus device tree Top-k; final report uses hybrid-runner online timing
+GPU-IVF-grouped,Lab5 GPU,NVIDIA CUDA,0.96280,,145.32,6881.37,31.46,IVF grouped GEMM nlist=16 nprobe=4; stable grouped-IVF representative point
+GPU-CPU-hybrid-p100,ann-final hybrid,RTX 4060 Laptop + i9 AVX2,0.99995,0.99999,924.10,1082.14,4.95,cuBLAS coarse score matrix copied to CPU for AVX2 rerank

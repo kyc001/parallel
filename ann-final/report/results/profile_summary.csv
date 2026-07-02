@@ -1,0 +1,10 @@
+kernel,source,platform,ipc,retiring_pct,memory_bound_pct,core_bound_pct,llc_miss_or_note,dominant_bottleneck,evidence
+Flat-AVX2,Lab2 VTune,i9-13900H AVX2,,,,,memory bandwidth,VTune memory/hotspots and objdump AVX2 FMA snippets reused
+SQ-AVX2,Lab2 VTune,i9-13900H AVX2,,,,,reduced memory traffic,quantized uint8 scan lowers bytes per vector
+PQ-ADC,Lab2/Lab3 VTune,i9-13900H AVX2,,,,,LUT/cache pressure,ADC converts vector dot product to m table lookups
+FastScan-4bit,Lab2 objdump,i9-13900H AVX2,,,,,register LUT and shuffle,uses packed codes and SIMD shuffle-style lookup
+IVF-PQ,Lab3 profiling,i9-13900H AVX2,,,,,list imbalance plus rerank,thread scheduling and inverted-list skew dominate after PQ scan
+MPI-IVF-PQ,Lab4 timing,local MS-MPI,,,,,rank-local search,comm+merge about 1 percent so search dominates
+GPU-cublas-tree,Lab5 CUDA event,NVIDIA CUDA,,,,,Top-k and transfer after GEMM,score compute separated from device Top-k and result copy
+OPQ-rotation,ann-final measured,i9-13900H AVX2,,,,,dense 96x96 transform,opq_ivfpq reports rotate_ms plus scan/rerank split for every sweep point
+GPU-hybrid,ann-final measured,RTX 4060 Laptop + i9 AVX2,,,,,score D2H plus CPU rerank,gpu_hybrid reports H2D score D2H candidate selection CPU rerank and wall/online latency

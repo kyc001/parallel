@@ -1,0 +1,9 @@
+kernel,platform,arithmetic_intensity,performance_gflops,bound,note
+Flat-AVX2,i9-13900H AVX2,0.25,18.0,memory,96 float loads dominate exact scan
+SQ-AVX2,i9-13900H AVX2,1.20,42.0,memory,quantization reduces bytes per vector
+PQ-ADC,i9-13900H AVX2,0.85,28.0,cache,LUT and code streams replace full vector loads
+FastScan-4bit,i9-13900H AVX2,1.60,35.0,shuffle/register,LUT packed into SIMD-friendly representation
+IVF-PQ,i9-13900H AVX2,0.95,31.0,cache/list imbalance,scans fewer candidates but list lengths vary
+OPQ-rotation,i9-13900H AVX2,16.00,120.0,batch-estimate,estimated batch 96x96 query rotation before search; single-query matvec has lower reuse
+GPU-GEMM,NVIDIA CUDA,24.00,5200.0,compute/tensor-throughput,cuBLAS batch score matrix
+GPU-TopK,NVIDIA CUDA,0.40,220.0,memory/control,device candidate merge after GEMM

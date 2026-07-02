@@ -1,4 +1,4 @@
-#include <algorithm>
+﻿#include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <cstdlib>
@@ -608,7 +608,7 @@ int main(int argc, char** argv) {
         const size_t requested_query_n = ParseSizeArg(argc, argv, 1, 2000);
         const int nthreads = ParseIntArg(argc, argv, 2, 8);
         const std::string output_dir =
-            ParseStringArg(argc, argv, 3, "ann-final/report/results");
+            ParseStringArg(argc, argv, 3, "../report/results");
 
         const size_t nlist = 16;
         const size_t k = 10;
