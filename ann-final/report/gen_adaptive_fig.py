@@ -6,14 +6,14 @@ RESULT_CSV = os.path.join("results", "adaptive_ivfpq_20260630.csv")
 OUT_PATH = os.path.join("fig", "adaptive_recall_latency.tex")
 
 LABELS = {
-    "fixed_low_np2_p500": "fixed 2/500",
-    "fixed_mid_np4_p1000": "fixed 4/1000",
-    "fixed_near_np5_p1000": "fixed 5/1000",
-    "fixed_high_np8_p1500": "fixed 8/1500",
-    "adaptive_conservative": "cons.",
-    "adaptive_aggressive": "aggr.",
-    "adaptive_recall_oriented": "recall",
-    "adaptive_conservative_grouped": "cons.+grp",
+    "fixed_low_np2_p500": "固定 2/500",
+    "fixed_mid_np4_p1000": "固定 4/1000",
+    "fixed_near_np5_p1000": "固定 5/1000",
+    "fixed_high_np8_p1500": "固定 8/1500",
+    "adaptive_conservative": "保守自适应",
+    "adaptive_aggressive": "激进自适应",
+    "adaptive_recall_oriented": "召回优先",
+    "adaptive_conservative_grouped": "保守+分组",
 }
 
 FIXED = {
@@ -78,12 +78,12 @@ def main():
                 f"  \\node[anchor=west] at ({x + 0.10:.2f},{y + 0.08:.2f})"
                 f" {{{label}}};\n")
         out.write("  \\fill[blue!65] (7.45,0.65) circle (2.2pt);"
-                  " \\node[anchor=west] at (7.62,0.65) {fixed};\n")
+                  " \\node[anchor=west] at (7.62,0.65) {固定预算};\n")
         out.write("  \\draw[fill=green!65!black,draw=black] (7.39,0.32) rectangle (7.51,0.44);"
-                  " \\node[anchor=west] at (7.62,0.38) {adaptive};\n")
+                  " \\node[anchor=west] at (7.62,0.38) {自适应};\n")
         out.write("  \\node[star,star points=5,fill=red!70,draw=black,inner sep=1.1pt]"
                   " at (7.45,0.12) {};"
-                  " \\node[anchor=west] at (7.62,0.12) {adaptive+grouped};\n")
+                  " \\node[anchor=west] at (7.62,0.12) {自适应+分组};\n")
         out.write("\\end{tikzpicture}\n")
     print(OUT_PATH)
 

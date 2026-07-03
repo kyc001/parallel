@@ -277,73 +277,69 @@ SIMD 实验最终沉淀出三条结论。第一，Flat 向量化是必要基线�
   \label{tab:review-simd}
 \end{table}
 
+\begin{figure}[H]
+  \centering
+  \resizebox{0.86\textwidth}{!}{%
+  \begin{tikzpicture}[
+    box/.style={draw=black!55, rounded corners=2pt, align=center, minimum height=0.58cm, font=\scriptsize, fill=blue!5},
+    lut/.style={draw=black!55, rounded corners=2pt, align=center, minimum height=0.58cm, font=\scriptsize, fill=orange!10},
+    outbox/.style={draw=black!55, rounded corners=2pt, align=center, minimum height=0.58cm, font=\scriptsize, fill=green!9},
+    arr/.style={-{Latex[length=1.8mm]}, thick, draw=black!65}
+  ]
+    \node[box, minimum width=2.2cm] (q) at (0,0) {query\\96 float};
+    \node[box, minimum width=2.4cm] (b) at (3.0,0) {base block\\8 lanes};
+    \node[outbox, minimum width=2.2cm] (fma) at (6.0,0) {AVX2 FMA\\partial sums};
+    \node[outbox, minimum width=2.0cm] (heap) at (8.7,0) {local\\top-$k$};
+    \draw[arr] (q) -- (b);
+    \draw[arr] (b) -- (fma);
+    \draw[arr] (fma) -- (heap);
 
-\subsubsection{AVX2 Flat、SQ 与量化扫描补充}
-
-Flat 搜索的精确性最高，但每个 query 需要访问 $100000\times96$ 个 float。AVX2/FMA 将内积规约展开为 8-lane 向量计算，代表性延迟由串行 Flat 的 4571.62 us/query 降至 1756.11 us/query。该结果说明距离内核具有明确的指令级并行空间，但 2.60 倍加速也表明其很快受到内存带宽与 cache 行利用率限制。
-
-SQ 将 float32 压缩为 uint8，单向量访存量显著下降。已有实验中 SQ-AVX2 在 Recall@10=0.99995 时达到约 427.01 us/query，相对串行 Flat 加速 10.71 倍。该收益并非来自更多浮点计算，而是来自数据表示改变后访存压力下降。
-
-从实现角度看，Flat-AVX2 和 SQ-AVX2 的差异主要在数据路径而非控制流。Flat 内核对 96 维 float 做连续加载和 FMA 规约；SQ 内核先用量化参数把数据映射到较窄表示，再在查询时恢复近似内积。由于 DEEP100K 的维度只有 96，单个向量的计算量并不高，访存字节数、对齐和 cache 行利用率对延迟影响更大。该现象也解释了为什么单纯增加 FMA 展开深度不能无限提高 Flat 性能：当内核已经能较好填满向量执行单元后，下一步收益主要来自减少读取的数据量。
-
-这部分实验还澄清了自动向量化和手写 SIMD 的边界。编译器可以识别规则的点积循环，但 ANN 框架中的 top-$k$ 维护、候选窗口和量化重排会使循环结构变复杂；手写 AVX2 的价值不只在于使用 \code{vfmadd}，还在于控制加载、规约、尾部处理和数据布局。对于 Flat 这样的规则内核，自动向量化可能已经接近可用；对于 PQ/FastScan 这样的查表内核，代码布局、打包方式和寄存器内查表更依赖人工设计。
-
-SQ 的结果也说明，精度损失不一定随着压缩而显著出现。DEEP100K 的向量经过标量量化后，在较小 rerank 窗口内仍能保持 Recall@10 接近 1，这意味着底库中高分候选与普通候选之间存在足够间隔，量化误差没有严重扰乱 top-10 排序。相反，PQ 在小候选预算下更容易掉召回，因为子空间量化误差会累积到粗排阶段。后续 OPQ 的目标正是降低这种子空间误差，使同样的 rerank $p$ 覆盖更多真实近邻。
-
-\begin{table}[H]
-  \centering\footnotesize
-  \begin{tabularx}{\textwidth}{p{2.8cm}p{3.2cm}Y}
-    \toprule
-    实现路径 & 主要收益 & 局限与后续影响 \\
-    \midrule
-    Flat-AVX2 & 用 FMA 和 256-bit lane 降低点积常数。 & 全量 float 访存不变，后续需要量化或剪枝。 \\
-    SQ-AVX2 & 压缩表示降低内存流量，保持高 Recall@10。 & 仍需扫描全库，适合作为高召回 CPU 基线。 \\
-    PQ-ADC & 用 LUT 累加替代 full-vector 点积。 & 召回受子空间量化误差影响，引出 OPQ。 \\
-    FastScan & 用打包 code 和小 LUT 优化查表常数。 & 更依赖码本设置和高 recall 区间的候选预算。 \\
-    \bottomrule
-  \end{tabularx}
-  \caption{距离计算加速路径的收益与局限}
-  \label{tab:distance-paths}
-\end{table}
+    \node[box, minimum width=2.2cm] (qpq) at (0,-1.25) {query\\subvectors};
+    \node[lut, minimum width=2.4cm] (table) at (3.0,-1.25) {$M\times256$\\LUT};
+    \node[box, minimum width=2.2cm] (code) at (6.0,-1.25) {PQ codes\\packed stream};
+    \node[outbox, minimum width=2.0cm] (adc) at (8.7,-1.25) {ADC score\\top-$p$};
+    \draw[arr] (qpq) -- (table);
+    \draw[arr] (table) -- (code);
+    \draw[arr] (code) -- (adc);
+  \end{tikzpicture}}
+  \caption{Flat-AVX2 与 PQ/ADC 距离内核的数据流：前者压低点积常数，后者用 LUT 和 code stream 降低访存与距离估计成本}
+  \label{fig:simd-pq-flow}
+\end{figure}
 
 \subsection{多核 Pthread/OpenMP：IVF/IVF-PQ/HNSW 与调度}
 
-多核实验建立在 SIMD 内核之上，但它回答的问题不同。SIMD 只改变单个 worker 如何计算距离，多核实验则决定多个 worker 如何共享 query、候选列表和索引结构。若把每个 query 看成一个独立任务，inter-query 并行最自然：不同线程处理不同 query，线程之间几乎没有共享状态，最后只需汇总各自的输出。该策略在 batch 足够大时稳定，适合前 2000 条 query 的批量评测。
+多核实验建立在 SIMD 内核之上，但它回答的问题不同：多个 worker 如何共享 query、倒排表、候选窗口和图索引状态。inter-query 并行最稳定，适合前 2000 条 query 的批量评测；intra-query 并行可以降低单 query 响应时间，但需要合并局部 Top-$k$。Pthread static 划分开销小但怕 list 和 query 难度不均，dynamic 或线程池能缓解尾部等待但要付出调度成本。
 
-Intra-query 并行则尝试把同一个 query 内的 base、倒排表或候选块拆给多个线程。它可以降低单 query 的响应时间，但会引入局部 Top-$k$ 合并、共享队列、候选去重和同步等待。对 Flat 或 SQ 这类规则扫描而言，intra-query 分块比较直接；对 IVF 和 HNSW 而言，倒排表长度不均、图搜索路径依赖和候选队列维护会迅速放大同步成本。因此，多核路径的核心不是“线程越多越快”，而是识别什么任务粒度足够大、足够独立，能够覆盖调度开销。
-
-Pthread 与 OpenMP 的对照也提供了工程层面的启发。Pthread static 划分开销小，但对 query 难度和 list 长度不均敏感；dynamic 使用原子计数器分发任务，能缓解尾部等待，但每个任务都要付出原子操作成本；thread pool 避免反复创建线程，但队列同步在细粒度任务中可能成为新瓶颈。OpenMP 的 \code{parallel for} 和 schedule 策略简洁，但 runtime 开销较难被单独剥离。实验结果显示，在 IVF-PQ 这样的中等粒度任务上，线程池或 dynamic schedule 更稳；在 PQ 等 query 耗时较均匀的场景中，静态划分的低常数项可能更有优势。
-
-多核实验还把 HNSW 放入横向比较。HNSW 的图搜索能够显著减少访问点，但其搜索过程具有强数据依赖：候选优先队列和 visited 集合决定下一步扩展位置。多入口点和边划分可以提高 recall，但往往以额外搜索工作换取更完整的候选覆盖，而不是线性降低延迟。这一点在期末报告中被保留下来，用于解释为什么图索引在 trade-off 图中不应只按“快或慢”评价，而应看其在高召回区域的位置。
-
-\begin{table}[H]
-  \centering\footnotesize
-  \begin{tabularx}{\textwidth}{p{3.1cm}p{3.2cm}Y}
-    \toprule
-    多核问题 & 代表现象 & 系统解释 \\
-    \midrule
-    inter-query vs intra-query & inter-query 在批量评测中最稳定；intra-query 可降单 query latency 但合并开销高。 & 并行粒度必须与 $T_{\mathrm{topk}}$ 和 $T_{\mathrm{sync}}$ 一起评价。 \\
-    static / dynamic / pool & 规则任务偏向 static，不均匀 list 或 query 需要 dynamic/pool。 & 调度策略本质上是在低开销和负载均衡之间取舍。 \\
-    IVF-PQ 多核路径 & 代表点达到 57.61 us/query，Recall@10 约 0.95945。 & 候选削减与多核调度结合后形成低延迟 CPU 方案。 \\
-    HNSW 并行化 & 多入口或边划分可提高 recall，但图路径依赖强。 & 图索引主要优化访问点数量，而非天然适合细粒度并行。 \\
-    \bottomrule
-  \end{tabularx}
-  \caption{Pthread/OpenMP 任务调度经验}
-  \label{tab:review-thread}
-\end{table}
-
-
-\subsubsection{IVF 与 IVF-PQ}
-
-IVF 通过 KMeans 将底库划分为 $nlist$ 个簇，查询时只访问最近的 $nprobe$ 个倒排表。其精度-延迟旋钮清晰：增大 $nprobe$ 会提升召回，但扫描候选数近似线性增加。IVF-PQ 在倒排表内部使用 PQ 粗排与原始向量 rerank，进一步降低候选扫描成本。已有 Pthread/OpenMP 实验中，表 \ref{tab:env} 平台上的 IVF-PQ 代表点达到 57.61 us/query，Recall@10 约 0.95945，是多核路径中最具性价比的结果之一。
-
-多核实现中，IVF 的主要挑战不是距离内核本身，而是倒排表长度不均。若按 query 静态划分线程，某些线程可能遇到更长 list 或更难 query，导致尾部等待；若按候选块动态划分，调度开销和局部 Top-$k$ 合并次数会上升。Pthread/OpenMP 对比显示，线程池和 dynamic schedule 在中等粒度任务上更稳定，static schedule 在 query 难度差异较大时容易出现尾部空转。图 \ref{fig:multicore} 展示 IVF-PQ、HNSW 等索引在 recall 和 latency 之间的不同位置。
+IVF 通过 KMeans 将底库划分为 $nlist$ 个簇，查询时只访问最近的 $nprobe$ 个倒排表；IVF-PQ 进一步在倒排表内部用 PQ code scan 粗排，并对 top-$p$ 候选做原始向量 rerank。已有 Pthread/OpenMP 代表点在 Recall@10 约 0.95945 时达到 57.61 us/query。该结果只在这里报告一次：其意义不是单个数字本身，而是说明“候选裁剪 + 量化扫描 + 多核调度”共同把瓶颈从 FMA 转移到 list 长度不均、局部候选合并和 rerank 窗口。
 
 若图中区分 global 与 local 码本，global 表示所有倒排簇共享同一套 PQ 码本，local 表示每个簇训练独立 PQ 码本。后者可以降低簇内量化误差，但训练、存储和 cache 压力更高，因此不能只按单点延迟判断优劣。
 
-IVF-PQ 的低延迟来自两层压缩。第一层是 IVF 的 list 裁剪，它把全库访问点从 $N$ 降到若干倒排表之和；第二层是 PQ 的 code scan，它把 list 内候选的 full-vector 距离估计改为 LUT 累加。多核并行再把 query 或 list 级任务分摊到多个 worker。三者叠加后，单点距离内核已不再是唯一瓶颈，候选数量、list 分布和 rerank 窗口共同决定端到端时间。这个现象与 SIMD 实验中的 Flat-AVX2 形成对照：当访问点不变时，内核优化很快撞到访存墙；当访问点被 IVF 减少后，调度和候选维护的重要性上升。
-
 多核实验也说明了参数旋钮的系统含义。增大 $nprobe$ 会提高召回，但会让更多 list 进入扫描；增大 rerank $p$ 会提高最终候选覆盖，但会增加原始 float 精排；增加线程数可以提高吞吐，但在 list 数量小于线程数或任务粒度过细时会带来空转。OPQ/IVF-OPQ 继承了这些旋钮，因此对比时必须保持 $M$、$nprobe$ 和 $p$ 一致。否则，OPQ 的召回提升可能被更大的候选预算混淆，无法说明旋转本身的作用。
+
+算法 \ref{alg:ivfpq-online} 给出本文 IVF-PQ 在线查询的实现骨架。它把搜索拆成 coarse probe、PQ 查表粗排、局部候选合并和原始向量 rerank 四步；其中 probe list 或 query batch 可以交给多个线程处理，线程之间只在局部 top-$p$ 合并处同步。这样写出的伪代码比单纯给出延迟数字更能说明：IVF-PQ 的并行边界不在 PQ LUT 本身，而在倒排表任务划分与候选窗口维护。
+
+\begin{lstlisting}[caption={IVF-PQ online search with threaded candidate scan},label={alg:ivfpq-online},basicstyle=\ttfamily\scriptsize]
+Input: query q, centroids C, inverted lists L,
+       PQ codebooks P, raw base X, budgets nprobe, p, k
+Output: top-k ids for q
+
+probe_lists = TopN(ScoreCentroids(q, C), nprobe)
+lut = BuildPQLookupTable(q, P)
+shared_candidates = empty_top_heap(p)
+
+parallel for each list_id in probe_lists:
+    local_candidates = empty_top_heap(p)
+    for id in L[list_id]:
+        approx = SumLUT(lut, PQCode[id])
+        PushTop(local_candidates, approx, id, p)
+    MergeTop(shared_candidates, local_candidates, p)
+
+result = empty_top_heap(k)
+for id in Ids(shared_candidates):
+    exact = InnerProduct(q, X[id])
+    PushTop(result, exact, id, k)
+return result
+\end{lstlisting}
 
 \begin{figure}[H]
   \centering
@@ -352,8 +348,6 @@ IVF-PQ 的低延迟来自两层压缩。第一层是 IVF 的 list 裁剪，它�
   \label{fig:multicore}
 \end{figure}
 
-
-\subsubsection{HNSW 变体}
 
 HNSW 利用多层小世界图减少访问点，但搜索路径存在强数据依赖，因此并行化难度高于 IVF。实验覆盖了多核 HNSW 三策略，以及 MPI 侧 Block-HNSW、IVF+HNSW 与 HNSW-on-HNSW。它们在结构上体现了同一思想：用图索引减少访问点，再用线程或 rank 扩大候选扩展吞吐。与 IVF 不同，HNSW 的瓶颈通常不是单个距离内核，而是候选队列维护、访问路径依赖与局部负载不均。
 
@@ -373,6 +367,41 @@ MPI 实验中的 Block-HNSW、IVF+HNSW 与 HNSW-on-HNSW 进一步展示了“候
 
 MPI 路径的价值不只是一组加速比，而是提出了一个跨架构通用原则：并行边界处不应传递过大的中间状态，而应传递足够恢复最终结果的压缩候选。这个原则也适用于 GPU-CPU 异构实验。异构路径的慢点并不在 GPU 得分，而在完整 score 矩阵回传 CPU 后重新做候选选择，违反了“边界处只传候选”的原则。MPI 候选协议与异构实验的慢点归因形成了直接对照。
 
+\begin{figure}[H]
+  \centering
+  \resizebox{0.88\textwidth}{!}{%
+  \begin{tikzpicture}[
+    rank/.style={draw=black!55, rounded corners=2pt, align=center, minimum width=1.45cm, minimum height=0.62cm, font=\scriptsize, fill=blue!5},
+    merge/.style={draw=black!55, rounded corners=2pt, align=center, minimum width=1.62cm, minimum height=0.62cm, font=\scriptsize, fill=orange!10},
+    root/.style={draw=black!60, rounded corners=2pt, align=center, minimum width=1.95cm, minimum height=0.68cm, font=\scriptsize, fill=green!9},
+    arr/.style={-{Latex[length=2.0mm]}, thick, draw=black!65}
+  ]
+    \node[rank] (r0) at (0,0) {rank 0\\top-$k$};
+    \node[rank] (r1) at (1.8,0) {rank 1\\top-$k$};
+    \node[rank] (r2) at (3.6,0) {rank 2\\top-$k$};
+    \node[rank] (r3) at (5.4,0) {rank 3\\top-$k$};
+    \node[rank] (r4) at (7.2,0) {rank 4\\top-$k$};
+    \node[rank] (r5) at (9.0,0) {rank 5\\top-$k$};
+    \node[rank] (r6) at (10.8,0) {rank 6\\top-$k$};
+    \node[rank] (r7) at (12.6,0) {rank 7\\top-$k$};
+
+    \node[merge] (m01) at (0.9,1.45) {merge\\0--1};
+    \node[merge] (m23) at (4.5,1.45) {merge\\2--3};
+    \node[merge] (m45) at (8.1,1.45) {merge\\4--5};
+    \node[merge] (m67) at (11.7,1.45) {merge\\6--7};
+    \node[merge] (m03) at (2.7,2.9) {merge\\0--3};
+    \node[merge] (m47) at (9.9,2.9) {merge\\4--7};
+    \node[root] (mall) at (6.3,4.35) {global\\top-$k$};
+
+    \foreach \a/\b in {r0/m01,r1/m01,r2/m23,r3/m23,r4/m45,r5/m45,r6/m67,r7/m67,m01/m03,m23/m03,m45/m47,m67/m47,m03/mall,m47/mall}
+      \draw[arr] (\a) -- (\b);
+  \end{tikzpicture}}
+  \caption{MPI 候选集合的蝶形/树形归并示意：每级只保留定长 top-$k$，避免跨 rank 传递原始向量或完整得分矩阵}
+  \label{fig:mpi-butterfly}
+\end{figure}
+
+图 \ref{fig:mpi-butterfly} 把 owner-computes 协议画成类似蝶形阵列的归并网络。每个 rank 先独立完成本地搜索，再把固定长度候选送入相邻归并节点；每一级 merge 后仍只保留 top-$k$，因此通信量随 rank 数和候选长度增长，而不随底库向量数 $N$ 增长。这也是 MPI 实验中 comm+merge 占比很低的结构原因。
+
 \begin{table}[H]
   \centering\footnotesize
   \begin{tabularx}{\textwidth}{p{3.0cm}r r Y}
@@ -389,10 +418,6 @@ MPI 路径的价值不只是一组加速比，而是提出了一个跨架构通�
 \end{table}
 
 
-\subsubsection{MPI 候选协议}
-
-MPI 路径采用 owner-computes 的底库分片策略，各 rank 只搜索 rank-local 分片并返回定长候选，root 端做全局 merge。已有 MS-MPI 多 rank 结果显示，IVF-PQ 4 ranks $\times$ 2 threads 的代表点为 232.45 us/query，Recall@10=0.96560，相对串行 Flat 可达到 19.67 倍加速；MPI Block-HNSW 8 ranks $\times$ 2 threads 达到 195.11 us/query，Recall@10=1.00000。两者的 comm+merge 占比约 1\%，说明在 DEEP100K 规模下，通信不是主瓶颈；rank-local 搜索和负载均衡仍决定端到端延迟。单节点 MS-MPI 点并不以击败共享内存 OpenMP 为目标，其价值在于验证底库分片、定长候选协议和全局 merge 的正确性；若扩展到跨机器或更大底库，该协议才体现容量扩展意义。
-
 \begin{figure}[H]
   \centering
   \maybeincludegraphics[width=0.64\textwidth]{mpi_comm_balance.pdf}
@@ -400,7 +425,7 @@ MPI 路径采用 owner-computes 的底库分片策略，各 rank 只搜索 rank-
   \label{fig:mpi}
 \end{figure}
 
-通信占比低并不意味着 MPI 没有代价，而是说明当前数据规模和候选协议把通信量控制在较小范围。每个 rank 只返回定长候选，消息规模约为 $O(k\cdot r)$ 而非 $O(N)$；root 端 merge 的复杂度也与候选数相关。因此，继续压缩通信格式只能带来有限收益，更应关注各 rank 的候选扫描时间是否均衡。若扩展到跨机器集群，网络延迟和数据分片放置会重新变得重要；本报告主结论限定在单机多 rank 实验。
+图 \ref{fig:mpi} 补充了实测占比：在 DEEP100K 与定长候选协议下，comm+merge 约为 1\% 量级，rank-local 搜索和负载均衡仍决定端到端延迟。单节点 MS-MPI 点并不以击败共享内存 OpenMP 为目标，其价值在于验证底库分片、全局 id 和全局 merge 的正确性；若扩展到跨机器或更大底库，该协议才体现容量扩展意义。
 
 MPI 实验还提供了一个重要的正确性约束。每个 rank 返回的候选必须携带全局 id，root 端合并后才能与 ground truth 对齐；如果局部 id 没有转换，Recall 会被系统性低估或高估。这个细节在共享内存实验中不明显，因为所有线程天然访问同一个全局数组；到了 MPI 或异构设备边界，id 映射就成为算法正确性的一部分。期末报告保留这一点，是因为 GPU-CPU 异构精排同样需要在 GPU 粗排候选、CPU 原始向量和最终 ground truth 之间保持 id 一致。
 
@@ -446,11 +471,25 @@ GPU 路径给出两条重要经验。第一，GPU 的优势依赖 batch 和规�
 \end{table}
 
 
-\subsubsection{GPU GEMM 与设备端 Top-$k$}
+算法 \ref{alg:gpu-topk} 展示 GPU-only 路径的执行顺序。关键点是 score 矩阵产生后不立即完整回传主机，而是在 device 端对每个 query 行做块内局部 top-$k$，再用树形归约合并。这样得到的输出规模从 $Q\times N$ 个 score 压缩到 $Q\times k$ 个候选 id 和分数，正是后文异构实验反复强调的“候选压缩必须靠近设备端”。
 
-GPU 路径将 query batch 与 base 矩阵做乘法，得分矩阵由手写 tiled GEMM 或 cuBLAS 产生。统一口径采用 GPU-only cublas\_tree 在线基线：在 $query\_n=2000$ 时达到 78.68 us/query，Recall@10=0.99995，相对串行 Flat 加速 58.10 倍。该结果说明 GPU 对规则、批量、矩阵化的得分计算非常适合；同时 CUDA event 分段也显示，当 GEMM 被加速后，设备端 Top-$k$ 与结果拷贝会变成显性开销。
+\begin{lstlisting}[caption={GPU GEMM scoring with device-side tree Top-k},label={alg:gpu-topk},basicstyle=\ttfamily\scriptsize]
+Input: base matrix B, query batch Q, top-k k
+Output: top-k ids and scores for each query
 
-GPU 侧比较了手写 $16\times16$ tiled GEMM、cuBLAS、线程 0 合并 Top-$k$ 与共享内存树形合并 Top-$k$。在 $query\_n=2000$ 时，手写 GEMM 的 score 阶段约 240.08 ms，cuBLAS 降至约 69.47 ms；线程 0 合并 Top-$k$ 约 226.56 ms，树形合并降至约 91.92 ms。两项优化叠加后形成 cublas\_tree 代表点。该对照说明 GPU 优化不能只盯矩阵乘法：得分矩阵越快产生，Top-$k$ 合并、结果回传和 query chunk 管理越容易成为主导项。
+for each query chunk Qc:
+    S = cuBLAS_GEMM(B, Transpose(Qc))  // dense scores
+
+    launch TopKKernel(S):
+        for each query row handled by one block:
+            each thread scans a strided score tile
+            local = thread_private_topk(k)
+            shared = BlockTreeReduceTopK(local, k)
+            write shared ids and scores to device output
+
+copy only Qc.size * k ids and scores back to host
+return all compact top-k candidates
+\end{lstlisting}
 
 GPU IVF grouped 路径则尝试减少访问点。per-query IVF 让每个 query block 扫描自己的 probe list，控制简单但 batch 内候选集合不一致；grouped-IVF 先按 probe 簇重排 query，把访问同一 list 的 query 组成小 batch，再用局部 GEMM 扫描候选。该方法把不规则 probe 访问部分重新转化为矩阵化计算，但需要额外的分桶和重排。已有结果中 grouped-IVF 在 $nlist=16,nprobe=4$ 时 Recall@10 约 0.9628，在线延迟约 145.32 us/query；$nprobe=8$ 时 Recall@10 约 0.99345，延迟约 189.90 us/query，体现了候选裁剪和矩阵化吞吐之间的折中。
 
@@ -534,9 +573,11 @@ GPU 实验与 CPU 多核实验的差异在于，GPU 更难容忍不规则控制�
     \midrule
     固定 2/500 & 0.86940 & 148.43 & 2.00 & 500.00 & 低预算固定点。 \\
     固定 4/1000 & 0.95945 & 229.06 & 4.00 & 1000.00 & 中等预算固定点。 \\
+    固定 5/1000 & 0.97300 & 324.82 & 5.00 & 1000.00 & 近邻固定预算点。 \\
     固定 8/1500 & 0.99265 & 340.32 & 8.00 & 1500.00 & 高预算固定点。 \\
     保守自适应 & 0.96520 & 217.38 & 3.91 & 919.20 & easy/medium/hard 分配预算。 \\
     激进自适应 & 0.97115 & 216.00 & 4.44 & 953.75 & hard query 使用更高预算。 \\
+    召回优先 & 0.98420 & 301.43 & 5.53 & 1155.75 & 更偏向提高 hard query 覆盖。 \\
     保守自适应+分组 & 0.96520 & 186.54 & 3.91 & 919.20 & 分组执行后调度开销更低。 \\
     \bottomrule
   \end{tabular}
@@ -699,7 +740,34 @@ OPQ 的结果需要与 PQ/FastScan 放在一起理解。FastScan 优化的是“
   \label{fig:gpu-hybrid-batch}
 \end{figure}
 
-图 \ref{fig:gpu-hybrid-batch} 还显示 batch 尺寸对 GPU 路径影响很大。单 query 情况下，GPU-only 因 kernel 启动、数据搬运和固定开销导致单查询延迟很高；当 batch 增至 512 或 2000 后，base 矩阵可被批量共享，GEMM 吞吐优势才充分体现。异构路径虽然在 $p=100$ 时保持很高召回，但它需要把 $query\_n\times base\_n$ 的完整 score 矩阵传回 CPU，再在主机侧做 top-$p$ 选择。若未来要让异构协同真正有竞争力，关键不是把 CPU rerank 再向量化一次，而是在 GPU 端直接输出 top-$p$ 候选 id，把 D2H 数据量从完整 score 矩阵降到 $query\_n\times p$ 个候选。
+\begin{figure}[H]
+  \centering
+  \resizebox{0.90\textwidth}{!}{%
+  \begin{tikzpicture}[
+    stage/.style={draw=black!55, rounded corners=2pt, align=center, minimum width=2.10cm, minimum height=0.68cm, font=\scriptsize, fill=blue!5},
+    bad/.style={draw=black!55, rounded corners=2pt, align=center, minimum width=2.30cm, minimum height=0.68cm, font=\scriptsize, fill=red!7},
+    good/.style={draw=black!55, rounded corners=2pt, align=center, minimum width=2.30cm, minimum height=0.68cm, font=\scriptsize, fill=green!8},
+    cpu/.style={draw=black!55, rounded corners=2pt, align=center, minimum width=2.10cm, minimum height=0.68cm, font=\scriptsize, fill=orange!10},
+    arr/.style={-{Latex[length=2.0mm]}, thick, draw=black!65}
+  ]
+    \node[stage] (q) at (0,0) {query batch\\$Q\times d$};
+    \node[stage] (gemm) at (2.7,0) {cuBLAS GEMM\\$Q\times N$ score};
+    \node[bad] (full) at (5.7,0.9) {完整 score 回传\\$Q\times N$ floats};
+    \node[cpu] (host) at (8.7,0.9) {host top-$p$\\+ CPU rerank};
+    \node[good] (top) at (5.7,-0.9) {device top-$p$\\候选压缩};
+    \node[cpu] (small) at (8.7,-0.9) {回传候选 id/score\\$Q\times p$};
+
+    \draw[arr] (q) -- (gemm);
+    \draw[arr] (gemm) -- node[above, font=\scriptsize] {朴素路径} (full);
+    \draw[arr] (full) -- (host);
+    \draw[arr] (gemm) -- node[below, font=\scriptsize] {推荐边界} (top);
+    \draw[arr] (top) -- (small);
+  \end{tikzpicture}}
+  \caption{GPU-CPU 边界处的候选压缩原则：不要回传完整 score 矩阵，而应在设备端先压缩为 top-$p$ 候选}
+  \label{fig:gpu-candidate-compression}
+\end{figure}
+
+图 \ref{fig:gpu-hybrid-batch} 还显示 batch 尺寸对 GPU 路径影响很大。单 query 情况下，GPU-only 因 kernel 启动、数据搬运和固定开销导致单查询延迟很高；当 batch 增至 512 或 2000 后，base 矩阵可被批量共享，GEMM 吞吐优势才充分体现。异构路径虽然在 $p=100$ 时保持很高召回，但它需要把 $query\_n\times base\_n$ 的完整 score 矩阵传回 CPU，再在主机侧做 top-$p$ 选择。图 \ref{fig:gpu-candidate-compression} 将这个问题抽象成边界数据规模问题：若未来要让异构协同真正有竞争力，关键不是把 CPU rerank 再向量化一次，而是在 GPU 端直接输出 top-$p$ 候选 id，把 D2H 数据量从完整 score 矩阵降到 $query\_n\times p$ 个候选。
 
 异构实验给出了清晰的边界条件：跨 CPU-GPU 边界不应传递完整 score 矩阵，而应传递足够小的候选 id 和分数。若 GPU 端完成 top-$p$，D2H 数据量可由 $Q\times N$ 个 float 降至 $Q\times p$ 个候选；当 $Q=2000,N=100000,p=100$ 时，传输规模相差三个数量级。此时 CPU rerank 才可能作为灵活精排后端存在。当前实现保留完整 score 回传路径，用于量化朴素异构方案的代价，并给出设备端候选压缩的必要性。
 
