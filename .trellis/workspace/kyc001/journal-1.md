@@ -269,3 +269,36 @@ Archived the ANN MPI non-blocking communication task after verifying MPI/no-MPI 
 ### Next Steps
 
 - None - task complete
+
+
+## Session 9: 完善并行程序设计课程仓库 README
+
+**Date**: 2026-07-15
+**Task**: 完善并行程序设计课程仓库 README
+**Branch**: `master`
+
+### Summary
+
+深入梳理课程作业、ANN 选题材料和各阶段实验报告，重写根 README，记录 96/100 成绩、ANN 技术主线、代表性性能结果、仓库导航与复现说明，并完成链接、数字和 Markdown 静态校验。
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `60d73fa` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

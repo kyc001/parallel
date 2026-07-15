@@ -8,8 +8,8 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 8
-- **Last Active**: 2026-05-29
+- **Total Sessions**: 9
+- **Last Active**: 2026-07-15
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~271 | Active |
+| `journal-1.md` | ~304 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 9 | 2026-07-15 | 完善并行程序设计课程仓库 README | `60d73fa` | `master` |
 | 8 | 2026-05-29 | Finish non-blocking MPI task | `b6b2927` | `master` |
 | 7 | 2026-05-26 | Review pthread-omp report rendering | `6a6f1b6` | `master` |
 | 6 | 2026-05-26 | Pthread OMP report consistency polish | `ee792f3` | `master` |
